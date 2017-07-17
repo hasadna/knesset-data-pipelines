@@ -1,0 +1,15 @@
+/.git
+/.idea
+/*.egg-info
+/.cache
+/.ipynb_checkpoints
+/.tox
+/data
+/tests
+/.dpp.db
+/.env
+/.env.example
+/.travis.yml
+*.md
+/tox.ini
+/docker-compose*

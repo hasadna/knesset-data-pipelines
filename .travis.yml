@@ -1,0 +1,10 @@
+language: python
+python:
+  - 3.6
+install:
+  - make install
+script:
+  - make test
+cache:
+  directories:
+  - "$HOME/.cache"
