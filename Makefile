@@ -3,13 +3,10 @@
 install:
 	pip install --upgrade pip setuptools
 	pip install --upgrade -e .[develop]
+	pip install --upgrade https://github.com/OriHoch/knesset-data-python/archive/gilwo-python-2-3.zip
 
 test:
 	tox -r
-
-clean:
-	pip uninstall -y knesset-data-pipelines || true
-	pip freeze | xargs pip uninstall -y || true
 
 docker-build:
 	docker build -t knesset-data-pipelines .

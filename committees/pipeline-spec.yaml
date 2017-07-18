@@ -1,0 +1,65 @@
+committees:
+  schedule:
+    crontab: "0 0 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: committees
+    - run: ..processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: committees
+        service-name: committees
+        method-name: "View_committee"
+        fields:
+          id:
+            source: committee_id
+            type: integer
+            description: the primary key
+          type_id:
+            source: committee_type_id
+            type: integer
+            description: linked to committee types dataservice
+          parent_id:
+            source: committee_parent_id
+            type: integer
+            description: used for sub-committees, not sure if reliable
+          name:
+            source: committee_name
+            type: string
+            description: hebrew name
+          name_eng:
+            source: committee_name_eng
+            type: string
+          name_arb:
+            source: committee_name_arb
+            type: string
+          begin_date:
+            source: committee_begin_date
+            type: datetime
+          end_date:
+            source: committee_end_date
+            type: datetime
+            description: we assume empty end_date means committee is active in current Knesset
+          description:
+            source: committee_desc
+            type: string
+            description: hebrew description
+          description_eng:
+            source: committee_desc_eng
+            type: string
+          description_arb:
+            source: committee_desc_arb
+            type: string
+          note:
+            source: committee_note
+            type: string
+          note_eng:
+            source: committee_note_eng
+            type: string
+          portal_link:
+            source: committee_portal_link
+            type: string
+            description: can be used to link to the dedicated page in knesset website
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/committees
