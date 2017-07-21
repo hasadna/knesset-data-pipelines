@@ -14,4 +14,7 @@ deploy:
   provider: script
   script: .travis/deploy.sh
   on:
-    condition: '[ "${TRAVIS_TAG}" != "" ] || [ "${TRAVIS_BRANCH}" == "master" ]'
+    condition: -n $TRAVIS_TAG || -n $TRAVIS_BRANCH
+sudo: required
+services:
+  - docker
