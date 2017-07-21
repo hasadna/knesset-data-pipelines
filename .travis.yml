@@ -4,7 +4,7 @@ python:
 before_install:
   - '[ "${TRAVIS_TAG}" == "" ] || echo "${TRAVIS_TAG}" > VERSION.txt'
 install:
-  - make install
+  - pip install tox
 script:
   - make test
 cache:
@@ -14,5 +14,4 @@ deploy:
   provider: script
   script: .travis/deploy.sh
   on:
-    branch: master
-    tags: true
+    condition: '[ "${TRAVIS_TAG}" != "" ] || [ "${TRAVIS_BRANCH}" == "master" ]'
