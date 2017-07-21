@@ -1,38 +1,21 @@
-.PHONY: install test clean docker-build docker-start docker-logs docker-logs-f docker-restart docker-clean-start docker-stop
+.PHONY: install test clean docker-build docker-restart docker-logs docker-stop
 
 install:
-	pip install --upgrade pip setuptools
-	pip install --upgrade -e .[develop]
 	pip install --upgrade https://github.com/OriHoch/knesset-data-python/archive/gilwo-python-2-3.zip
+	pip install -e .[develop]
 
 test:
-	tox -r
+	tox
 
 docker-build:
-	docker build -t knesset-data-pipelines .
-
-docker-start:
-	docker-compose up -d
-
-docker-logs:
-	docker-compose logs
-
-docker-logs-f:
-	docker-compose logs -f
+	docker build -t orihoch/knesset-data-pipelines .
 
 docker-restart:
-	docker-compose restart
-	make docker-logs-f
+	docker rm --force knesset-data-redis knesset-data-pipelines || true
+	docker network create knesset-data || true
+	docker run --network knesset-data --name knesset-data-redis -d redis:alpine
+	docker run --network knesset-data --name knesset-data-pipelines --env DPP_REDIS_HOST=knesset-data-redis -p 5000:5000 -d orihoch/knesset-data-pipelines
 
-docker-clean-start:
-	docker-compose down
-	make docker-build
-	make docker-start
-	echo
-	echo "waiting 5 seconds to let services start"
-	sleep 5
-	echo
-	make docker-logs-f
-
-docker-stop:
-	docker-compose stop
+docker-logs:
+	docker logs knesset-data-redis
+	docker logs knesset-data-pipelines

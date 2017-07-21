@@ -13,13 +13,17 @@ RUN apk add --update --no-cache --virtual=build-dependencies \
     python3-dev postgresql-dev
 RUN apk --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --update add leveldb leveldb-dev
 RUN pip install psycopg2 datapackage-pipelines-github lxml datapackage-pipelines[speedup]
-
-ENV PYTHONUNBUFFERED 1
+RUN apk add --update --no-cache git
 
 RUN mkdir /knesset
 WORKDIR /knesset
 ADD . /knesset/
 
-RUN pip install -e /knesset
+ENV PYTHONUNBUFFERED 1
+
+RUN cd /knesset && make install
 
 ENTRYPOINT ["/knesset/docker-run.sh"]
+
+EXPOSE 5000
+VOLUME /knesset/data

@@ -1,6 +1,8 @@
 language: python
 python:
   - 3.6
+before_install:
+  - [ "${TRAVIS_TAG}" == "" ] || echo "${TRAVIS_TAG}" > VERSION.txt
 install:
   - make install
 script:
@@ -8,3 +10,9 @@ script:
 cache:
   directories:
   - "$HOME/.cache"
+deploy:
+  provider: script
+  script: .travis/deploy.sh
+  on:
+    branch: master
+    tags: true

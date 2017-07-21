@@ -13,7 +13,7 @@ setup(
     name="knesset-data-pipelines",
     version=version,
     packages=find_packages(exclude=["tests", "test.*"]),
-    install_requires=["datapackage-pipelines"],
+    install_requires=["datapackage-pipelines", "knesset-data"],
     extras_require={'develop': ["tox", "pytest"]},
     url='https://github.com/OriHoch/knesset-data-pipelines',
     license='MIT',
