@@ -10,11 +10,3 @@ script:
 cache:
   directories:
   - "$HOME/.cache"
-deploy:
-  provider: script
-  script: .travis/deploy.sh
-  on:
-    condition: -n $TRAVIS_TAG || -n $TRAVIS_BRANCH
-sudo: required
-services:
-  - docker
