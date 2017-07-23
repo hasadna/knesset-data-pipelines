@@ -1,6 +1,3 @@
-from datapackage_pipelines.wrapper import ingest, spew
-
-
 class BaseProcessor(object):
 
     def __init__(self, parameters=None, datapackage=None, resources=None):
@@ -10,6 +7,7 @@ class BaseProcessor(object):
 
     @classmethod
     def main(cls):
+        from datapackage_pipelines.wrapper import ingest, spew
         spew(*cls(*ingest()).spew())
 
     def spew(self):

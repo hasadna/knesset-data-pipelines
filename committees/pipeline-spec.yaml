@@ -5,7 +5,7 @@ committees:
     - run: add_metadata
       parameters:
         name: committees
-    - run: ..processors.add_dataservice_collection_resource
+    - run: datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
         resource-name: committees
         service-name: committees
@@ -35,7 +35,7 @@ committees:
             type: string
           begin_date:
             source: committee_begin_date
-            type: datetime
+            type: date
           end_date:
             source: committee_end_date
             type: datetime
@@ -63,3 +63,189 @@ committees:
     - run: dump.to_path
       parameters:
         out-path: ../data/committees
+
+committee-meetings:
+  dependencies:
+    - pipeline: ./committees/committees
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: committee-meetings
+    - run: load_resource
+      parameters:
+        resource: committees
+        url: ../data/committees/datapackage.json
+    - run: datapackage_pipelines_knesset.dataservice.processors.dataservice_function_resource
+      parameters:
+        input-resource: committees
+        output-resource: committee-meetings
+        base-url: http://online.knesset.gov.il/WsinternetSps/KnessetDataService/CommitteeScheduleData.svc/CommitteeAgendaSearch
+        # these are the dataservice function parameters
+        parameters:
+          CommitteeId:
+            source: input-resource
+            field: id
+          FromDate:
+            source: current-date
+            timedelta:
+              - unit: days
+                value: -120
+          ToDate:
+            source: current-date
+        parameter-retries:
+          - FromDate:
+              timedelta-value: -60
+          - FromDate:
+              timedelta-value: -30
+          - FromDate:
+              timedelta-value: -15
+          - FromDate:
+              timedelta-value: -1
+        # mapping between the dataservice fields and the datapackage fields
+        fields:
+          id:
+            source: Committee_Agenda_id
+            type: integer
+            description: the primary key of committee meetings
+          committee_id:
+            source: Committee_Agenda_committee_id
+            type: integer
+            description: id of the committee (linked to Committee object)
+          datetime:
+            source: committee_agenda_date
+            type: datetime
+            description: date/time when the meeting started
+          title:
+            source: title
+            type: string
+            description: title of the meeting
+          session_content:
+            source: committee_agenda_session_content
+            type: string
+            description: seems like in some committee meetings, the title field is empty, in that case title can be taken from this field
+          url:
+            source: url
+            type: string
+            description: url to download the protocol
+          # a CommitteeMeetingProtocol object which allows to get data from the protocol
+          # because parsing the protocol requires heavy IO and processing - we provide it as a generator
+          # see tests/test_meetings.py for usage example
+#          protocol:
+#            source: KnessetDataServiceLambdaField(lambda obj, entry: CommitteeMeetingProtocol.get_from_url(obj.url, proxies=obj._proxies) if obj.url else None))
+          location:
+            source: committee_location
+            type: string
+            description: this seems like a shorter name of the place where meeting took place
+          place:
+            source: Committee_Agenda_place
+            type: string
+            description: this looks like a longer field with the specific details of where the meeting took place
+          meeting_stop:
+            source: meeting_stop
+            type: string
+            description: date/time when the meeting ended - this is not always available, in some meetings it's empty
+          ### following fields seem less interesting ###
+          agenda_canceled:
+            source: Committee_Agenda_canceled
+            type: string
+          agenda_sub:
+            source: Committee_agenda_sub
+            type: string
+          agenda_associated:
+            source: Committee_agenda_associated
+            type: string
+          agenda_associated_id:
+            source: Committee_agenda_associated_id
+            type: string
+          agenda_special:
+            source: Committee_agenda_special
+            type: string
+          agenda_invited1:
+            source: Committee_agenda_invited1
+            type: string
+          agenda_invite:
+            source: sd2committee_agenda_invite
+            type: boolean
+          note:
+            source: Committee_agenda_note
+            type: string
+          start_datetime:
+            source: StartDateTime
+            type: datetime
+          topic_id:
+            source: Topic_ID
+            type: integer
+          creation_date:
+            source: Date_Creation
+            type: datetime
+          streaming_url:
+            source: streaming_url
+            type: string
+          meeting_start:
+            source: meeting_start
+            type: string
+          is_paused:
+            source: meeting_is_paused
+            type: boolean
+          date_order:
+            source: committee_date_order
+            type: string
+          date:
+            source: committee_date
+            type: string
+          day:
+            source: committee_day
+            type: string
+          month:
+            source: committee_month
+            type: string
+          material_id:
+            source: material_id
+            type: string
+          material_committee_id:
+            source: material_comittee_id
+            type: string
+          material_expiration_date:
+            source: material_expiration_date
+            type: string
+          material_hour:
+            source: committee_material_hour
+            type: string
+          old_url:
+            source: OldUrl
+            type: string
+          background_page_link:
+            source: CommitteeBackgroundPageLink
+            type: string
+          agenda_invited:
+            source: Committee_agenda_invited
+            type: string
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/committee-meetings
+
+sql-update:
+  dependencies:
+    - pipeline: ./committees/committees
+    - pipeline: ./committees/committee-meetings
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: committees-sql-update
+    - run: load_resource
+      parameters:
+        resource: committees
+        url: ../data/committees/datapackage.json
+    - run: load_resource
+      parameters:
+        resource: committee-meetings
+        url: ../data/committee-meetings/datapackage.json
+    - run: dump.to_sql
+      parameters:
+        tables:
+          committees:
+            resource-name: committees
+            mode: update
+          committee-meetings:
+            resource-name: committee-meetings
+            mode: update

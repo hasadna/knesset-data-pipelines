@@ -1,5 +1,8 @@
 # Knesset data datapackage pipelines
 
+[![Build Status](https://travis-ci.org/OriHoch/knesset-data-pipelines.svg?branch=master)](https://travis-ci.org/OriHoch/knesset-data-pipelines)
+[![Docker Automated build](https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg)](https://hub.docker.com/r/orihoch/knesset-data-pipelines/)
+
 Pipelines for data sync for knesset-data
 
 Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines)
