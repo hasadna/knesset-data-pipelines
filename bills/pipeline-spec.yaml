@@ -1,0 +1,62 @@
+bills:
+  schedule:
+    crontab: "0 0 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: bills
+    - run: datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: bills
+        service-name: api
+        method-name: "KNS_Bill"
+        fields:
+          id:
+            source: BillID
+            type: integer
+            description: the primary key
+          kns_num:
+            source: KnessetNum
+            type: integer
+            description: kneset number
+          name:
+            source: Name
+            type: string
+            description: hebrew name
+          type_id:
+            source: SubTypeID
+            type: integer
+            description: type id of the bill
+          type_description:
+            source: SubTypeDesc
+            type: string
+            description: type description of the bill
+          private_num:
+            source: PrivateNumber
+            type: integer
+          committee_id:
+            source: CommitteeID
+            type: integer
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/bills
+
+
+sql-update:
+  dependencies:
+    - pipeline: ./bills/bills
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: bills-sql-update
+    - run: load_resource
+      parameters:
+        resource: bills
+        url: ../data/bills/datapackage.json
+    - run: dump.to_sql
+      parameters:
+        tables:
+          bills:
+            resource-name: bills
+            mode: update
+
