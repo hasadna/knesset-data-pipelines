@@ -7,15 +7,26 @@ Knesset data scrapers and data sync
 
 Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines)
 
-## Quickstart
+## Running the full pipelines environment using docker
+
+* Install docker (refer to Docker guides for your OS)
+* `make docker-build`
+* `make docker-restart`
+
+This will provide:
+
+* Pipelines dashboard: http://localhost:5000/
+* PostgreSQL server: postgresql://postgres:123456@localhost:15432/postgres
+* Data files under: .data-docker/
+
+After every change in the code you should run `make docker-build && make docker-restart`
+
+## Running the project locally
+
+Only the latest Python version is supported (3.6)
 
 * `make install`
 * `make test`
 * `dpp`
 
-## Docker
-
-* `make docker-build`
-* `make docker-restart`
-* `make docker-logs`
-* goto: http://localhost:5000/
+You can set some environment variables to modify behaviors, see a refernece at .env.example

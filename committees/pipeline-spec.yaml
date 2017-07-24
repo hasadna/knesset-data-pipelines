@@ -86,12 +86,11 @@ committee-meetings:
     - run: add_metadata
       parameters:
         name: committee-meetings
-    - run: ..datapackage_pipelines_knesset.common.processors.add_sql_resource
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
         datapackage: ../data/committees/datapackage.json
-        resource: committees
+        resource-name: committees
         table: committees
-    - run: stream_remote_resources
     - run: ..datapackage_pipelines_knesset.dataservice.processors.dataservice_function_resource
       parameters:
         input-resource: committees
@@ -266,12 +265,11 @@ committee-meeting-protocols:
     - run: add_metadata
       parameters:
         name: committee-meeting-protocols
-    - run: ..datapackage_pipelines_knesset.common.processors.add_sql_resource
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
         datapackage: ../data/committee-meetings/datapackage.json
-        resource: committee-meetings
+        resource-name: committee-meetings
         table: committee-meetings
-    - run: stream_remote_resources
     # only downloads protocols for meetings which don't have protocol_text value in DB
     - run: ..datapackage_pipelines_knesset.committees.processors.download_committee_meeting_protocols
       parameters:

@@ -8,7 +8,8 @@ class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
         return BaseKnessetDataServiceCollectionObject
 
     def _extend_dataservice_class(self, dataservice_class):
-        class ExtendedDataserviceClass(dataservice_class):
+        BaseDataserviceClass = super(AddDataserviceCollectionResourceProcessor, self)._extend_dataservice_class(dataservice_class)
+        class ExtendedDataserviceClass(BaseDataserviceClass):
             SERVICE_NAME = self._parameters["service-name"]
             METHOD_NAME = self._parameters["method-name"]
             DEFAULT_ORDER_BY_FIELD = self._parameters.get("order_by", "id")
