@@ -14,7 +14,7 @@ class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
             DEFAULT_ORDER_BY_FIELD = self._parameters.get("order_by", "id")
         return ExtendedDataserviceClass
 
-    def _get_dataservice_objects(self):
+    def _get_resource(self):
         for dataservice_object in self.dataservice_class.get_all():
             yield self._filter_dataservice_object(dataservice_object)
 

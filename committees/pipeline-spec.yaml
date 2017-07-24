@@ -5,7 +5,7 @@ committees:
     - run: add_metadata
       parameters:
         name: committees
-    - run: datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
         resource-name: committees
         service-name: committees
@@ -64,18 +64,35 @@ committees:
       parameters:
         out-path: ../data/committees
 
-committee-meetings:
+committees-update-db:
   dependencies:
     - pipeline: ./committees/committees
   pipeline:
-    - run: add_metadata
-      parameters:
-        name: committee-meetings
     - run: load_resource
       parameters:
         resource: committees
         url: ../data/committees/datapackage.json
-    - run: datapackage_pipelines_knesset.dataservice.processors.dataservice_function_resource
+    - run: dump.to_sql
+      parameters:
+        tables:
+          committees:
+            resource-name: committees
+            mode: update
+
+committee-meetings:
+  dependencies:
+    - pipeline: ./committees/committees-update-db
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: committee-meetings
+    - run: ..datapackage_pipelines_knesset.common.processors.add_sql_resource
+      parameters:
+        datapackage: ../data/committees/datapackage.json
+        resource: committees
+        table: committees
+    - run: stream_remote_resources
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.dataservice_function_resource
       parameters:
         input-resource: committees
         output-resource: committee-meetings
@@ -85,6 +102,7 @@ committee-meetings:
           CommitteeId:
             source: input-resource
             field: id
+            override-values-env: OVERRIDE_COMMITTEE_IDS
           FromDate:
             source: current-date
             timedelta:
@@ -220,22 +238,16 @@ committee-meetings:
           agenda_invited:
             source: Committee_agenda_invited
             type: string
+          protocol_text:
+            type: string
     - run: dump.to_path
       parameters:
         out-path: ../data/committee-meetings
 
-sql-update:
+committee-meetings-update-db:
   dependencies:
-    - pipeline: ./committees/committees
     - pipeline: ./committees/committee-meetings
   pipeline:
-    - run: add_metadata
-      parameters:
-        name: committees-sql-update
-    - run: load_resource
-      parameters:
-        resource: committees
-        url: ../data/committees/datapackage.json
     - run: load_resource
       parameters:
         resource: committee-meetings
@@ -243,9 +255,79 @@ sql-update:
     - run: dump.to_sql
       parameters:
         tables:
-          committees:
-            resource-name: committees
-            mode: update
           committee-meetings:
             resource-name: committee-meetings
             mode: update
+
+committee-meeting-protocols:
+  dependencies:
+    - pipeline: ./committees/committee-meetings-update-db
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: committee-meeting-protocols
+    - run: ..datapackage_pipelines_knesset.common.processors.add_sql_resource
+      parameters:
+        datapackage: ../data/committee-meetings/datapackage.json
+        resource: committee-meetings
+        table: committee-meetings
+    - run: stream_remote_resources
+    # only downloads protocols for meetings which don't have protocol_text value in DB
+    - run: ..datapackage_pipelines_knesset.committees.processors.download_committee_meeting_protocols
+      parameters:
+        input-resource: committee-meetings
+        output-resource: committee-meeting-protocols
+        meetings-table: committee-meetings
+        out-path: ../data/committee-meeting-protocols
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/committee-meeting-protocols
+
+committee-meeting-protocols-parse:
+  dependencies:
+    - pipeline: ./committees/committee-meeting-protocols
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: committee-meeting-protocols-parse
+    - run: load_resource
+      parameters:
+        resource: committee-meeting-protocols
+        url: ../data/committee-meeting-protocols/datapackage.json
+    # parse the downloaded protocol into text and parts files which will be saved in out-path
+    - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_protocols
+      parameters:
+        input-resource: committee-meeting-protocols
+        output-resource: committee-meeting-protocols-parsed
+        out-path: ../data/committee-meeting-protocols-parsed
+    # saves the protocol_text in meetings-table
+    # deletes all protocol parts for each meeting (because they will be appended in next pipeline)
+    # emits protocol_parts resource
+    - run: ..datapackage_pipelines_knesset.committees.processors.committee_meeting_protocols_update_db
+      parameters:
+        input-resource: committee-meeting-protocols-parsed
+        output-resource: committee-meeting-protocol-parts
+        meetings-table: committee-meetings
+        protocol-parts-table: committee-meeting-protocol-parts
+    # save the protocol_parts
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/committee-meeting-protocols-parsed
+
+committee-meeting-protocol-parts-update-db:
+  dependencies:
+    - pipeline: ./committees/committee-meeting-protocols-parse
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: committee-meeting-protocol-parts-update-db
+    - run: load_resource
+      parameters:
+        resource: committee-meeting-protocol-parts
+        url: ../data/committee-meeting-protocols-parsed/datapackage.json
+    - run: dump.to_sql
+      parameters:
+        tables:
+          committee-meeting-protocol-parts:
+            resource-name: committee-meeting-protocol-parts
+            mode: append
