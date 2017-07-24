@@ -9,9 +9,8 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
 
 ## Running the full pipelines environment using docker
 
-* Install docker (refer to Docker guides for your OS)
-* `make docker-build`
-* `make docker-restart`
+* Install Docker and Docker Compose (refer to Docker guides for your OS)
+* `make docker-start`
 
 This will provide:
 
@@ -19,7 +18,7 @@ This will provide:
 * PostgreSQL server: postgresql://postgres:123456@localhost:15432/postgres
 * Data files under: .data-docker/
 
-After every change in the code you should run `make docker-build && make docker-restart`
+After every change in the code you should run `make docker-build && make docker-start`
 
 ## Running the project locally
 
