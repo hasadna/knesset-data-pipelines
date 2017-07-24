@@ -28,7 +28,7 @@ class BaseProcessor(object):
 
     def _get_resource(self):
         # will be called in case of _process_append
-        # should yield all the resource items
+        # should yield all the resource items and call self._process_cleanup() at the end
         raise NotImplementedError()
 
     def _filter_row(self, row, **kwargs):
@@ -46,6 +46,7 @@ class BaseProcessor(object):
                 yield self._filter_resource(data)
             else:
                 yield data
+        self._process_cleanup()
 
     def _process_filter(self, datapackage, resources):
         for resource_descriptor in datapackage["resources"]:
@@ -61,3 +62,6 @@ class BaseProcessor(object):
                                          "path": "{}.csv".format(self._parameters["resource-name"])})
         resources = chain(resources, [self._get_resource()])
         return datapackage, resources
+
+    def _process_cleanup(self):
+        pass

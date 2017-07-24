@@ -14,7 +14,19 @@ class CommitteeMeetingProtocolsUpdateDbProcessor(BaseProcessor):
                                      "description": "relative path to the protocol file"},
                                     {"name": "order", "type": "integer"}],
                             primaryKey=["meeting_id", "order"])
-        self._db_session = get_session()
+
+    @property
+    def db_session(self):
+        if not hasattr(self, "_db_session"):
+            self._db_session = self._get_new_db_session()
+        return self._db_session
+
+    def _get_new_db_session(self):
+        return get_session()
+
+    def _process_cleanup(self):
+        self._db_session.commit()
+        super(CommitteeMeetingProtocolsUpdateDbProcessor, self)._process_cleanup()
 
     def _process(self, datapackage, resources):
         return self._process_filter(datapackage, resources)
@@ -23,7 +35,7 @@ class CommitteeMeetingProtocolsUpdateDbProcessor(BaseProcessor):
         if not protocol_text:
             raise Exception("no protocol_text")
         logging.info("_update_db: {} {}".format(meeting_id, len(protocol_text)))
-        meta = MetaData(bind=self._db_session.connection())
+        meta = MetaData(bind=self.db_session.connection())
         try:
             meta.reflect()
             meetings = meta.tables[self._parameters["meetings-table"]]
@@ -36,7 +48,6 @@ class CommitteeMeetingProtocolsUpdateDbProcessor(BaseProcessor):
         except Exception as e:
             logging.error("db error ({})".format(meta.bind.engine.url))
             raise
-        self._db_session.commit()
 
     def _filter_row(self, meeting_protocol_parsed, **kwargs):
         committee_id, meeting_id = meeting_protocol_parsed["committee_id"], meeting_protocol_parsed["meeting_id"]

@@ -3,12 +3,13 @@ from .mocks.dataservice import (MockDataserviceFunctionResourceProcessor,
                                 MockAddDataserviceCollectionResourceProcessor)
 from .mocks.committees import (MockDownloadCommitteeMeetingProtocols, MockParseCommitteeMeetingProtocols,
                                MockCommitteeMeetingProtocolsUpdateDb)
-from .mocks.db import get_metadata
+from .mocks.db import create_mock_db
 from .common import (get_pipeline_processor_parameters_schema, assert_conforms_to_schema,
                      get_pipeline_processor_parameters)
 from itertools import chain
 import os
 from shutil import rmtree
+from datapackage_pipelines_knesset.common.db import get_session
 
 
 def get_committees():
@@ -188,13 +189,13 @@ def test_parse_committee_meeting_protocols():
     assert os.path.getsize(protocol["text_file"]) == 2306
 
 def test_committee_meeting_protocols_update_db():
-    # setup the DB and ensure it has the right data
-    meta = get_metadata()
-    meetings = meta.tables["committee-meetings"]
-    protocol_parts = meta.tables["committee-meeting-protocol-parts"]
+    session = get_session(connection_string="sqlite://")
+    metadata = create_mock_db(session)
+    meetings = metadata.tables["committee-meetings"]
+    protocol_parts = metadata.tables["committee-meeting-protocol-parts"]
     # the meeting is initially synced with empty protocol_text
     # the update_db processor will update it
-    row = meetings.select(meetings.c.meeting_id == 2020275).execute().fetchone()
+    row = meetings.select(meetings.c.id == 2020275).execute().fetchone()
     assert row[meetings.c.protocol_text] == ""
     # the update_db processor also deletes any existing protocol parts
     # so we ensure we have one to see that it's deleted
@@ -213,7 +214,7 @@ def test_committee_meeting_protocols_update_db():
                                  "text_file": os.path.join(os.path.dirname(__file__), "mocks", "2020275.txt")}]
     processor = MockCommitteeMeetingProtocolsUpdateDb(datapackage=datapackage, parameters=parameters,
                                                       resources=[meeting_protocols_parsed])
-    processor._mock_meta = meta
+    processor._db_session = session
     # set the db metadata on the mock processor, instead of
     datapackage, resources = processor.spew()
     schema = datapackage["resources"][0]["schema"]
@@ -230,10 +231,10 @@ def test_committee_meeting_protocols_update_db():
                               'header': 'סדר היום',
                               'meeting_id': 2020275,
                               'order': 1}
-    row = meetings.select(meetings.c.meeting_id==2020275).execute().fetchone()
+    row = meetings.select(meetings.c.id==2020275).execute().fetchone()
     assert row
-    assert row[meetings.c.meeting_id] == 2020275
-    assert len(row[meetings.c.protocol_text]) == 0
+    assert row[meetings.c.id] == 2020275
+    assert len(row[meetings.c.protocol_text]) == 1342
     # ensure all protocol parts were deleted
     rows = protocol_parts.select(protocol_parts.c.meeting_id == 2020275).execute().fetchall()
-    assert len(rows) == 1
+    assert len(rows) == 0

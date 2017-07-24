@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, MetaData
-import os
+import os, logging
 
 def get_engine(connection_string=None):
     if not connection_string:

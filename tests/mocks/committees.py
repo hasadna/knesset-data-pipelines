@@ -2,7 +2,6 @@ from datapackage_pipelines_knesset.committees.processors.download_committee_meet
 from datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_protocols import ParseCommitteeMeetingProtocolsProcessor
 from datapackage_pipelines_knesset.committees.processors.committee_meeting_protocols_update_db import CommitteeMeetingProtocolsUpdateDbProcessor
 import os
-from .db import get_metadata
 from datapackage_pipelines_knesset.common.db import get_session
 
 
@@ -32,8 +31,4 @@ class MockParseCommitteeMeetingProtocols(ParseCommitteeMeetingProtocolsProcessor
 
 
 class MockCommitteeMeetingProtocolsUpdateDb(CommitteeMeetingProtocolsUpdateDbProcessor):
-
-    def _get_reflect_metadata(self):
-        if not getattr(self, "_mock_meta", None):
-            self._mock_meta = get_metadata()
-        return self._mock_meta
+    pass

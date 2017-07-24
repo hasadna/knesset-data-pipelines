@@ -25,6 +25,10 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
     def _process(self, datapackage, resources):
         return self._process_filter(datapackage, resources)
 
+    def _process_cleanup(self):
+        self._db_session.commit()
+        super(DownloadCommitteeMeetingProtocolsProcessor, self)._process_cleanup()
+
     def _reuqests_get(self, url):
         return requests.get(url)
 

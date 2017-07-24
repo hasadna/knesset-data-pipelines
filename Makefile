@@ -1,7 +1,7 @@
 .PHONY: install test clean docker-build docker-restart docker-logs docker-stop
 
 install:
-	pip install --upgrade https://github.com/OriHoch/knesset-data-python/archive/gilwo-python-2-3.zip
+	pip install --upgrade https://github.com/hasadna/knesset-data-python/archive/v2.0.0.zip
 	pip install -e .[develop]
 
 test:
