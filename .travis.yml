@@ -1,6 +1,10 @@
 language: python
 python:
   - 3.6
+addons:
+  apt:
+    packages:
+    - antiword
 before_install:
   - '[ "${TRAVIS_TAG}" == "" ] || echo "${TRAVIS_TAG}" > VERSION.txt'
 install:
