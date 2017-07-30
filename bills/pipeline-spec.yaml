@@ -5,11 +5,12 @@ bills:
     - run: add_metadata
       parameters:
         name: bills
-    - run: datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
         resource-name: bills
         service-name: api
         method-name: "KNS_Bill"
+        override-id-env: "OVERRIDE_BILL_IDS"
         fields:
           id:
             source: BillID
@@ -49,9 +50,9 @@ bills:
           postponent_reason_desc:
             source: PostponementReasonDesc
             type: string
-          public_date:
-            source: PublicationDate
-            type: datetime
+          #public_date:
+          #  source: PublicationDate
+          #  type: datetime
           magazine_num:
             source: MagazineNumber
             type: integer
@@ -68,14 +69,14 @@ bills:
             source: PublicationSeriesID
             type: integer
           public_series_desc:
-            source: PublicationSeriesDescription
+            source: PublicationSeriesDesc
             type: string
           public_series_first_call:
             source: PublicationSeriesFirstCall
             type: string
-          last_update:
-            source: LastUpdatedDate
-            type: datetime
+          #last_update:
+          #  source: LastUpdatedDate
+          #  type: datetime
     - run: dump.to_path
       parameters:
         out-path: ../data/bills
@@ -87,8 +88,9 @@ bill-names:
     - run: add_metadata
       parameters:
         name: bill-names
-    - run: datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
+        resource-name: bill-names
         service-name: api
         method-name: "KNS_BillName"
         fields:
@@ -112,9 +114,9 @@ bill-names:
             source: NameHistoryTypeDesc
             type: string
             description: Type of name change
-          last_update:
-            source: LastUpdatedDate
-            type: datetime
+          #last_update:
+          #  source: LastUpdatedDate
+          #  type: datetime
     - run: dump.to_path
       parameters:
         out-path: ../data/bill-names
@@ -126,8 +128,9 @@ bill-initiators:
     - run: add_metadata
       parameters:
         name: bill-initiators
-    - run: datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
+        resource-name: bill-initiators
         service-name: api
         method-name: "KNS_BillInitiator"
         fields:
@@ -147,9 +150,9 @@ bill-initiators:
             source: Ordinal
             type: integer
             description: The position of the initiator in the list of initiators
-          last_update:
-            source: LastUpdatedDate
-            type: datetime
+          #last_update:
+          #  source: LastUpdatedDate
+          #  type: datetime
     - run: dump.to_path
       parameters:
         out-path: ../data/bill-initiators
@@ -161,8 +164,9 @@ bill-history-initiators:
     - run: add_metadata
       parameters:
         name: bill-history-initiators
-    - run: datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
+        resource-name: bill-history-initiators
         service-name: api
         method-name: "KNS_BillHistoryInitiator"
         fields:
@@ -182,19 +186,19 @@ bill-history-initiators:
             source: IsInitiator
             type: boolean
             description: Is the person initiator of the bill
-          start_date:
-            source: StartDate
-            type: datetime
-          end_date:
-            source: EndDate
-            type: datetime
+          #start_date:
+          #  source: StartDate
+          #  type: datetime
+          #end_date:
+          #  source: EndDate
+          #  type: datetime
           reason_id:
             source: ReasonID
             type: integer
             description: The code reason of the person removal from the bill
-          last_update:
-            source: LastUpdatedDate
-            type: datetime
+          #last_update:
+          #  source: LastUpdatedDate
+          #  type: datetime
     - run: dump.to_path
       parameters:
         out-path: ../data/bill-history-initiators
@@ -206,8 +210,9 @@ bill-splits:
     - run: add_metadata
       parameters:
         name: bill-splits
-    - run: datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
+        resource-name: bill-splits
         service-name: api
         method-name: "KNS_BillSplit"
         fields:
@@ -227,9 +232,9 @@ bill-splits:
             source: Name
             type: string
             description: The newly created bill heb name
-          last_update:
-            source: LastUpdatedDate
-            type: datetime
+          #last_update:
+          #  source: LastUpdatedDate
+          #  type: datetime
     - run: dump.to_path
       parameters:
         out-path: ../data/bill-splits
@@ -241,8 +246,9 @@ bill-unions:
     - run: add_metadata
       parameters:
         name: bill-unions
-    - run: datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
+        resource-name: bill-unions
         service-name: api
         method-name: "KNS_BillUnion"
         fields:
@@ -258,9 +264,9 @@ bill-unions:
             source: UnionBillID
             type: integer
             description: the merged bill
-          last_update:
-            source: LastUpdatedDate
-            type: datetime
+          #last_update:
+          #  source: LastUpdatedDate
+          #  type: datetime
     - run: dump.to_path
       parameters:
         out-path: ../data/bill-unions
