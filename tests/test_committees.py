@@ -1,13 +1,20 @@
 from collections import OrderedDict
 from .mocks.dataservice import (MockDataserviceFunctionResourceProcessor,
                                 MockAddDataserviceCollectionResourceProcessor)
-from .common import get_pipeline_processor_parameters_schema, assert_conforms_to_schema
+from .mocks.committees import (MockDownloadCommitteeMeetingProtocols, MockParseCommitteeMeetingProtocols,
+                               MockCommitteeMeetingProtocolsUpdateDb)
+from .mocks.db import create_mock_db
+from .common import (get_pipeline_processor_parameters_schema, assert_conforms_to_schema,
+                     get_pipeline_processor_parameters)
 from itertools import chain
+import os
+from shutil import rmtree
+from datapackage_pipelines_knesset.common.db import get_session
 
 
 def get_committees():
     datapackage = {"name": "committees", "resources": []}
-    processor_matcher = lambda step: step["run"] == "datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource"
+    processor_matcher = lambda step: step["run"] == "..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource"
     parameters, schema = get_pipeline_processor_parameters_schema("committees", "committees",
                                                                   processor_matcher)
     processor = MockAddDataserviceCollectionResourceProcessor(datapackage=datapackage,
@@ -31,7 +38,7 @@ def get_committee_meetings(committee_id=None):
     else:
         committees = (o for o in [{"id": committee_id}])
     datapackage = {"name": "committee-meetings", "resources": [{"name": "committees"}]}
-    processor_matcher = lambda step: step["run"] == "datapackage_pipelines_knesset.dataservice.processors.dataservice_function_resource"
+    processor_matcher = lambda step: step["run"] == "..datapackage_pipelines_knesset.dataservice.processors.dataservice_function_resource"
     parameters, schema = get_pipeline_processor_parameters_schema("committees", "committee-meetings",
                                                                   processor_matcher)
     parameters["parameters"]["FromDate"].update(source="date", date="2017-07-23")
@@ -130,10 +137,104 @@ def test_committee_meetings():
                                                     ('material_hour', ""),
                                                     ('old_url', ""),
                                                     ('background_page_link', ""),
-                                                    ('agenda_invited', "")])
+                                                    ('agenda_invited', ""),
+                                                    ('protocol_text', "")])
     assert next(committee_meetings)["id"] == "2020370"
 
 def test_committee_meeting_exception():
     committee_meetings = get_committee_meetings(committee_id="572")
     meeting = next(committee_meetings)
     assert meeting["id"] == "2019965"
+
+def test_download_committee_meeting_protocols():
+    out_path = os.path.join(os.path.dirname(__file__), "..", "data", "test-committee-meeting-protocols")
+    rmtree(out_path, ignore_errors=True)
+    datapackage = {"name": "committee-meeting-protocols", "resources": [{"name": "committee-meetings"}]}
+    processor_matcher = lambda step: step["run"] == "..datapackage_pipelines_knesset.committees.processors.download_committee_meeting_protocols"
+    parameters = get_pipeline_processor_parameters("committees", "committee-meeting-protocols", processor_matcher)
+    parameters["out-path"] = out_path
+    meeting_protocols = [{"committee_id": 1, "id": 2020275,
+                          "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc"}]
+    processor = MockDownloadCommitteeMeetingProtocols(datapackage=datapackage, parameters=parameters, resources=[meeting_protocols])
+    datapackage, resources = processor.spew()
+    schema = datapackage["resources"][0]["schema"]
+    resource = next(resources)
+    protocol = next(resource)
+    assert_conforms_to_schema(schema, protocol)
+    assert protocol["protocol_file"] == os.path.join(out_path, "1", "2020275.doc")
+    assert os.path.exists(protocol["protocol_file"])
+    assert os.path.getsize(protocol["protocol_file"]) == 55296
+
+def test_parse_committee_meeting_protocols():
+    out_path = os.path.join(os.path.dirname(__file__), "..", "data", "test-parse-committee-meeting-protocols")
+    rmtree(out_path, ignore_errors=True)
+    datapackage = {"name": "committee-meeting-protocols-parse", "resources": [{"name": "committee-meeting-protocols"}]}
+    processor_matcher = lambda step: step["run"] == "..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_protocols"
+    parameters = get_pipeline_processor_parameters("committees", "committee-meeting-protocols-parse", processor_matcher)
+    parameters["out-path"] = out_path
+    processor = MockParseCommitteeMeetingProtocols(datapackage=datapackage, parameters=parameters,
+                                                   resources=[[{"committee_id": 1, "meeting_id": 2020275,
+                                                                "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc",
+                                                                "protocol_file": os.path.join(os.path.dirname(__file__), "mocks", "20_ptv_389210.doc")}]])
+    datapackage, resources = processor.spew()
+    schema = datapackage["resources"][0]["schema"]
+    resource = next(resources)
+    protocol = next(resource)
+    assert_conforms_to_schema(schema, protocol)
+    assert protocol["parts_file"] == os.path.join(out_path, "1", "2020275.parts.csv")
+    assert protocol["text_file"] == os.path.join(out_path, "1", "2020275.txt")
+    assert os.path.exists(protocol["parts_file"])
+    assert os.path.exists(protocol["text_file"])
+    assert os.path.getsize(protocol["parts_file"]) == 2335
+    assert os.path.getsize(protocol["text_file"]) == 2306
+
+def test_committee_meeting_protocols_update_db():
+    session = get_session(connection_string="sqlite://")
+    metadata = create_mock_db(session)
+    meetings = metadata.tables["committee-meetings"]
+    protocol_parts = metadata.tables["committee-meeting-protocol-parts"]
+    # the meeting is initially synced with empty protocol_text
+    # the update_db processor will update it
+    row = meetings.select(meetings.c.id == 2020275).execute().fetchone()
+    assert row[meetings.c.protocol_text] == ""
+    # the update_db processor also deletes any existing protocol parts
+    # so we ensure we have one to see that it's deleted
+    rows = protocol_parts.select(protocol_parts.c.meeting_id == 2020275).execute().fetchall()
+    assert len(rows) == 1
+    # setup the processor
+    datapackage = {"name": "committee-meeting-protocols-update-db",
+                   "resources": [{"name": "committee-meeting-protocols-parsed"}]}
+    processor_matcher = lambda step: step["run"] == "..datapackage_pipelines_knesset.committees.processors.committee_meeting_protocols_update_db"
+    parameters = get_pipeline_processor_parameters("committees", "committee-meeting-protocols-parse",
+                                                   processor_matcher)
+    meeting_protocols_parsed = [{"committee_id": 1, "meeting_id": 2020275,
+                                 "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc",
+                                 "protocol_file": os.path.join(os.path.dirname(__file__), "mocks", "20_ptv_389210.doc"),
+                                 "parts_file": os.path.join(os.path.dirname(__file__), "mocks", "2020275.parts.csv"),
+                                 "text_file": os.path.join(os.path.dirname(__file__), "mocks", "2020275.txt")}]
+    processor = MockCommitteeMeetingProtocolsUpdateDb(datapackage=datapackage, parameters=parameters,
+                                                      resources=[meeting_protocols_parsed])
+    processor._db_session = session
+    # set the db metadata on the mock processor, instead of
+    datapackage, resources = processor.spew()
+    schema = datapackage["resources"][0]["schema"]
+    resource = next(resources)
+    protocol_part = next(resource)
+    assert_conforms_to_schema(schema, protocol_part)
+    assert protocol_part == {'body': 'הכנסת העשרים\n\nמושב שלישי\n\nפרוטוקול מס\' 277\n\nמישיבת ועדת הכנסת\n\nיום שלישי, כ"ד בתמוז התשע"ז (18 ביולי 2017), שעה 11:00',
+                             'committee_id': 1,
+                             'header': '',
+                             'meeting_id': 2020275,
+                             'order': 0}
+    assert next(resource) == {'body': 'בקשת חה"כ דוד ביטן להקדמת הדיון בהצעת חוק בנימין זאב הרצל (הנצחת זכרו ופועלו) (תיקון – מימון פעילות מוסדות ההנצחה), התשע"ז-2017 (פ/4414/20) לפני הקריאה הטרומית.',
+                              'committee_id': 1,
+                              'header': 'סדר היום',
+                              'meeting_id': 2020275,
+                              'order': 1}
+    row = meetings.select(meetings.c.id==2020275).execute().fetchone()
+    assert row
+    assert row[meetings.c.id] == 2020275
+    assert len(row[meetings.c.protocol_text]) == 1342
+    # ensure all protocol parts were deleted
+    rows = protocol_parts.select(protocol_parts.c.meeting_id == 2020275).execute().fetchall()
+    assert len(rows) == 0

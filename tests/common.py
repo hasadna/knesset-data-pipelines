@@ -15,7 +15,7 @@ def get_pipeline_processor_parameters_schema(pipeline_spec, pipeline_name, proce
     schema_fields = []
     for field_name, field in parameters["fields"].items():
         field = deepcopy(field)
-        field.pop("source")
+        field.pop("source", None)
         field["name"] = field_name
         if field["type"] == "datetime":
             field["format"] = "fmt:%Y-%m-%d %H:%M:%S.%f"
@@ -23,7 +23,7 @@ def get_pipeline_processor_parameters_schema(pipeline_spec, pipeline_name, proce
             field["format"] = "fmt:%Y-%m-%d"
         schema_fields.append(field)
     return parameters, {"fields": schema_fields,
-                       "primaryKey": "id"}
+                       "primaryKey": ["id"]}
 
 def assert_conforms_to_schema(schema, doc):
     assert isinstance(doc, dict), "invalid doc: {}".format(doc)

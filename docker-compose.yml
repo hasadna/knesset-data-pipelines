@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  redis:
+    image: redis:alpine
+    networks:
+      - knesset-data-pipelines
+  db:
+    image: sameersbn/postgresql:9.6-2
+    depends_on:
+      - redis
+    networks:
+      - knesset-data-pipelines
+    ports:
+      - "15432:5432"
+    environment:
+      - "PG_PASSWORD=123456"
+    volumes:
+      - .data-docker/postgresql:/var/lib/postgresql
+  app:
+    image: orihoch/knesset-data-pipelines
+    depends_on:
+      - db
+    networks:
+      - knesset-data-pipelines
+    ports:
+      - "5000:5000"
+    environment:
+      - "DPP_REDIS_HOST=redis"
+      - "DPP_DB_ENGINE=postgresql://postgres:123456@db:5432/postgres"
+    volumes:
+      - .data-docker:/knesset/data
+
+networks:
+  knesset-data-pipelines:

@@ -1,29 +1,31 @@
 # Knesset data datapackage pipelines
 
-[![Build Status](https://travis-ci.org/OriHoch/knesset-data-pipelines.svg?branch=master)](https://travis-ci.org/OriHoch/knesset-data-pipelines)
+[![Build Status](https://travis-ci.org/hasadna/knesset-data-pipelines.svg?branch=master)](https://travis-ci.org/hasadna/knesset-data-pipelines)
 [![Docker Automated build](https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg)](https://hub.docker.com/r/orihoch/knesset-data-pipelines/)
 
-Pipelines for data sync for knesset-data
+Knesset data scrapers and data sync
 
 Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines)
 
-## Overview
+## Running the full pipelines environment using docker
 
-This project provides pipelines scrape and store knesset data
+* Install Docker and Docker Compose (refer to Docker guides for your OS)
+* `make docker-start`
 
-## Installation
+This will provide:
 
-Docker is the easiest way to install and run the environment locally.
+* Pipelines dashboard: http://localhost:5000/
+* PostgreSQL server: postgresql://postgres:123456@localhost:15432/postgres
+* Data files under: .data-docker/
 
-After you [Install Docker](https://docs.docker.com/engine/installation/) you can start the app:
+After every change in the code you should run `make docker-build && make docker-start`
 
-* `make docker-restart`
+## Running the project locally
 
-## Usage
+Only the latest Python version is supported (3.6)
 
-* go to: http://localhost:5000/
-* the datapackage-pipelines framework runs the pipelines automatically according to the pipelines configurations
+* `make install`
+* `make test`
+* `dpp`
 
-## Development
-
-Check out the [contribution guide](CONTRIBUTING.md)
+You can set some environment variables to modify behaviors, see a refernece at .env.example

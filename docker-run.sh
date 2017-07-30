@@ -11,5 +11,5 @@ if [ "${1}" == "" ]; then
     python3 -m celery -b "redis://${DPP_REDIS_HOST}:6379/6" --concurrency=4 -A datapackage_pipelines.app -Q datapackage-pipelines -l INFO worker &
     dpp serve
 else
-    /bin/sh $*
+    /bin/sh -c "$*"
 fi
