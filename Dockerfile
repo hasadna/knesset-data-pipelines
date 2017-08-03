@@ -21,7 +21,7 @@ ADD . /knesset/
 
 ENV PYTHONUNBUFFERED 1
 
-RUN cd /knesset && make install
+RUN cd /knesset && make install-optimized
 
 ENTRYPOINT ["/knesset/docker-run.sh"]
 

@@ -104,3 +104,5 @@ ENV/
 /.dpp.db
 /data
 /.data-docker
+/docker-compose-deployment-combined.yml
+/docker-compose-deployment.yml

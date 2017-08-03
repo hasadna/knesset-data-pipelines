@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  redis:
+  db:
+    ports:
+      - "5432:5432"
+    volumes:
+      - knesset-data-db:/var/lib/postgresql
+    environment:
+      - "PG_PASSWORD=123456"
+  app:
+    volumes:
+      - knesset-data-pipelines:/knesset/data
+    environment:
+      - "DPP_DB_ENGINE=postgresql://postgres:123456@db:5432/postgres"
+
+volumes:
+  knesset-data-db:
+  knesset-data-pipelines:
