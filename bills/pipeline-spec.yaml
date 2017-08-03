@@ -1,0 +1,324 @@
+bills:
+  schedule:
+    crontab: "0 0 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: bills
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: bills
+        service-name: api
+        method-name: "KNS_Bill"
+        override-id-env: "OVERRIDE_BILL_IDS"
+        fields:
+          id:
+            source: BillID
+            type: integer
+            description: the primary key
+          kns_num:
+            source: KnessetNum
+            type: integer
+            description: kneset number
+          name:
+            source: Name
+            type: string
+            description: hebrew name
+          type_id:
+            source: SubTypeID
+            type: integer
+            description: type id of the bill
+          type_description:
+            source: SubTypeDesc
+            type: string
+            description: type description of the bill
+          private_num:
+            source: PrivateNumber
+            type: integer
+          committee_id:
+            source: CommitteeID
+            type: integer
+          status_id:
+            source: StatusID
+            type: integer
+          num:
+            source: Number
+            type: integer
+          postponent_reason_id:
+            source: PostponementReasonID
+            type: integer
+          postponent_reason_desc:
+            source: PostponementReasonDesc
+            type: string
+          #public_date:
+          #  source: PublicationDate
+          #  type: datetime
+          magazine_num:
+            source: MagazineNumber
+            type: integer
+          page_num:
+            source: PageNumber
+            type: integer
+          is_continuation:
+            source: IsContinuationBill
+            type: boolean
+          summary_law:
+            source: SummaryLaw
+            type: string
+          public_series_id:
+            source: PublicationSeriesID
+            type: integer
+          public_series_desc:
+            source: PublicationSeriesDesc
+            type: string
+          public_series_first_call:
+            source: PublicationSeriesFirstCall
+            type: string
+          #last_update:
+          #  source: LastUpdatedDate
+          #  type: datetime
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/bills
+
+bill-names:
+  schedule:
+    crontab: "0 0 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: bill-names
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: bill-names
+        service-name: api
+        method-name: "KNS_BillName"
+        fields:
+          id:
+            source: BillNameID
+            type: integer
+            description: the primary key
+          bill_id:
+            source: BillID
+            type: integer
+            description: The bill id
+          name:
+            source: Name
+            type: string
+            description: The bill heb name
+          name_history_type_id:
+            source: NameHistoryTypeID
+            type: integer
+            description: Code for the name change time ie before first or second call
+          name_history_type_desc:
+            source: NameHistoryTypeDesc
+            type: string
+            description: Type of name change
+          #last_update:
+          #  source: LastUpdatedDate
+          #  type: datetime
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/bill-names
+
+bill-initiators:
+  schedule:
+    crontab: "0 0 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: bill-initiators
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: bill-initiators
+        service-name: api
+        method-name: "KNS_BillInitiator"
+        fields:
+          id:
+            source: BillInitiatorID
+            type: integer
+            description: the primary key
+          bill_id:
+            source: BillID
+            type: integer
+            description: The bill id
+          person_id:
+            source: PersonID
+            type: integer
+            description: the initiator peron id
+          ordinal:
+            source: Ordinal
+            type: integer
+            description: The position of the initiator in the list of initiators
+          #last_update:
+          #  source: LastUpdatedDate
+          #  type: datetime
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/bill-initiators
+
+bill-history-initiators:
+  schedule:
+    crontab: "0 0 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: bill-history-initiators
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: bill-history-initiators
+        service-name: api
+        method-name: "KNS_BillHistoryInitiator"
+        fields:
+          id:
+            source: BillHistoryInitiatorID
+            type: integer
+            description: the primary key
+          bill_id:
+            source: BillID
+            type: integer
+            description: The bill id
+          person_id:
+            source: PersonID
+            type: integer
+            description: the initiator peron id
+          is_initiator:
+            source: IsInitiator
+            type: boolean
+            description: Is the person initiator of the bill
+          #start_date:
+          #  source: StartDate
+          #  type: datetime
+          #end_date:
+          #  source: EndDate
+          #  type: datetime
+          reason_id:
+            source: ReasonID
+            type: integer
+            description: The code reason of the person removal from the bill
+          #last_update:
+          #  source: LastUpdatedDate
+          #  type: datetime
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/bill-history-initiators
+
+bill-splits:
+  schedule:
+    crontab: "0 0 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: bill-splits
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: bill-splits
+        service-name: api
+        method-name: "KNS_BillSplit"
+        fields:
+          id:
+            source: BillSplitID
+            type: integer
+            description: the primary key
+          bill_id:
+            source: MainBillID
+            type: integer
+            description: The bill that was split
+          split_bill_id:
+            source: SplitBillID
+            type: integer
+            description: the bill that was created from the split
+          name:
+            source: Name
+            type: string
+            description: The newly created bill heb name
+          #last_update:
+          #  source: LastUpdatedDate
+          #  type: datetime
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/bill-splits
+
+bill-unions:
+  schedule:
+    crontab: "0 0 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: bill-unions
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: bill-unions
+        service-name: api
+        method-name: "KNS_BillUnion"
+        fields:
+          id:
+            source: BillUnionID
+            type: integer
+            description: the primary key
+          main_bill_id:
+            source: MainBillID
+            type: integer
+            description: The referenced bill id
+          union_bill_id:
+            source: UnionBillID
+            type: integer
+            description: the merged bill
+          #last_update:
+          #  source: LastUpdatedDate
+          #  type: datetime
+    - run: dump.to_path
+      parameters:
+        out-path: ../data/bill-unions
+
+sql-update:
+  dependencies:
+    - pipeline: ./bills/bills
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: bills-sql-update
+    - run: load_resource
+      parameters:
+        resource: bills
+        url: ../data/bills/datapackage.json
+    - run: load_resource
+      parameters:
+        resource: bill-names
+        url: ../data/bill-names/datapackage.json
+    - run: load_resource
+      parameters:
+        resource: bill-initiators
+        url: ../data/bill-initiators/datapackage.json
+    - run: load_resource
+      parameters:
+        resource: bill-history-initiators
+        url: ../data/bill-history-initiators/datapackage.json
+      parameters:
+        resource: bill-splits
+        url: ../data/bill-splits/datapackage.json
+      parameters:
+        resource: bill-unions
+        url: ../data/bill-unions/datapackage.json
+    - run: dump.to_sql
+      parameters:
+        tables:
+          bills:
+            resource-name: bills
+            mode: update
+          bill-names:
+            resource-name: bill-names
+            mode: update
+          bill-initiators:
+            resource-name: bill-initiators
+            mode: update
+          bill-history-initiators:
+            resource-name: bill-history-initiators
+            mode: update
+          bill-splits:
+            resource-name: bill-splits
+            mode: update
+          bill-unions:
+            resource-name: bill-unions
+            mode: update
+
