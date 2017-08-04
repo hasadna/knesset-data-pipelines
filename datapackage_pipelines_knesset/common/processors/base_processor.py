@@ -61,6 +61,7 @@ class BaseProcessor(object):
                 if self._parameters.get("delete-resource"):
                     self._delete_resource_schema = self._schema
                 else:
+                    self._parameters.setdefault("output-resource", resource_descriptor["name"])
                     resource_descriptor.update(name=self._parameters["output-resource"],
                                                path="{}.csv".format(self._parameters["output-resource"]),
                                                schema=self._schema)

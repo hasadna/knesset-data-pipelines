@@ -131,11 +131,6 @@ committee-meetings:
             source: url
             type: string
             description: url to download the protocol
-          # a CommitteeMeetingProtocol object which allows to get data from the protocol
-          # because parsing the protocol requires heavy IO and processing - we provide it as a generator
-          # see tests/test_meetings.py for usage example
-#          protocol:
-#            source: KnessetDataServiceLambdaField(lambda obj, entry: CommitteeMeetingProtocol.get_from_url(obj.url, proxies=obj._proxies) if obj.url else None))
           location:
             source: committee_location
             type: string
@@ -224,17 +219,12 @@ committee-meetings:
           agenda_invited:
             source: Committee_agenda_invited
             type: string
-          protocol_text:
-            type: string
     - run: ..datapackage_pipelines_knesset.common.processors.update_sql_resource
       parameters:
         input-resource: committee-meetings
         output-resource: committee-meetings
         table: committee-meetings
         save-schema: ../data/committee-meetings.json
-        fields:
-          protocol_text:
-            dont-update: true
 
 committee-meeting-protocols:
   schedule:
@@ -245,84 +235,19 @@ committee-meeting-protocols:
         schema: ../data/committee-meetings.json
         resource-name: committee-meetings
         table: committee-meetings
-    # only downloads protocols for meetings which don't have protocol_text value in DB
+    # downloads the source protocol files for meetings which weren't downloaded before
+    # saves the files in a (non tabular) datapackage in out-path
     - run: ..datapackage_pipelines_knesset.committees.processors.download_committee_meeting_protocols
       parameters:
         input-resource: committee-meetings
         output-resource: committee-meeting-protocols
-        meetings-table: committee-meetings
         out-path: ../data/committee-meeting-protocols
-    # parse the downloaded protocol into text and parts files which will be saved in out-path
+        data-resource-descriptor:
+          name: committee-meeting-protocols
+    # parses the downloaded protocols into text and parts files which will be saved in out-path
     - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_protocols
       parameters:
         input-resource: committee-meeting-protocols
-        output-resource: committee-meeting-protocols-parsed
         out-path: ../data/committee-meeting-protocols-parsed
-    # saves the protocol_text in meetings-table
-    # yields protocol_parts - for saving to protocol-parts table in DB
-    - run: ..datapackage_pipelines_knesset.committees.processors.committee_meeting_protocols_update_db
-      parameters:
-        input-resource: committee-meeting-protocols-parsed
-        output-resource: committee-meeting-protocol-parts
-        meetings-table: committee-meetings
-        protocol-parts-table: committee-meeting-protocol-parts
-    # save the protocol parts to DB
-    - run: ..datapackage_pipelines_knesset.common.processors.update_sql_resource
-      parameters:
-        input-resource:  committee-meeting-protocol-parts
-        output-resource:  committee-meeting-protocol-parts
-        table: committee-meeting-protocol-parts
-        save-schema: ../data/committee-meeting-protocol-parts.json
-        only-insert: true
-
-all:
-  pipeline:
-
-    # committees
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema: ../data/committees.json
-#        resource-name: committees
-#        table: committees
-
-    # committee meetings
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema: ../data/committee-meetings.json
-        resource-name: committee-meetings
-        table: committee-meetings
-    - run: ..datapackage_pipelines_knesset.common.processors.extract_files
-      parameters:
-        input-resource: committee-meetings
-        output-resource: committee-meetings
-        out-path: ../data/committees/committee-meetings
         data-resource-descriptor:
-          name: "committee-meeting-protocol-texts"
-          description: "file names are comprised of <committee_id>/<meeting_id>.txt - only for meetings which have a protocol text"
-        files:
-          - relative-path: "{committee_id}/{id}.txt"
-            field: protocol_text
-
-    # committee meeting protocol parts
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema: ../data/committee-meeting-protocol-parts.json
-        resource-name: committee-meeting-protocol-parts
-        table: committee-meeting-protocol-parts
-    - run: ..datapackage_pipelines_knesset.common.processors.extract_files
-      parameters:
-        input-resource: committee-meeting-protocol-parts
-        delete-resource: true
-        out-path: ../data/committees/committee-meeting-protocol-parts
-        data-resource-descriptor:
-          name: "committee-meeting-protocol-parts"
-          description: "file names are comprised of <committee_id>/<meeting_id>.csv - only for meetings which have a protocol text"
-        files:
-          - relative-path: "{committee_id}/{meeting_id}.csv"
-            fields:
-              - header
-              - body
-
-    - run: dump.to_path
-      parameters:
-        out-path: ../data/committees
+          name: committee-meeting-protocols-parsed

@@ -10,7 +10,7 @@ before_install:
 install:
   - pip install tox
 script:
-  - make test
+  - bin/test.sh
 cache:
   directories:
   - "$HOME/.cache"
