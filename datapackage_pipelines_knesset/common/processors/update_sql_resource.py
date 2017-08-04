@@ -57,14 +57,14 @@ class UpdateSqlResource(BaseProcessor):
         return {"id": id}
 
     def _insert(self, id, values):
-        values["id"] = id
+        if id is not None:
+            values["id"] = id
         self.db_table.insert().values(**values).execute()
         return {"id": id}
 
     def _filter_row(self, row, **kwargs):
-        id = int(row.pop("id"))
+        id = int(row.pop("id")) if "id" in row else None
         values = self._get_values(row)
-        res = None
         if self.db_table is None:
             jsontableschema.validate(self._table_schema)
             prefix, bucket = "", self.table_name
