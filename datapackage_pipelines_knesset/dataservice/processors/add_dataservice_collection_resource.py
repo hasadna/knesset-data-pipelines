@@ -1,5 +1,6 @@
 from datapackage_pipelines_knesset.dataservice.processors.base_processor import BaseDataserviceProcessor
 from knesset_data.dataservice.base import BaseKnessetDataServiceCollectionObject
+import logging
 
 
 class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):

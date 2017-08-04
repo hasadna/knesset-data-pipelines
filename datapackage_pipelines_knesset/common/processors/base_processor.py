@@ -40,21 +40,33 @@ class BaseProcessor(object):
         for row in data:
             yield from self._filter_row(row)
 
-    def _filter_resources(self, datapackage, resources):
-        for resource_descriptor, data in zip(datapackage["resources"], resources):
-            if resource_descriptor["name"] == self._parameters["output-resource"]:
-                yield self._filter_resource(data)
+    def _filter_resources(self, resources):
+        for i, data in enumerate(resources):
+            if i == self._filter_resource_i:
+                if self._delete_resource_schema:
+                    # consume all rows but don't yield the resource
+                    for row in self._filter_resource(data):
+                        pass
+                else:
+                    yield self._filter_resource(data)
             else:
                 yield data
         self._process_cleanup()
 
     def _process_filter(self, datapackage, resources):
-        for resource_descriptor in datapackage["resources"]:
+        self._delete_resource_schema, self._filter_resource_i = None, None
+        for i, resource_descriptor in enumerate(datapackage["resources"]):
             if resource_descriptor["name"] == self._parameters["input-resource"]:
-                resource_descriptor.update(name=self._parameters["output-resource"],
-                                           path="{}.csv".format(self._parameters["output-resource"]),
-                                           schema=self._schema)
-        return datapackage, self._filter_resources(datapackage, resources)
+                self._filter_resource_i = i
+                if self._parameters.get("delete-resource"):
+                    self._delete_resource_schema = self._schema
+                else:
+                    resource_descriptor.update(name=self._parameters["output-resource"],
+                                               path="{}.csv".format(self._parameters["output-resource"]),
+                                               schema=self._schema)
+        if self._delete_resource_schema is not None:
+            del datapackage["resources"][self._filter_resource_i]
+        return datapackage, self._filter_resources(resources)
 
     def _process_append(self, datapackage, resources):
         datapackage["resources"].append({"name": self._parameters["resource-name"],

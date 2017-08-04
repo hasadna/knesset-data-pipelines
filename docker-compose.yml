@@ -18,7 +18,8 @@ services:
     volumes:
       - .data-docker/postgresql:/var/lib/postgresql
   app:
-    image: orihoch/knesset-data-pipelines
+    build: .
+    image: knesset-data/pipelines
     depends_on:
       - db
     networks:

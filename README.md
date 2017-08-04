@@ -10,7 +10,9 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
 ## Running the full pipelines environment using docker
 
 * Install Docker and Docker Compose (refer to Docker guides for your OS)
-* `make docker-start`
+* fork & clone the repo
+* change directory to the repo's directory
+* `bin/start.sh`
 
 This will provide:
 
@@ -18,14 +20,17 @@ This will provide:
 * PostgreSQL server: postgresql://postgres:123456@localhost:15432/postgres
 * Data files under: .data-docker/
 
-After every change in the code you should run `make docker-build && make docker-start`
+After every change in the code you should run `bin/build.sh && bin/start.sh`
 
-## Running the project locally
+## Installing the project locally and running tests
 
 Only the latest Python version is supported (3.6)
 
-* `make install`
-* `make test`
-* `dpp`
+* `bin/install.sh`
+* `bin/test.sh`
 
 You can set some environment variables to modify behaviors, see a refernece at .env.example
+
+## Running the dpp cli
+
+* using docker: `bin/dpp.sh`

@@ -25,7 +25,8 @@ class CommitteeMeetingProtocolsUpdateDbProcessor(BaseProcessor):
         return get_session()
 
     def _process_cleanup(self):
-        self._db_session.commit()
+        if hasattr(self, "_db_session"):
+            self._db_session.commit()
         super(CommitteeMeetingProtocolsUpdateDbProcessor, self)._process_cleanup()
 
     def _process(self, datapackage, resources):
