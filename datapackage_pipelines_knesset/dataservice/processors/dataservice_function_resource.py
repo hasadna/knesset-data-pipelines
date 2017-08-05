@@ -58,11 +58,12 @@ class DataserviceFunctionResourceProcessor(BaseDataserviceProcessor):
                     td_kwargs = {}
                     for td in param["timedelta"]:
                         value = td["value"]
-                        override_value_env = td.get("override-value-env")
-                        if override_value_env:
-                            env_value = os.environ.get(override_value_env)
-                            if env_value:
-                                value = int(env_value)
+                        if try_num == 1:
+                            override_value_env = td.get("override-value-env")
+                            if override_value_env:
+                                env_value = os.environ.get(override_value_env)
+                                if env_value:
+                                    value = int(env_value)
                         td_kwargs[td["unit"]] = value
                     for unit, value in td_kwargs.items():
                         td_kwargs[unit] = int(value)
