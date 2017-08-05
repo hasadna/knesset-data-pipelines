@@ -38,28 +38,20 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
         return os.path.join(self._parameters["out-path"], relpath)
 
     def _filter_row(self, meeting, **kwargs):
-        # pre = "skipping protocol download for committee {} meeting {}: ".format(meeting["committee_id"],
-        #                                                                         meeting["id"])
-        if not meeting["url"]:
-            pass
-            # logging.info("{} no url".format(pre))
-        elif (os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
-              and str(meeting["id"]) not in os.environ["OVERRIDE_COMMITTEE_MEETING_IDS"].split(",")):
-            pass
-            # logging.info("{} not in OVERRIDE_COMMITTEE_MEETING_IDS".format(pre))
-        else:
+        if meeting["url"]:
             relpath = os.path.join(str(meeting["committee_id"]), "{}.doc".format(meeting["id"]))
             filename = self._get_filename(relpath)
-            if os.path.exists(filename):
-                pass
-                # logging.info("{} has protocol_text".format(pre))
-            else:
-                if relpath not in self._all_filenames:
-                    self._all_filenames.append(relpath)
-                    os.makedirs(os.path.dirname(filename), exist_ok=True)
-                num_retries = self._parameters.get("num-retries", 5)
-                seconds_between_retries = self._parameters.get("seconds-between-retries", 60)
-                self._save_url_to_file(meeting["url"], filename, num_retries, seconds_between_retries)
+            if relpath not in self._all_filenames:
+                self._all_filenames.append(relpath)
+                os.makedirs(os.path.dirname(filename), exist_ok=True)
+            override_meeting_ids = os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
+            if not override_meeting_ids or str(meeting["id"]) in override_meeting_ids.split(","):
+                if not os.path.exists(filename):
+                    override_meeting_ids = os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
+                    if not override_meeting_ids or str(meeting["id"]) in override_meeting_ids.split(","):
+                        num_retries = self._parameters.get("num-retries", 5)
+                        seconds_between_retries = self._parameters.get("seconds-between-retries", 60)
+                        self._save_url_to_file(meeting["url"], filename, num_retries, seconds_between_retries)
                 yield {"committee_id": meeting["committee_id"],
                        "meeting_id": meeting["id"],
                        "protocol_file": filename}
