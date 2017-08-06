@@ -1,11 +1,11 @@
-# Knesset data datapackage pipelines
+# Knesset data pipelines
 
 [![Build Status](https://travis-ci.org/hasadna/knesset-data-pipelines.svg?branch=master)](https://travis-ci.org/hasadna/knesset-data-pipelines)
-[![Docker Automated build](https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg)](https://hub.docker.com/r/orihoch/knesset-data-pipelines/)
+[![Docker build](https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg)](https://hub.docker.com/r/orihoch/knesset-data-pipelines/)
 
 Knesset data scrapers and data sync
 
-Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines)
+Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines) to scrape Knesset data and aggregate to different data stores (PostgreSQL, Elasticsearch, Files)
 
 ## Running the full pipelines environment using docker
 
@@ -34,3 +34,5 @@ You can set some environment variables to modify behaviors, see a refernece at .
 ## Running the dpp cli
 
 * using docker: `bin/dpp.sh`
+* locally (from an activated virtualenv): `dpp`
+
