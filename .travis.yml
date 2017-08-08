@@ -5,6 +5,7 @@ addons:
   apt:
     packages:
     - antiword
+    - libreoffice
 before_install:
   - '[ "${TRAVIS_TAG}" == "" ] || echo "${TRAVIS_TAG}" > VERSION.txt'
 install:
