@@ -13,6 +13,8 @@ class MockDownloadCommitteeMeetingProtocols(DownloadCommitteeMeetingProtocolsPro
     def _reuqests_get(self, url):
         if url == "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc":
             filename = "20_ptv_389210.doc"
+        elif url == "http://knesset.gov.il/protocols/data/rtf/knesset/2007-12-27.rtf":
+            filename = "2007-12-27.rtf"
         else:
             raise Exception("unknown url: {}".format(url))
         filename = os.path.join(os.path.dirname(__file__), filename)
