@@ -16,13 +16,16 @@ RUN pip install psycopg2 datapackage-pipelines-github lxml datapackage-pipelines
 RUN apk add --update --no-cache git
 RUN apk add libreoffice
 
+COPY requirements.txt /requirements.txt
+RUN pip install -r /requirements.txt
+
 RUN mkdir /knesset
 WORKDIR /knesset
-ADD . /knesset/
+COPY . /knesset/
 
 ENV PYTHONUNBUFFERED 1
 
-RUN cd /knesset && bin/install-optimized.sh
+RUN cd /knesset && pip install .
 
 ENTRYPOINT ["/knesset/docker-run.sh"]
 

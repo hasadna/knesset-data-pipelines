@@ -173,8 +173,12 @@ def test_download_committee_meeting_protocols():
     assert os.path.getsize(rtf_protocol["protocol_file"]) == 15370
 
 def test_parse_committee_meeting_protocols():
-    rtf_supported = (subprocess.call(["which", "soffice"]) == 0)
-    logging.warning("\n\nskipping tests for parsing of rtf files, due to missing soffice dependency\n\n")
+    # rtf parsing depends on Libre Office, which might be hard to install
+    # however, we do have tests for it
+    # TODO: detect if rtf is supported or not
+    rtf_supported = False
+    if not rtf_supported:
+        logging.warning("\n\nskipping tests for parsing of rtf files, due to missing soffice dependency\n\n")
     # this is the input to the parse committee meeting protocols processor
     # it contains downloaded meeting protocol source files (either .doc or .rtf)
     downloaded_protocols = [{"committee_id": 1, "meeting_id": 2020275,

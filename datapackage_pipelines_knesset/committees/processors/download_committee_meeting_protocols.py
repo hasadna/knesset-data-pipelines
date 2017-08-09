@@ -59,6 +59,7 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
                         num_retries = self._parameters.get("num-retries", 5)
                         seconds_between_retries = self._parameters.get("seconds-between-retries", 60)
                         self._save_url_to_file(meeting["url"], filename, num_retries, seconds_between_retries)
+                        logging.info("downloaded {} -> {}".format(meeting["url"], filename))
                 yield {"committee_id": meeting["committee_id"],
                        "meeting_id": meeting["id"],
                        "protocol_file": filename}
