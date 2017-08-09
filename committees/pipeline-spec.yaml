@@ -251,3 +251,21 @@ committee-meeting-protocols:
         out-path: ../data/committee-meeting-protocols-parsed
         data-resource-descriptor:
           name: committee-meeting-protocols-parsed
+
+all:
+  schedule:
+    crontab: "0 0 * * 1"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/committees.json
+        resource-name: committees
+        table: committees
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/committee-meetings.json
+        resource-name: committee-meetings
+        table: committee-meetings
+    - run: dump.to_zip
+      parameters:
+        out-file: ../data/committees-all/datapackage.zip

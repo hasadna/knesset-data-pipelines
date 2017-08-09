@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 if ! which soffice > /dev/null; then
     echo "you should install libre office headless, something like this:"
