@@ -37,9 +37,16 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
     def _get_filename(self, relpath):
         return os.path.join(self._parameters["out-path"], relpath)
 
+    def _get_extension(self, meeting):
+        ext = meeting["url"].strip()[-4:]
+        if ext in [".doc", ".rtf"]:
+            return ext[1:]
+        else:
+            logging.warning("unknown extension: {}".format(meeting["url"]))
+
     def _filter_row(self, meeting, **kwargs):
         if meeting["url"]:
-            relpath = os.path.join(str(meeting["committee_id"]), "{}.doc".format(meeting["id"]))
+            relpath = os.path.join(str(meeting["committee_id"]), "{}.{}".format(meeting["id"], self._get_extension(meeting)))
             filename = self._get_filename(relpath)
             if relpath not in self._all_filenames:
                 self._all_filenames.append(relpath)

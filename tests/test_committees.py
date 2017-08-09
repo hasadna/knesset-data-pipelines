@@ -10,6 +10,7 @@ from itertools import chain
 import os, pytest
 from shutil import rmtree
 from datapackage_pipelines_knesset.common.db import get_session
+import subprocess, logging
 
 
 def get_committees():
@@ -153,7 +154,9 @@ def test_download_committee_meeting_protocols():
     parameters = get_pipeline_processor_parameters("committees", "committee-meeting-protocols", processor_matcher)
     parameters["out-path"] = out_path
     meeting_protocols = [{"committee_id": 1, "id": 2020275,
-                          "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc"}]
+                          "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc"},
+                         {"committee_id": 1, "id": 268926,
+                          "url": "http://knesset.gov.il/protocols/data/rtf/knesset/2007-12-27.rtf"}]
     processor = MockDownloadCommitteeMeetingProtocols(datapackage=datapackage, parameters=parameters, resources=[meeting_protocols])
     datapackage, resources = processor.spew()
     schema = datapackage["resources"][0]["schema"]
@@ -163,79 +166,56 @@ def test_download_committee_meeting_protocols():
     assert protocol["protocol_file"] == os.path.join(out_path, "1", "2020275.doc")
     assert os.path.exists(protocol["protocol_file"])
     assert os.path.getsize(protocol["protocol_file"]) == 55296
+    rtf_protocol = next(resource)
+    assert_conforms_to_schema(schema, rtf_protocol)
+    assert rtf_protocol["protocol_file"] == os.path.join(out_path, "1", "268926.rtf")
+    assert os.path.exists(rtf_protocol["protocol_file"])
+    assert os.path.getsize(rtf_protocol["protocol_file"]) == 15370
 
-@pytest.mark.skip
 def test_parse_committee_meeting_protocols():
+    rtf_supported = (subprocess.call(["which", "soffice"]) == 0)
+    logging.warning("\n\nskipping tests for parsing of rtf files, due to missing soffice dependency\n\n")
+    # this is the input to the parse committee meeting protocols processor
+    # it contains downloaded meeting protocol source files (either .doc or .rtf)
+    downloaded_protocols = [{"committee_id": 1, "meeting_id": 2020275,
+                             "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc",
+                             "protocol_file": os.path.join(os.path.dirname(__file__),
+                                                                             "mocks", "20_ptv_389210.doc")},]
+    if rtf_supported:
+        downloaded_protocols.append({"committee_id": 1, "meeting_id": 268926,
+                                     "url": "http://knesset.gov.il/protocols/data/rtf/knesset/2007-12-27.rtf",
+                                     "protocol_file": os.path.join(os.path.dirname(__file__),
+                                                                   "mocks", "2007-12-27.rtf")})
+    # output files will be saves in this path
     out_path = os.path.join(os.path.dirname(__file__), "..", "data", "test-parse-committee-meeting-protocols")
     rmtree(out_path, ignore_errors=True)
-    datapackage = {"name": "committee-meeting-protocols-parse", "resources": [{"name": "committee-meeting-protocols"}]}
-    processor_matcher = lambda step: step["run"] == "..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_protocols"
-    parameters = get_pipeline_processor_parameters("committees", "committee-meeting-protocols-parse", processor_matcher)
+    datapackage = {"name": "committee-meeting-protocols-parse",
+                   "resources": [{"name": "committee-meeting-protocols"}]}
+    processor_matcher = lambda step: step["run"] == "..datapackage_pipelines_knesset" \
+                                                    ".committees.processors.parse_committee_meeting_protocols"
+    parameters = get_pipeline_processor_parameters("committees", "committee-meeting-protocols", processor_matcher)
     parameters["out-path"] = out_path
     processor = MockParseCommitteeMeetingProtocols(datapackage=datapackage, parameters=parameters,
-                                                   resources=[[{"committee_id": 1, "meeting_id": 2020275,
-                                                                "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc",
-                                                                "protocol_file": os.path.join(os.path.dirname(__file__), "mocks", "20_ptv_389210.doc")}]])
+                                                   resources=[downloaded_protocols])
     datapackage, resources = processor.spew()
     schema = datapackage["resources"][0]["schema"]
     resource = next(resources)
     protocol = next(resource)
     assert_conforms_to_schema(schema, protocol)
-    assert protocol["parts_file"] == os.path.join(out_path, "1", "2020275.parts.csv")
+    # got the parsed files
+    assert protocol["parts_file"] == os.path.join(out_path, "1", "2020275.csv")
     assert protocol["text_file"] == os.path.join(out_path, "1", "2020275.txt")
     assert os.path.exists(protocol["parts_file"])
     assert os.path.exists(protocol["text_file"])
     assert os.path.getsize(protocol["parts_file"]) == 2335
     assert os.path.getsize(protocol["text_file"]) == 2306
-
-@pytest.mark.skip
-def test_committee_meeting_protocols_update_db():
-    session = get_session(connection_string="sqlite://")
-    metadata = create_mock_db(session)
-    meetings = metadata.tables["committee-meetings"]
-    protocol_parts = metadata.tables["committee-meeting-protocol-parts"]
-    # the meeting is initially synced with empty protocol_text
-    # the update_db processor will update it
-    row = meetings.select(meetings.c.id == 2020275).execute().fetchone()
-    assert row[meetings.c.protocol_text] == ""
-    # the update_db processor also deletes any existing protocol parts
-    # so we ensure we have one to see that it's deleted
-    rows = protocol_parts.select(protocol_parts.c.meeting_id == 2020275).execute().fetchall()
-    assert len(rows) == 1
-    # setup the processor
-    datapackage = {"name": "committee-meeting-protocols-update-db",
-                   "resources": [{"name": "committee-meeting-protocols-parsed"}]}
-    processor_matcher = lambda step: step["run"] == "..datapackage_pipelines_knesset.committees.processors.committee_meeting_protocols_update_db"
-    parameters = get_pipeline_processor_parameters("committees", "committee-meeting-protocols-parse",
-                                                   processor_matcher)
-    meeting_protocols_parsed = [{"committee_id": 1, "meeting_id": 2020275,
-                                 "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc",
-                                 "protocol_file": os.path.join(os.path.dirname(__file__), "mocks", "20_ptv_389210.doc"),
-                                 "parts_file": os.path.join(os.path.dirname(__file__), "mocks", "2020275.parts.csv"),
-                                 "text_file": os.path.join(os.path.dirname(__file__), "mocks", "2020275.txt")}]
-    processor = MockCommitteeMeetingProtocolsUpdateDb(datapackage=datapackage, parameters=parameters,
-                                                      resources=[meeting_protocols_parsed])
-    processor._db_session = session
-    # set the db metadata on the mock processor, instead of
-    datapackage, resources = processor.spew()
-    schema = datapackage["resources"][0]["schema"]
-    resource = next(resources)
-    protocol_part = next(resource)
-    assert_conforms_to_schema(schema, protocol_part)
-    assert protocol_part == {'body': 'הכנסת העשרים\n\nמושב שלישי\n\nפרוטוקול מס\' 277\n\nמישיבת ועדת הכנסת\n\nיום שלישי, כ"ד בתמוז התשע"ז (18 ביולי 2017), שעה 11:00',
-                             'committee_id': 1,
-                             'header': '',
-                             'meeting_id': 2020275,
-                             'order': 0}
-    assert next(resource) == {'body': 'בקשת חה"כ דוד ביטן להקדמת הדיון בהצעת חוק בנימין זאב הרצל (הנצחת זכרו ופועלו) (תיקון – מימון פעילות מוסדות ההנצחה), התשע"ז-2017 (פ/4414/20) לפני הקריאה הטרומית.',
-                              'committee_id': 1,
-                              'header': 'סדר היום',
-                              'meeting_id': 2020275,
-                              'order': 1}
-    row = meetings.select(meetings.c.id==2020275).execute().fetchone()
-    assert row
-    assert row[meetings.c.id] == 2020275
-    assert len(row[meetings.c.protocol_text]) == 1342
-    # ensure all protocol parts were deleted
-    rows = protocol_parts.select(protocol_parts.c.meeting_id == 2020275).execute().fetchall()
-    assert len(rows) == 0
+    if rtf_supported:
+        rtf_protocol = next(resource)
+        assert_conforms_to_schema(schema, rtf_protocol)
+        # got the parsed files
+        assert rtf_protocol["parts_file"] == os.path.join(out_path, "1", "268926.csv")
+        assert rtf_protocol["text_file"] == os.path.join(out_path, "1", "268926.txt")
+        assert os.path.exists(rtf_protocol["text_file"])
+        assert os.path.getsize(rtf_protocol["text_file"]) == 2264
+        assert os.path.exists(rtf_protocol["parts_file"])
+        assert os.path.getsize(rtf_protocol["parts_file"]) == 2280
