@@ -30,9 +30,12 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
                 return self._save_url_to_file(url, filename, num_retries, seconds_between_retries, retry_num+1)
             else:
                 raise
-        res.raise_for_status()
-        with open(filename, "wb") as f:
-            f.write(res.content)
+        if res.status_code == 200:
+            with open(filename, "wb") as f:
+                f.write(res.content)
+                return True
+        else:
+            return False
 
     def _get_filename(self, relpath):
         return os.path.join(self._parameters["out-path"], relpath)
@@ -49,7 +52,6 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
             relpath = os.path.join(str(meeting["committee_id"]), "{}.{}".format(meeting["id"], self._get_extension(meeting)))
             filename = self._get_filename(relpath)
             if relpath not in self._all_filenames:
-                self._all_filenames.append(relpath)
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
             override_meeting_ids = os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
             if not override_meeting_ids or str(meeting["id"]) in override_meeting_ids.split(","):
@@ -58,8 +60,11 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
                     if not override_meeting_ids or str(meeting["id"]) in override_meeting_ids.split(","):
                         num_retries = self._parameters.get("num-retries", 5)
                         seconds_between_retries = self._parameters.get("seconds-between-retries", 60)
-                        self._save_url_to_file(meeting["url"], filename, num_retries, seconds_between_retries)
-                        logging.info("downloaded {} -> {}".format(meeting["url"], filename))
+                        if self._save_url_to_file(meeting["url"], filename, num_retries, seconds_between_retries):
+                            logging.info("downloaded {} -> {}".format(meeting["url"], filename))
+                            self._all_filenames.append(relpath)
+                        else:
+                            filename = None
                 yield {"committee_id": meeting["committee_id"],
                        "meeting_id": meeting["id"],
                        "protocol_file": filename}

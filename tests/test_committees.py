@@ -1,16 +1,13 @@
 from collections import OrderedDict
 from .mocks.dataservice import (MockDataserviceFunctionResourceProcessor,
                                 MockAddDataserviceCollectionResourceProcessor)
-from .mocks.committees import (MockDownloadCommitteeMeetingProtocols, MockParseCommitteeMeetingProtocols,
-                               MockCommitteeMeetingProtocolsUpdateDb)
-from .mocks.db import create_mock_db
+from .mocks.committees import (MockDownloadCommitteeMeetingProtocols, MockParseCommitteeMeetingProtocols)
 from .common import (get_pipeline_processor_parameters_schema, assert_conforms_to_schema,
                      get_pipeline_processor_parameters)
 from itertools import chain
-import os, pytest
+import os
 from shutil import rmtree
-from datapackage_pipelines_knesset.common.db import get_session
-import subprocess, logging, json
+import logging, json
 
 
 def get_committees():
@@ -156,21 +153,35 @@ def test_download_committee_meeting_protocols():
     meeting_protocols = [{"committee_id": 1, "id": 2020275,
                           "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc"},
                          {"committee_id": 1, "id": 268926,
-                          "url": "http://knesset.gov.il/protocols/data/rtf/knesset/2007-12-27.rtf"}]
+                          "url": "http://knesset.gov.il/protocols/data/rtf/knesset/2007-12-27.rtf"},
+                         {"committee_id": 1, "id": 2011909,
+                          "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_387483.doc"}]
     processor = MockDownloadCommitteeMeetingProtocols(datapackage=datapackage, parameters=parameters, resources=[meeting_protocols])
     datapackage, resources = processor.spew()
     schema = datapackage["resources"][0]["schema"]
-    resource = next(resources)
-    protocol = next(resource)
+    resources = list(resources)
+    assert len(resources) == 1
+    resource = list(resources[0])
+    assert len(resource) == 3
+    protocol = resource[0]
     assert_conforms_to_schema(schema, protocol)
     assert protocol["protocol_file"] == os.path.join(out_path, "1", "2020275.doc")
     assert os.path.exists(protocol["protocol_file"])
     assert os.path.getsize(protocol["protocol_file"]) == 55296
-    rtf_protocol = next(resource)
+    rtf_protocol = resource[1]
     assert_conforms_to_schema(schema, rtf_protocol)
     assert rtf_protocol["protocol_file"] == os.path.join(out_path, "1", "268926.rtf")
     assert os.path.exists(rtf_protocol["protocol_file"])
     assert os.path.getsize(rtf_protocol["protocol_file"]) == 15370
+    assert resource[2] == {'committee_id': 1, 'meeting_id': 2011909, 'protocol_file': None}
+    with open(os.path.join(out_path, "datapackage.json")) as f:
+        datapackage = json.load(f)
+        assert datapackage == {"name": "_",
+                               "resources": [{'name': 'committee-meeting-protocols',
+                                              'path': ['1/2020275.doc', '1/268926.rtf']}]}
+
+
+
 
 def test_parse_committee_meeting_protocols():
     # rtf parsing depends on Libre Office, which might be hard to install

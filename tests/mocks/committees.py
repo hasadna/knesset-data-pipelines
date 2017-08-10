@@ -15,17 +15,27 @@ class MockDownloadCommitteeMeetingProtocols(DownloadCommitteeMeetingProtocolsPro
             filename = "20_ptv_389210.doc"
         elif url == "http://knesset.gov.il/protocols/data/rtf/knesset/2007-12-27.rtf":
             filename = "2007-12-27.rtf"
+        elif url == "http://fs.knesset.gov.il//20/Committees/20_ptv_387483.doc":
+            filename = "20_ptv_387483.doc"
         else:
             raise Exception("unknown url: {}".format(url))
         filename = os.path.join(os.path.dirname(__file__), filename)
         if not os.path.exists(filename):
             res = super(MockDownloadCommitteeMeetingProtocols, self)._reuqests_get(url)
-            res.raise_for_status()
+            if res.status_code != 200:
+                with open(filename+".status_code", 'w') as f:
+                    f.write(str(res.status_code))
             with open(filename, 'wb') as f:
                 f.write(res.content)
         with open(filename, "rb") as f:
-            return type("MockResponse", (object,), {"raise_for_status": lambda self: None,
-                                                    "content": f.read()})()
+            content = f.read()
+        if os.path.exists(filename+".status_code"):
+            with open(filename+".status_code") as f:
+                status_code = int(f.read())
+        else:
+            status_code = 200
+        return type("MockResponse", (object,), {"status_code": status_code,
+                                                "content": content})()
 
 
 class MockParseCommitteeMeetingProtocols(ParseCommitteeMeetingProtocolsProcessor):
