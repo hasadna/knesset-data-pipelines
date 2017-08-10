@@ -65,9 +65,10 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
                             self._all_filenames.append(relpath)
                         else:
                             filename = None
-                yield {"committee_id": meeting["committee_id"],
-                       "meeting_id": meeting["id"],
-                       "protocol_file": filename}
+                if filename is not None:
+                    yield {"committee_id": meeting["committee_id"],
+                           "meeting_id": meeting["id"],
+                           "protocol_file": filename}
 
     def _process_cleanup(self):
         filename = self._get_filename("datapackage.json")
