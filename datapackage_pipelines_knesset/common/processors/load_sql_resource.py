@@ -44,6 +44,7 @@ class LoadSqlResource(BaseProcessor):
                     val = getattr(db_row, field["name"])
                     row[field["name"]] = val
                 yield row
+        self._process_cleanup()
 
     def _process(self, datapackage, resources):
         return self._process_append(datapackage, resources)

@@ -14,7 +14,9 @@ RUN apk add --update --no-cache --virtual=build-dependencies \
 RUN apk --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --update add leveldb leveldb-dev
 RUN pip install psycopg2 datapackage-pipelines-github lxml datapackage-pipelines[speedup]
 RUN apk add --update --no-cache git
-RUN apk add libreoffice
+
+# libre office was used to parse rtf file but it's too heavy, dropping for now
+# RUN apk add libreoffice
 
 COPY requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt

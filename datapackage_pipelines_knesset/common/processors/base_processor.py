@@ -39,6 +39,7 @@ class BaseProcessor(object):
     def _filter_resource(self, data):
         for row in data:
             yield from self._filter_row(row)
+        self._process_cleanup()
 
     def _filter_resources(self, resources):
         for i, data in enumerate(resources):
@@ -51,7 +52,6 @@ class BaseProcessor(object):
                     yield self._filter_resource(data)
             else:
                 yield data
-        self._process_cleanup()
 
     def _process_filter(self, datapackage, resources):
         self._delete_resource_schema, self._filter_resource_i = None, None

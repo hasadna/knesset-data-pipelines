@@ -10,7 +10,7 @@ from itertools import chain
 import os, pytest
 from shutil import rmtree
 from datapackage_pipelines_knesset.common.db import get_session
-import subprocess, logging
+import subprocess, logging, json
 
 
 def get_committees():
@@ -176,7 +176,8 @@ def test_parse_committee_meeting_protocols():
     # rtf parsing depends on Libre Office, which might be hard to install
     # however, we do have tests for it
     # TODO: detect if rtf is supported or not
-    rtf_supported = False
+    # currently rtf is skipped, so it can be considered supported (but not really..)
+    rtf_supported = True
     if not rtf_supported:
         logging.warning("\n\nskipping tests for parsing of rtf files, due to missing soffice dependency\n\n")
     # this is the input to the parse committee meeting protocols processor
@@ -203,8 +204,11 @@ def test_parse_committee_meeting_protocols():
                                                    resources=[downloaded_protocols])
     datapackage, resources = processor.spew()
     schema = datapackage["resources"][0]["schema"]
-    resource = next(resources)
-    protocol = next(resource)
+    resources = list(resources)
+    assert len(resources) == 1
+    resource = list(resources[0])
+    assert len(resource) == 2
+    protocol = resource[0]
     assert_conforms_to_schema(schema, protocol)
     # got the parsed files
     assert protocol["parts_file"] == os.path.join(out_path, "1", "2020275.csv")
@@ -214,12 +218,18 @@ def test_parse_committee_meeting_protocols():
     assert os.path.getsize(protocol["parts_file"]) == 2335
     assert os.path.getsize(protocol["text_file"]) == 2306
     if rtf_supported:
-        rtf_protocol = next(resource)
+        rtf_protocol = resource[1]
         assert_conforms_to_schema(schema, rtf_protocol)
         # got the parsed files
-        assert rtf_protocol["parts_file"] == os.path.join(out_path, "1", "268926.csv")
-        assert rtf_protocol["text_file"] == os.path.join(out_path, "1", "268926.txt")
-        assert os.path.exists(rtf_protocol["text_file"])
-        assert os.path.getsize(rtf_protocol["text_file"]) == 2264
-        assert os.path.exists(rtf_protocol["parts_file"])
-        assert os.path.getsize(rtf_protocol["parts_file"]) == 2280
+        assert rtf_protocol["parts_file"] == None  # os.path.join(out_path, "1", "268926.csv")
+        assert rtf_protocol["text_file"] == None  # os.path.join(out_path, "1", "268926.txt")
+        # assert os.path.exists(rtf_protocol["text_file"])
+        # assert os.path.getsize(rtf_protocol["text_file"]) == 2264
+        # assert os.path.exists(rtf_protocol["parts_file"])
+        # assert os.path.getsize(rtf_protocol["parts_file"]) == 2280
+    with open(os.path.join(out_path, "datapackage.json")) as f:
+        datapackage = json.load(f)
+        assert datapackage == {"name": "_",
+                               "resources": [{'name': 'committee-meeting-protocols-parsed',
+                                              'path': ['1/2020275.csv', '1/2020275.txt']}]}
+
