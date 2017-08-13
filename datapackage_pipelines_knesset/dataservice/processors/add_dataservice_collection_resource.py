@@ -24,6 +24,7 @@ class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
             if "debug_element_count" in self._parameters.keys():
                 if int(self._parameters["debug_element_count"]) < resources_yielded:
                     return
+            
             yield self._filter_dataservice_object(dataservice_object)
 
     def _process(self, datapackage, resources):
