@@ -1,0 +1,8 @@
+version: "3"
+
+services:
+
+  app:
+    environment:
+      # you can set to 0 to disable worker but still run in docker and use the dashboard
+      - "DPP_WORKER_CONCURRENCY=0"

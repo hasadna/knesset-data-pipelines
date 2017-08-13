@@ -106,3 +106,4 @@ ENV/
 /.data-docker
 /docker-compose-deployment-combined.yml
 /docker-compose-deployment.yml
+/docker-compose.override.yml
