@@ -50,9 +50,9 @@ bills:
           postponent_reason_desc:
             source: PostponementReasonDesc
             type: string
-          #public_date:
-          #  source: PublicationDate
-          #  type: datetime
+          public_date:
+            source: PublicationDate
+            type: datetime
           magazine_num:
             source: MagazineNumber
             type: integer
@@ -74,9 +74,9 @@ bills:
           public_series_first_call:
             source: PublicationSeriesFirstCall
             type: string
-          #last_update:
-          #  source: LastUpdatedDate
-          #  type: datetime
+          last_update:
+            source: LastUpdatedDate
+            type: datetime
     - run: dump.to_sql
       parameters:
         tables:
@@ -117,9 +117,9 @@ bill-names:
             source: NameHistoryTypeDesc
             type: string
             description: Type of name change
-          #last_update:
-          #  source: LastUpdatedDate
-          #  type: datetime
+          last_update:
+            source: LastUpdatedDate
+            type: datetime
     - run: dump.to_sql
       parameters:
         tables:
@@ -156,9 +156,9 @@ bill-initiators:
             source: Ordinal
             type: integer
             description: The position of the initiator in the list of initiators
-          #last_update:
-          #  source: LastUpdatedDate
-          #  type: datetime
+          last_update:
+            source: LastUpdatedDate
+            type: datetime
     - run: dump.to_sql
       parameters:
         tables:
@@ -196,19 +196,19 @@ bill-history-initiators:
             source: IsInitiator
             type: boolean
             description: Is the person initiator of the bill
-          #start_date:
-          #  source: StartDate
-          #  type: datetime
-          #end_date:
-          #  source: EndDate
-          #  type: datetime
+          start_date:
+            source: StartDate
+            type: datetime
+          end_date:
+            source: EndDate
+            type: datetime
           reason_id:
             source: ReasonID
             type: integer
             description: The code reason of the person removal from the bill
-          #last_update:
-          #  source: LastUpdatedDate
-          #  type: datetime
+          last_update:
+            source: LastUpdatedDate
+            type: datetime
     - run: dump.to_sql
       parameters:
         tables:
@@ -245,9 +245,9 @@ bill-splits:
             source: Name
             type: string
             description: The newly created bill heb name
-          #last_update:
-          #  source: LastUpdatedDate
-          #  type: datetime
+          last_update:
+            source: LastUpdatedDate
+            type: datetime
     - run: dump.to_sql
       parameters:
         tables:
@@ -279,9 +279,9 @@ bill-unions:
             source: UnionBillID
             type: integer
             description: the merged bill
-          #last_update:
-          #  source: LastUpdatedDate
-          #  type: datetime
+          last_update:
+            source: LastUpdatedDate
+            type: datetime
     - run: dump.to_sql
       parameters:
         tables:

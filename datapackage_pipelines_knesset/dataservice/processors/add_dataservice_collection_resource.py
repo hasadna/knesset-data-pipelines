@@ -1,6 +1,6 @@
 from datapackage_pipelines_knesset.dataservice.processors.base_processor import BaseDataserviceProcessor
 from knesset_data.dataservice.base import BaseKnessetDataServiceCollectionObject
-import logging
+import logging, os
 
 
 class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
@@ -21,8 +21,8 @@ class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
         resources_yielded = 0
         for dataservice_object in self.dataservice_class.get_all():
             resources_yielded += 1
-            if "debug_element_count" in self._parameters.keys():
-                if int(self._parameters["debug_element_count"]) < resources_yielded:
+            if os.environ.get("OVERRIDE_DATASERVICE_COLLECTION_LIMIT_ITEMS",""):
+                if int(os.environ.get("OVERRIDE_DATASERVICE_COLLECTION_LIMIT_ITEMS","")) < resources_yielded:
                     return
             
             yield self._filter_dataservice_object(dataservice_object)
