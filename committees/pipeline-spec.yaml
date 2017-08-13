@@ -146,7 +146,7 @@ committee-meetings:
           ### following fields seem less interesting ###
           agenda_canceled:
             source: Committee_Agenda_canceled
-            type: string
+            type: integer
           agenda_sub:
             source: Committee_agenda_sub
             type: string

@@ -66,12 +66,6 @@ class BaseDataserviceProcessor(BaseProcessor):
     def _filter_output_row(self, row):
         for field in self._schema["fields"]:
             value = row.get(field["name"], None)
-            
-            #if isinstance(value, (datetime.datetime,datetime.date)):
-            #    if field["type"] == "datetime":
-            #        value = value.strftime("%Y-%m-%d %H:%M:%S.%f")
-            #    elif field["type"] == "date":
-            #        value = value.strftime("%Y-%m-%d")
             row[field["name"]] = value
         return row
 
