@@ -4,6 +4,7 @@ import logging
 
 
 class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
+    
 
     def _get_base_dataservice_class(self):
         return BaseKnessetDataServiceCollectionObject
@@ -17,7 +18,12 @@ class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
         return ExtendedDataserviceClass
 
     def _get_resource(self):
+        resources_yielded = 0
         for dataservice_object in self.dataservice_class.get_all():
+            resources_yielded += 1
+            if "debug_element_count" in self._parameters.keys():
+                if int(self._parameters["debug_element_count"]) < resources_yielded:
+                    return
             yield self._filter_dataservice_object(dataservice_object)
 
     def _process(self, datapackage, resources):
