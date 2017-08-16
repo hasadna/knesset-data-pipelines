@@ -1,5 +1,6 @@
 from datapackage_pipelines_knesset.common.processors.base_processor import BaseProcessor
 from knesset_data.protocols.committee import CommitteeMeetingProtocol
+from knesset_data.protocols.exceptions import AntiwordException
 import os, csv, json, subprocess, logging, shutil
 
 
@@ -21,51 +22,61 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
     def _get_filename(self, relpath):
         return os.path.join(self._parameters["out-path"], relpath)
 
-    def _rtf_to_txt(self, rtf_filename):
-        rootdir = os.path.join(os.path.dirname(__file__), "..", "..", "..")
-        outdir = os.path.join(rootdir, ".rtf_to_txt")
-        os.makedirs(outdir, exist_ok=True)
-        txt_filename = os.path.join(outdir, rtf_filename.replace(os.path.dirname(rtf_filename)+"/", "").split(".")[0])
-        txt_filename += ".txt"
-        txt_filename = os.path.abspath(txt_filename)
-        cmd = ["soffice", "--headless", "--convert-to txt",
-               "--outdir", os.path.abspath(outdir),
-               os.path.abspath(rtf_filename)]
-        # logging.info(cmd)
-        # logging.info(txt_filename)
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-        out, err = p.communicate()
-        if p.returncode == 0 and os.path.exists(txt_filename):
-            return txt_filename
-        else:
-            logging.info(out)
-            logging.info(err)
-            raise Exception("failed to parse rtf file")
+    # rtf parsing proved difficult, skipping for now
+    # def _rtf_to_txt(self, rtf_filename):
+    #     rootdir = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+    #     outdir = os.path.join(rootdir, ".rtf_to_txt")
+    #     os.makedirs(outdir, exist_ok=True)
+    #     txt_filename = os.path.join(outdir, rtf_filename.replace(os.path.dirname(rtf_filename)+"/", "").split(".")[0])
+    #     txt_filename += ".txt"
+    #     txt_filename = os.path.abspath(txt_filename)
+    #     cmd = ["soffice", "--headless", "--convert-to txt",
+    #            "--outdir", os.path.abspath(outdir),
+    #            os.path.abspath(rtf_filename)]
+    #     # logging.info(cmd)
+    #     # logging.info(txt_filename)
+    #     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    #     out, err = p.communicate()
+    #     if p.returncode == 0 and os.path.exists(txt_filename):
+    #         return txt_filename
+    #     else:
+    #         logging.info(out)
+    #         logging.info(err)
+    #         raise Exception("failed to parse rtf file")
 
     def _filter_row(self, meeting_protocol, **kwargs):
-        parts_relpath = os.path.join(str(meeting_protocol["committee_id"]), "{}.csv".format(meeting_protocol["meeting_id"]))
-        text_relpath = os.path.join(str(meeting_protocol["committee_id"]), "{}.txt".format(meeting_protocol["meeting_id"]))
+        committee_id = meeting_protocol["committee_id"]
+        meeting_id = meeting_protocol["meeting_id"]
+        parts_relpath = os.path.join(str(committee_id), "{}.csv".format(meeting_id))
+        text_relpath = os.path.join(str(committee_id), "{}.txt".format(meeting_id))
         parts_filename = self._get_filename(parts_relpath)
         text_filename = self._get_filename(text_relpath)
         protocol_filename = meeting_protocol["protocol_file"]
         protocol_ext = protocol_filename.strip()[-4:]
-        if protocol_ext == ".doc":
-            # for now, only doc files are being parsed and should be added to all_filenames
-            if parts_relpath not in self._all_filenames:
-                self._all_filenames += [parts_relpath, text_relpath]
-                os.makedirs(os.path.dirname(parts_filename), exist_ok=True)
         if not os.path.exists(parts_filename):
             if protocol_ext == ".doc":
-                with CommitteeMeetingProtocol.get_from_filename(protocol_filename) as protocol:
-                    with open(text_filename, "w") as f:
-                        f.write(protocol.text)
-                        logging.info("parsed doc to text -> {}".format(text_filename))
-                    with open(parts_filename, "w") as f:
-                        csv_writer = csv.writer(f)
-                        csv_writer.writerow(["header", "body"])
-                        for part in protocol.parts:
-                            csv_writer.writerow([part.header, part.body])
-                        logging.info("parsed parts file -> {}".format(parts_filename))
+                if parts_relpath not in self._all_filenames:
+                    os.makedirs(os.path.dirname(parts_filename), exist_ok=True)
+                try:
+                    with CommitteeMeetingProtocol.get_from_filename(protocol_filename) as protocol:
+                        with open(text_filename, "w") as f:
+                            f.write(protocol.text)
+                            logging.info("parsed doc to text -> {}".format(text_filename))
+                        with open(parts_filename, "w") as f:
+                            csv_writer = csv.writer(f)
+                            csv_writer.writerow(["header", "body"])
+                            for part in protocol.parts:
+                                csv_writer.writerow([part.header, part.body])
+                            logging.info("parsed parts file -> {}".format(parts_filename))
+                except AntiwordException:
+                    logging.exception("committee {} meeting {}: failed to parse doc file, skipping".format(committee_id,
+                                                                                                           meeting_id))
+                    if os.path.exists(text_filename):
+                        os.unlink(text_filename)
+                    if os.path.exists(parts_filename):
+                        os.unlink(parts_filename)
+                    text_filename = None
+                    parts_filename = None
             elif protocol_ext == ".rtf":
                 # rtf parsing proved difficult, skipping for now
                 text_filename = None
@@ -84,8 +95,12 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
                 #             logging.info("parsed parts file -> {}".format(parts_filename))
             else:
                 raise Exception("unknown extension: {}".format(protocol_ext))
-        yield {"committee_id": meeting_protocol["committee_id"],
-               "meeting_id": meeting_protocol["meeting_id"],
+        if parts_filename:
+            self._all_filenames += [parts_relpath]
+        if text_filename:
+            self._all_filenames += [text_relpath]
+        yield {"committee_id": committee_id,
+               "meeting_id": meeting_id,
                "protocol_file": protocol_filename,
                "text_file": text_filename,
                "parts_file": parts_filename}

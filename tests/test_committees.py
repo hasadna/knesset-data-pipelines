@@ -183,24 +183,22 @@ def test_download_committee_meeting_protocols():
 
 
 def test_parse_committee_meeting_protocols():
-    # rtf parsing depends on Libre Office, which might be hard to install
-    # however, we do have tests for it
-    # TODO: detect if rtf is supported or not
-    # currently rtf is skipped, so it can be considered supported (but not really..)
-    rtf_supported = True
-    if not rtf_supported:
-        logging.warning("\n\nskipping tests for parsing of rtf files, due to missing soffice dependency\n\n")
     # this is the input to the parse committee meeting protocols processor
     # it contains downloaded meeting protocol source files (either .doc or .rtf)
     downloaded_protocols = [{"committee_id": 1, "meeting_id": 2020275,
                              "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc",
                              "protocol_file": os.path.join(os.path.dirname(__file__),
-                                                                             "mocks", "20_ptv_389210.doc")},]
-    if rtf_supported:
-        downloaded_protocols.append({"committee_id": 1, "meeting_id": 268926,
-                                     "url": "http://knesset.gov.il/protocols/data/rtf/knesset/2007-12-27.rtf",
-                                     "protocol_file": os.path.join(os.path.dirname(__file__),
-                                                                   "mocks", "2007-12-27.rtf")})
+                                                                             "mocks", "20_ptv_389210.doc")},
+                            # rtf file - will be skipped
+                            {"committee_id": 1, "meeting_id": 268926,
+                             "url": "http://knesset.gov.il/protocols/data/rtf/knesset/2007-12-27.rtf",
+                             "protocol_file": os.path.join(os.path.dirname(__file__),
+                                                           "mocks", "2007-12-27.rtf")},
+                            # invalid file - will be skipped
+                            {"committee_id": 5, "meeting_id": 576879,
+                             "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_341203.doc",
+                             "protocol_file": os.path.join(os.path.dirname(__file__),
+                                                           "mocks", "20_ptv_341203.doc")}]
     # output files will be saves in this path
     out_path = os.path.join(os.path.dirname(__file__), "..", "data", "test-parse-committee-meeting-protocols")
     rmtree(out_path, ignore_errors=True)
@@ -217,29 +215,28 @@ def test_parse_committee_meeting_protocols():
     resources = list(resources)
     assert len(resources) == 1
     resource = list(resources[0])
-    assert len(resource) == 2
-    protocol = resource[0]
-    assert_conforms_to_schema(schema, protocol)
-    # got the parsed files
-    assert protocol["parts_file"] == os.path.join(out_path, "1", "2020275.csv")
-    assert protocol["text_file"] == os.path.join(out_path, "1", "2020275.txt")
-    assert os.path.exists(protocol["parts_file"])
-    assert os.path.exists(protocol["text_file"])
-    assert os.path.getsize(protocol["parts_file"]) == 2335
-    assert os.path.getsize(protocol["text_file"]) == 2306
-    if rtf_supported:
-        rtf_protocol = resource[1]
-        assert_conforms_to_schema(schema, rtf_protocol)
-        # got the parsed files
-        assert rtf_protocol["parts_file"] == None  # os.path.join(out_path, "1", "268926.csv")
-        assert rtf_protocol["text_file"] == None  # os.path.join(out_path, "1", "268926.txt")
-        # assert os.path.exists(rtf_protocol["text_file"])
-        # assert os.path.getsize(rtf_protocol["text_file"]) == 2264
-        # assert os.path.exists(rtf_protocol["parts_file"])
-        # assert os.path.getsize(rtf_protocol["parts_file"]) == 2280
+    # all docs are returned, but the invalid ones will have empty text / parts file
+    assert len(resource) == 3
+
+    # valid doc protocol
+    valid_protocol = resource[0]
+    assert_conforms_to_schema(schema, valid_protocol)
+    assert valid_protocol["parts_file"] == os.path.join(out_path, "1", "2020275.csv")
+    assert valid_protocol["text_file"] == os.path.join(out_path, "1", "2020275.txt")
+    assert os.path.exists(valid_protocol["parts_file"])
+    assert os.path.exists(valid_protocol["text_file"])
+    assert os.path.getsize(valid_protocol["parts_file"]) == 2335
+    assert os.path.getsize(valid_protocol["text_file"]) == 2306
+
+    # rtf and invalid doc - skipped
+    for skipped_protocol in [resource[1], resource[2]]:
+        assert_conforms_to_schema(schema, skipped_protocol)
+        assert skipped_protocol["parts_file"] == None
+        assert skipped_protocol["text_file"] == None
+
+    # the datapackage contains only the valid files
     with open(os.path.join(out_path, "datapackage.json")) as f:
         datapackage = json.load(f)
         assert datapackage == {"name": "_",
                                "resources": [{'name': 'committee-meeting-protocols-parsed',
                                               'path': ['1/2020275.csv', '1/2020275.txt']}]}
-
