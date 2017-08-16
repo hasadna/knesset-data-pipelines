@@ -288,33 +288,3 @@ bill-unions:
           bill-unions:
             resource-name: bill-unions
             mode: update
-
-sql-update:
-  dependencies:
-    - pipeline: ./bills/bills
-  pipeline:
-    - run: add_metadata
-      parameters:
-        name: bills-sql-update
-    - run: load_resource
-      parameters:
-        resource: bills
-        url: ../data/bills/datapackage.json
-    - run: load_resource
-      parameters:
-        resource: bill-names
-        url: ../data/bill-names/datapackage.json
-    - run: load_resource
-      parameters:
-        resource: bill-initiators
-        url: ../data/bill-initiators/datapackage.json
-    - run: load_resource
-      parameters:
-        resource: bill-history-initiators
-        url: ../data/bill-history-initiators/datapackage.json
-      parameters:
-        resource: bill-splits
-        url: ../data/bill-splits/datapackage.json
-      parameters:
-        resource: bill-unions
-        url: ../data/bill-unions/datapackage.json
