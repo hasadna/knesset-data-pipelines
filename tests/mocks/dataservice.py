@@ -43,6 +43,10 @@ class MockAddDataserviceCollectionResourceProcessor(AddDataserviceCollectionReso
             def _get_filename(cls, url, params):
                 if url == "http://knesset.gov.il/Odata_old/CommitteeScheduleData.svc/View_committee":
                     return "Odata_old_CommitteeScheduleData_View_committee.json"
+                elif url.startswith("http://knesset.gov.il/Odata/ParliamentInfo.svc//KNS_"):
+                    if len(params) > 0:
+                        raise Exception("unexpected params")
+                    return "odata_parliamentinfo_kns_{}.json".format(url.replace("http://knesset.gov.il/Odata/ParliamentInfo.svc//KNS_", ""))
 
             @classmethod
             def _get_response_content(cls, url, params, timeout, proxies, retry_num=1):
