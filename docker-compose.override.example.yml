@@ -3,6 +3,17 @@ version: "3"
 services:
 
   app:
+    # you can disable a service using the following line
+    # command: echo "service disabled"
     environment:
       # you can set to 0 to disable worker but still run in docker and use the dashboard
       - "DPP_WORKER_CONCURRENCY=0"
+
+  # additional optional services
+
+  ## adminer (formerly PhpMyAdmin) - web UI for DB access
+  # adminer:
+  #   image: adminer:4.3.1-standalone
+  #   ports:
+  #     - "18080:8080"
+
