@@ -8,6 +8,7 @@ from itertools import chain
 import os, datetime
 from shutil import rmtree
 import logging, json
+from datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_attendees import ParseCommitteeMeetingAttendeesProcessor
 
 
 def get_committees():
@@ -179,16 +180,13 @@ def test_download_committee_meeting_protocols():
                                "resources": [{'name': 'committee-meeting-protocols',
                                               'path': ['1/2020275.doc', '1/268926.rtf']}]}
 
-
-
-
-def test_parse_committee_meeting_protocols():
+def get_parsed_committee_meeting_protocols():
     # this is the input to the parse committee meeting protocols processor
     # it contains downloaded meeting protocol source files (either .doc or .rtf)
     downloaded_protocols = [{"committee_id": 1, "meeting_id": 2020275,
                              "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc",
                              "protocol_file": os.path.join(os.path.dirname(__file__),
-                                                                             "mocks", "20_ptv_389210.doc")},
+                                                           "mocks", "20_ptv_389210.doc")},
                             # rtf file - will be skipped
                             {"committee_id": 1, "meeting_id": 268926,
                              "url": "http://knesset.gov.il/protocols/data/rtf/knesset/2007-12-27.rtf",
@@ -214,7 +212,13 @@ def test_parse_committee_meeting_protocols():
     schema = datapackage["resources"][0]["schema"]
     resources = list(resources)
     assert len(resources) == 1
-    resource = list(resources[0])
+    return resources[0], schema, out_path
+
+
+def test_parse_committee_meeting_protocols():
+    resource, schema, out_path = get_parsed_committee_meeting_protocols()
+    resource = list(resource)
+
     # all docs are returned, but the invalid ones will have empty text / parts file
     assert len(resource) == 3
 
@@ -240,3 +244,31 @@ def test_parse_committee_meeting_protocols():
         assert datapackage == {"name": "_",
                                "resources": [{'name': 'committee-meeting-protocols-parsed',
                                               'path': ['1/2020275.csv', '1/2020275.txt']}]}
+
+def test_parse_committee_meeting_attendees():
+    # get the input for the meeting attendees processor
+    resource, schema, out_path = get_parsed_committee_meeting_protocols()
+    parsed_meeting = next(resource)
+    protocol_file = os.path.join(os.path.dirname(__file__), 'mocks', '20_ptv_389210.doc')
+    text_file = os.path.join(out_path, '1', '2020275.txt')
+    parts_file = os.path.join(out_path, '1', '2020275.csv')
+    assert parsed_meeting == {'committee_id': 1, 'meeting_id': 2020275,
+                              'protocol_file': protocol_file,
+                              'text_file': text_file,
+                              'parts_file': parts_file}
+    # prepare the meeting attendees processor input
+    datapackage = {"name": "_",
+                   "resources": [{"name": "committee-meetings"}]}
+    # we load the parameters by matching the processor step from the pipeline-spec.yaml file
+    processor_matcher = lambda step: step["run"] == "..datapackage_pipelines_knesset" \
+                                                    ".committees.processors.parse_committee_meeting_attendees"
+    parameters = get_pipeline_processor_parameters("committees", "committee-meeting-attendees", processor_matcher)
+    parameters["input-path"] = out_path
+    processor = ParseCommitteeMeetingAttendeesProcessor(datapackage=datapackage, parameters=parameters,
+                                                        resources=[[{"id": parsed_meeting["meeting_id"],
+                                                                    "committee_id": parsed_meeting["committee_id"]}]])
+    datapackage, resources = processor.spew()
+    resources = list(resources)
+    assert len(resources) == 1
+    resource = list(resources[0])
+    print(resource)

@@ -264,6 +264,8 @@ committee-meeting-attendees:
     - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_attendees
       parameters:
         input-path: ../data/committee-meeting-protocols-parsed
+        input-resource: committee-meetings
+        output-resource: committee-meeting-attendees
 
 all:
   schedule:
