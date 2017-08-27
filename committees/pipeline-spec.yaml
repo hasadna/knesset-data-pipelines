@@ -252,6 +252,27 @@ committee-meeting-protocols:
         data-resource-descriptor:
           name: committee-meeting-protocols-parsed
 
+committee-meeting-attendees:
+  schedule:
+    crontab: "0 2 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/committee-meetings.json
+        resource-name: committee-meetings
+        table: committee-meetings
+    - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_attendees
+      parameters:
+        input-path: ../data/committee-meeting-protocols-parsed
+        input-resource: committee-meetings
+        output-resource: committee-meeting-attendees
+    - run: dump.to_sql
+      parameters:
+        tables:
+          committee-meeting-attendees:
+            resource-name: committee-meeting-attendees
+            mode: insert
+
 all:
   schedule:
     crontab: "0 0 * * 1"
