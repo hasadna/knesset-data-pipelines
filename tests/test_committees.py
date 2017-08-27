@@ -271,4 +271,11 @@ def test_parse_committee_meeting_attendees():
     resources = list(resources)
     assert len(resources) == 1
     resource = list(resources[0])
-    print(resource)
+    assert resource == [{'committee_id': 1, 'meeting_id': 2020275, 'name': 'דוד ביטן – היו"ר', 'role': 'mks', 'additional_information': ''},
+                        {'committee_id': 1, 'meeting_id': 2020275, 'name': 'אמיר אוחנה', 'role': 'mks', 'additional_information': ''}, 
+                        {'committee_id': 1, 'meeting_id': 2020275, 'name': 'דוד אמסלם', 'role': 'mks', 'additional_information': ''}, 
+                        {'committee_id': 1, 'meeting_id': 2020275, 'name': 'יואב בן צור', 'role': 'mks', 'additional_information': ''}, 
+                        {'committee_id': 1, 'meeting_id': 2020275, 'name': 'יואל חסון', 'role': 'mks', 'additional_information': ''}, 
+                        {'committee_id': 1, 'meeting_id': 2020275, 'name': 'אברהם נגוסה', 'role': 'mks', 'additional_information': ''}, 
+                        {'committee_id': 1, 'meeting_id': 2020275, 'name': 'ארבל אסטרחן', 'role': 'legal_advisors', 'additional_information': ''}, 
+                        {'committee_id': 1, 'meeting_id': 2020275, 'name': 'אתי בן יוסף', 'role': 'manager', 'additional_information': ''}] 

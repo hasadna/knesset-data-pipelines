@@ -266,6 +266,12 @@ committee-meeting-attendees:
         input-path: ../data/committee-meeting-protocols-parsed
         input-resource: committee-meetings
         output-resource: committee-meeting-attendees
+    - run: dump.to_sql
+      parameters:
+        tables:
+          committee-meeting-attendees:
+            resource-name: committee-meeting-attendees
+            mode: insert
 
 all:
   schedule:

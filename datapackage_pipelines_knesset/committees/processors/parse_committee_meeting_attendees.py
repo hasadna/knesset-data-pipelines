@@ -25,7 +25,9 @@ class ParseCommitteeMeetingAttendeesProcessor(BaseProcessor):
         with open(filepath,"r") as f:
             text = f.read()
 
-        attendees = CommitteeMeetingProtocol.get_from_text(text).attendees
+        with CommitteeMeetingProtocol.get_from_text(text) as protocol:
+            attendees = protocol.attendees
+        
         for key in attendees.keys():
             for attendee in attendees[key]:
                 if key == "invitees":
@@ -33,7 +35,7 @@ class ParseCommitteeMeetingAttendeesProcessor(BaseProcessor):
                            "meeting_id":meeting_id,
                            "name":attendee["name"],
                            "role":"invitees",
-                           "additional_information":attendee["role"]}
+                           "additional_information":attendee["role"] if "role" in attendee.keys() else ""}
 
                 else:
                     yield {"committee_id":committee_id,
