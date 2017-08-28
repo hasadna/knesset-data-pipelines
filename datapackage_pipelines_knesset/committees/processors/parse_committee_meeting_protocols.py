@@ -64,15 +64,17 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
 
     def _parse_rtf_protocol(self, committee_id, meeting_id, protocol_filename, parts_filename, text_filename):
         rtf_extractor = os.environ.get("RTF_EXTRACTOR_BIN")
-        if not rtf_extractor:
-            rtf_extractor = 'bin/rtf_extractor.py'
-        cmd = rtf_extractor + ' ' + protocol_filename + ' ' + text_filename
-        subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
-        with open(text_filename) as f:
-            protocol_text = f.read()
-        with CommitteeMeetingProtocol.get_from_text(protocol_text) as protocol:
-            self._parse_protocol_parts(parts_filename, protocol)
-        return True
+        if rtf_extractor:
+            cmd = rtf_extractor + ' ' + protocol_filename + ' ' + text_filename
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+            with open(text_filename) as f:
+                protocol_text = f.read()
+            with CommitteeMeetingProtocol.get_from_text(protocol_text) as protocol:
+                self._parse_protocol_parts(parts_filename, protocol)
+            return True
+        else:
+            logging.warning("missing RTF_EXTRACTOR_BIN environment variable, skipping rtf parsing")
+            return False
 
     def _parse_doc_protocol(self, committee_id, meeting_id, protocol_filename, parts_filename, text_filename):
         try:
@@ -81,11 +83,11 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
                     f.write(protocol.text)
                     logging.info("parsed doc to text -> {}".format(text_filename))
                 self._parse_protocol_parts(parts_filename, protocol)
-            return True
-        except AntiwordException:
+        except (AntiwordException, subprocess.SubprocessError):
             logging.exception("committee {} meeting {}: failed to parse doc file, skipping".format(committee_id,
                                                                                                    meeting_id))
             return False
+        return True
 
     def _parse_protocol_parts(self, parts_filename, protocol):
         with open(parts_filename, "w") as f:
