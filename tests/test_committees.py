@@ -179,9 +179,6 @@ def test_download_committee_meeting_protocols():
                                "resources": [{'name': 'committee-meeting-protocols',
                                               'path': ['1/2020275.doc', '1/268926.rtf']}]}
 
-
-
-
 def test_parse_committee_meeting_protocols():
     # this is the input to the parse committee meeting protocols processor
     # it contains downloaded meeting protocol source files (either .doc or .rtf)
@@ -228,15 +225,29 @@ def test_parse_committee_meeting_protocols():
     assert os.path.getsize(valid_protocol["parts_file"]) == 2335
     assert os.path.getsize(valid_protocol["text_file"]) == 2306
 
-    # rtf and invalid doc - skipped
-    for skipped_protocol in [resource[1], resource[2]]:
-        assert_conforms_to_schema(schema, skipped_protocol)
-        assert skipped_protocol["parts_file"] == None
-        assert skipped_protocol["text_file"] == None
+    # valid rtf protocol
+    rtf_protocol = resource[1]
+    assert_conforms_to_schema(schema, rtf_protocol)
+    if os.environ.get("RTF_EXTRACTOR_BIN"):
+        assert rtf_protocol["parts_file"] == os.path.join(out_path, "1", "268926.csv")
+        assert rtf_protocol["text_file"] == os.path.join(out_path, "1", "268926.txt")
+        assert os.path.exists(rtf_protocol["parts_file"])
+        assert os.path.exists(rtf_protocol["text_file"])
+        # TODO: change to the actual file sizes after parsing
+        assert os.path.getsize(rtf_protocol["parts_file"]) == 2272
+        assert os.path.getsize(rtf_protocol["text_file"]) == 2246
+    else:
+        logging.warning("skipping rtf protocol test")
+    
+    # invalid doc - skipped
+    invalid_doc = resource[2]
+    assert_conforms_to_schema(schema, invalid_doc)
+    assert invalid_doc["parts_file"] == None
+    assert invalid_doc["text_file"] == None
 
     # the datapackage contains only the valid files
     with open(os.path.join(out_path, "datapackage.json")) as f:
         datapackage = json.load(f)
         assert datapackage == {"name": "_",
                                "resources": [{'name': 'committee-meeting-protocols-parsed',
-                                              'path': ['1/2020275.csv', '1/2020275.txt']}]}
+                                              'path': ['1/2020275.csv', '1/2020275.txt',]}]}
