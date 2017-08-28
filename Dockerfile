@@ -1,5 +1,13 @@
 FROM python:3.6-alpine
 
+# install Python 2.7 - for rtf extractor
+ENV GPG_KEY C01E1CAD5EA2C4F0B8E3571504C367C218ADD4FF
+ENV PYTHON_VERSION 2.7.13
+ENV PYTHON_PIP_VERSION 9.0.1
+
+COPY .docker/install_python2.sh /install_python2.sh
+RUN /install_python2.sh
+
 # install system requirements
 RUN apk add --update --no-cache --virtual=build-dependencies \
     antiword \
