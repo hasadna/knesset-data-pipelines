@@ -237,6 +237,7 @@ committee-meeting-protocols:
         table: committee-meetings
     # downloads the source protocol files for meetings which weren't downloaded before
     # saves the files in a (non tabular) datapackage in out-path
+    # all meetings with url are yielded for parse processor
     - run: ..datapackage_pipelines_knesset.committees.processors.download_committee_meeting_protocols
       parameters:
         input-resource: committee-meetings
@@ -245,6 +246,7 @@ committee-meeting-protocols:
         data-resource-descriptor:
           name: committee-meeting-protocols
     # parses the downloaded protocols into text and parts files which will be saved in out-path
+    # will re-parse meetings which have missing or empty files
     - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_protocols
       parameters:
         input-resource: committee-meeting-protocols

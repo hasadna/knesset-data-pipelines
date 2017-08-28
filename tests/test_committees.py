@@ -179,9 +179,6 @@ def test_download_committee_meeting_protocols():
                                "resources": [{'name': 'committee-meeting-protocols',
                                               'path': ['1/2020275.doc', '1/268926.rtf']}]}
 
-
-
-
 def test_parse_committee_meeting_protocols():
     # this is the input to the parse committee meeting protocols processor
     # it contains downloaded meeting protocol source files (either .doc or .rtf)
@@ -236,9 +233,9 @@ def test_parse_committee_meeting_protocols():
     assert os.path.exists(rtf_protocol["parts_file"])
     assert os.path.exists(rtf_protocol["text_file"])
     # TODO: change to the actual file sizes after parsing
-    assert os.path.getsize(rtf_protocol["parts_file"]) == 999
-    assert os.path.getsize(rtf_protocol["text_file"]) == 999
-
+    assert os.path.getsize(rtf_protocol["parts_file"]) == 2272
+    assert os.path.getsize(rtf_protocol["text_file"]) == 2246
+    
     # invalid doc - skipped
     invalid_doc = resource[2]
     assert_conforms_to_schema(schema, invalid_doc)
