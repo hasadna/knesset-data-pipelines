@@ -66,11 +66,16 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
         rtf_extractor = os.environ.get("RTF_EXTRACTOR_BIN")
         if rtf_extractor:
             cmd = rtf_extractor + ' ' + protocol_filename + ' ' + text_filename
-            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
-            with open(text_filename) as f:
-                protocol_text = f.read()
-            with CommitteeMeetingProtocol.get_from_text(protocol_text) as protocol:
-                self._parse_protocol_parts(parts_filename, protocol)
+            try:
+                subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+                with open(text_filename) as f:
+                    protocol_text = f.read()
+                with CommitteeMeetingProtocol.get_from_text(protocol_text) as protocol:
+                    self._parse_protocol_parts(parts_filename, protocol)
+            except subprocess.SubprocessError:
+                logging.exception("committee {} meeting {}: failed to parse rtf file, skipping".format(committee_id,
+                                                                                                       meeting_id))
+                return False
             return True
         else:
             logging.warning("missing RTF_EXTRACTOR_BIN environment variable, skipping rtf parsing")
