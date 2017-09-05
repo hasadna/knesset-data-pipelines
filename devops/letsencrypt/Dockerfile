@@ -14,4 +14,6 @@ COPY issue_cert.sh /issue_cert.sh
 COPY renew_certs.sh /renew_certs.sh
 COPY entrypoint.sh /entrypoint.sh
 
+ENV TERM xterm
+
 ENTRYPOINT ["/entrypoint.sh"]
