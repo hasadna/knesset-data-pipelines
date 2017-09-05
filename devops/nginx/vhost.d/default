@@ -1,9 +1,16 @@
 
-# this is shared with all vhosts to allow let's encrypt to issue certificates
-
-location /.well-known/acme-challenge/ {
+location /pipelines/ {
     allow all;
-    root /usr/share/nginx/html;
-    try_files $uri =404;
-    break;
+    proxy_pass http://pipelines/;
+}
+
+location = / {
+    allow all;
+    return 200 'it works!';
+    add_header Content-Type text/plain;
+}
+
+location / {
+    allow all;
+    root /usr/share/nginx/html/;
 }
