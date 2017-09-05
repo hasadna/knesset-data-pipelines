@@ -1,0 +1,59 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: gcr.io/hasadna-oknesset/knesset-data-nginx@sha256:2e1ac4f6ba306192c900d50425044f4dbb325020fe7f68e5d6b3c380ff5e9144
+        resources:
+          requests:
+            cpu: 20m
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        volumeMounts:
+        - name: nginx-html
+          mountPath: /usr/share/nginx/html
+        - name: letsencrypt-etc
+          mountPath: /letsencrypt-etc
+        - name: nginx-vhost-d
+          mountPath: /etc/nginx/vhost.d/
+        - name: knesset-data-pipelines
+          mountPath: /knesset-data-pipelines/
+      restartPolicy: Always
+      volumes:
+      - name: nginx-html
+        hostPath:
+          path: /var/next-oknesset/nginx-html
+      - name: letsencrypt-etc
+        hostPath:
+          path: /var/next-oknesset/letsencrypt-etc
+      - name: nginx-vhost-d
+        hostPath:
+          path: /var/next-oknesset/nginx-vhost-d
+      - name: knesset-data-pipelines
+        hostPath:
+          path: /var/next-oknesset/knesset-data-pipelines
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  type: LoadBalancer
+  selector:
+    app: nginx
+  ports:
+  - name: "80"
+    port: 80
+  - name: "443"
+    port: 443
