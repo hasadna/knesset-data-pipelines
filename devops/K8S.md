@@ -38,6 +38,24 @@ Some examples:
 
 ## Common Tasks
 
-* scheduling a pipeline to run on a pod
-  * `kubectl get pods`
-  * `kubectl exec <pod_name> /knesset/bin/execute_scheduled_pipeline.sh ./committees/committee-meeting-protocols`
+### executing a pipeline directly, overriding environment vars
+
+* `kubectl get pods`
+* get the name of the app pod
+* run committee meeting pipelines, overriding some env vars:
+  * `kubectl exec <app_pod_name> -- bash -c "OVERRIDE_COMMITTEE_MEETING_FROM_DAYS=-8000 OVERRIDE_COMMITTEE_IDS=2 dpp run ./committees/committee-meetings"`
+
+### scheduling a pipeline to run on a pod
+
+* `kubectl get pods`
+* get the name of the app pod
+* schedule the committee meeting protocols pipeline to run immediately
+  * `kubectl exec <app_pod_name> /knesset/bin/execute_scheduled_pipeline.sh ./committees/committee-meeting-protocols`
+
+### editing files locally on the kubernetes node
+
+* we have some local files on the kubernetes host, you might need to edit / view them directly
+  * ssh to the host
+    * `gcloud compute ssh --project=hasadna-oknesset gke-hasadna-oknesset-default-pool-527f395d-1zm9 --zone us-central1-a`
+  * files are in /var/next-oknesset
+    * `ls /var/next-oknesset`
