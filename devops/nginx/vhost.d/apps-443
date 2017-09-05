@@ -3,3 +3,5 @@ location /pipelines/ {
     allow all;
     proxy_pass http://pipelines/;
 }
+
+include /etc/nginx/vhost.d/data;
