@@ -38,19 +38,23 @@ Some examples:
 
 ## Common Tasks
 
-### executing a pipeline directly, overriding environment vars
+### runnning pipelines commands in the app pod
 
-* `kubectl get pods`
 * get the name of the app pod
+  * `kubectl get pods`
 * run committee meeting pipelines, overriding some env vars:
   * `kubectl exec <app_pod_name> -- bash -c "OVERRIDE_COMMITTEE_MEETING_FROM_DAYS=-8000 OVERRIDE_COMMITTEE_IDS=2 dpp run ./committees/committee-meetings"`
-
-### scheduling a pipeline to run on a pod
-
-* `kubectl get pods`
-* get the name of the app pod
 * schedule the committee meeting protocols pipeline to run immediately
-  * `kubectl exec <app_pod_name> /knesset/bin/execute_scheduled_pipeline.sh ./committees/committee-meeting-protocols`
+  * `kubectl exec <app_pod_name> -- /knesset/bin/execute_scheduled_pipeline.sh ./committees/committee-meeting-protocols`
+* initialize the pipelines status (in case of "stuck" job)
+  * `kubectl exec <app_pod_name> -- dpp init`
+* running an interactive bash session
+  * `kubectl exec -it <app_pod_name> -- bash`
+* running celery python shell
+  * `kubectl exec -it <app_pod_name> -- python3 -m celery -b redis://redis:6379/6 -A datapackage_pipelines.app shell`
+* running flower
+  * `kubectl exec <app_pod_name> -- pip install flower`
+  * `kubectl exec <app_pod_name> -- python3 -m celery -b redis://redis:6379/6 -A datapackage_pipelines.app flower`
 
 ### editing files locally on the kubernetes node
 

@@ -29,6 +29,8 @@ spec:
           mountPath: /etc/nginx/vhost.d/
         - name: knesset-data-pipelines
           mountPath: /knesset-data-pipelines/
+        - name: nginx-conf-d
+          mountPath: /etc/nginx/conf.d/
       restartPolicy: Always
       volumes:
       - name: nginx-html
@@ -43,6 +45,9 @@ spec:
       - name: knesset-data-pipelines
         hostPath:
           path: /var/next-oknesset/knesset-data-pipelines
+      - name: nginx-conf-d
+        hostPath:
+          path: /var/next-oknesset/nginx-conf-d
 ---
 apiVersion: v1
 kind: Service
