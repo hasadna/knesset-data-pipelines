@@ -7,5 +7,5 @@ location /pipelines/ {
 # pipelines data directories
 include /etc/nginx/vhost.d/data;
 
-# adminer app
 include /etc/nginx/vhost.d/adminer;
+include /etc/nginx/vhost.d/flower;

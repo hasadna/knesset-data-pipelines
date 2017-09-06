@@ -1,7 +1,7 @@
 # adminer - serve from upstream
 location /adminer/ {
     allow all;
-    proxy_pass http://adminer/;
+    proxy_pass http://adminer;
     auth_basic "Restricted Content";
     auth_basic_user_file /etc/nginx/vhost.d/.htpasswd;
 }

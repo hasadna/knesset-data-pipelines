@@ -63,3 +63,11 @@ Some examples:
     * `gcloud compute ssh --project=hasadna-oknesset gke-hasadna-oknesset-default-pool-527f395d-1zm9 --zone us-central1-a`
   * files are in /var/next-oknesset
     * `ls /var/next-oknesset`
+
+### Debugging pipeline tasks
+
+* you can review and revoke tasks in flower - https://next.oknesset.org/flower/
+* schedule a task to run immediately (you need to do this after revoking a task - to re-run it)
+  * `kubectl exec <app_pod_name> -- /knesset/bin/execute_scheduled_pipeline.sh <PIPELINE_ID>`
+* update tasks (runs every minute, but you can scheduled to run immediately as well)
+  * `kubectl exec <app_pod_name> -- /knesset/bin/update_pipeline_status.sh`

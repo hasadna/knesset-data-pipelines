@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
-if [ "${1}" == "" ]; then
-  echo "usage: /execute_scheduled_pipeline.sh <pipeline_id>"
-else
-  echo "execute_scheduled_pipeline.delay('${1}')" | python3 -m celery -b redis://redis:6379/6 -A datapackage_pipelines.app shell --python
-fi
+# bin/execute_scheduled_pipeline.sh <pipeline_id>
+
+PIPELINES_BIN_PATH="${PIPELINES_BIN_PATH:-bin}"
+PIPELINE_ID="${1}"
+"${PIPELINES_BIN_PATH}/celery_run_task.sh" execute_scheduled_pipeline "'${PIPELINE_ID}'"
