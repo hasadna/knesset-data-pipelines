@@ -46,7 +46,7 @@ Some examples:
   * `kubectl exec <app_pod_name> -- bash -c "OVERRIDE_COMMITTEE_MEETING_FROM_DAYS=-8000 OVERRIDE_COMMITTEE_IDS=2 dpp run ./committees/committee-meetings"`
 * schedule the committee meeting protocols pipeline to run immediately
   * `kubectl exec <app_pod_name> -- /knesset/bin/execute_scheduled_pipeline.sh ./committees/committee-meeting-protocols`
-* initialize the pipelines status (in case of "stuck" job)
+* initialize the pipelines status
   * `kubectl exec <app_pod_name> -- dpp init`
 * running an interactive bash session
   * `kubectl exec -it <app_pod_name> -- bash`

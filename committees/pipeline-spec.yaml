@@ -258,6 +258,10 @@ all:
   schedule:
     crontab: "0 0 * * 1"
   pipeline:
+    - run: add_metadata
+      parameters:
+        name: knesset_data_committees
+        description: Knesset committees and committee meetings data from Knesset dataservice API
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
         schema: ../data/committees.json
@@ -270,4 +274,4 @@ all:
         table: committee-meetings
     - run: dump.to_zip
       parameters:
-        out-file: ../data/committees-all/datapackage.zip
+        out-file: ../data/committees.zip
