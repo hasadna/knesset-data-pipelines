@@ -48,11 +48,11 @@ You can run a local redash instance by running:
 
 ## Running the full pipelines environment using docker
 
-####A note for windows users: 
+#### A note for windows users: 
 Using windows with docker is not currently recomended or supported. The build process seems to fail on numerous issues.
 If you wish to use windows, do so at your own risk, and please update this README file with instructions if you succeed.
 
-####Instructions for installing on Ubuntu (other distros and mac should follow a similar process):
+#### Instructions for running on Ubuntu (other distros and mac should follow a similar process):
 
 * Install Docker and Docker Compose (refer to Docker guides for your OS)
 * fork & clone the repo
