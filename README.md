@@ -25,27 +25,6 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
 
 Looking to contribute? check out the [Help Wanted Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) or the [Noob Friendly Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22noob+friendly%22) for some ideas.
 
-## Using Redash to view the data
-
-Redash is a Web UI which allows to make queries against the DB.
-
-It's the main interface for both developers and users of the project that want to get the data.
-
-You can run a local redash instance by running:
-
-* `bin/start_redash.sh`
-* redash is available at: http://localhost:5010
-* setup an admin user
-* add a datasource:
-  * Name: knesset_data
-  * Type: PostgreSQL
-  * Host: knessetdatapipelines_db_1
-  * Password: 123456
-  * User: postgres
-  * Database Name: postgres
-  * Port: 5432
-* now you can make queries (once pipelines run and load some data to the DB)
-
 ## Running the full pipelines environment using docker
 
 #### A note for windows users: 
@@ -70,6 +49,27 @@ This will provide:
 * Data files under: .data-docker/
 
 After every change in the code you should run `sudo bin/build.sh && sudo bin/start.sh`
+
+## Using Redash to view the data
+
+Redash is a Web UI which allows to make queries against the DB.
+
+It's the main interface for both developers and users of the project that want to get the data.
+
+You can run a local redash instance by running:
+
+* `bin/start_redash.sh`
+* redash is available at: http://localhost:5010
+* setup an admin user
+* add a datasource:
+  * Name: knesset_data
+  * Type: PostgreSQL
+  * Host: knessetdatapipelines_db_1
+  * Password: 123456
+  * User: postgres
+  * Database Name: postgres
+  * Port: 5432
+* now you can make queries (once pipelines run and load some data to the DB)
 
 ## Installing the project locally and running tests
 
