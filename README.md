@@ -25,21 +25,6 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
 
 Looking to contribute? check out the [Help Wanted Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) or the [Noob Friendly Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22noob+friendly%22) for some ideas.
 
-## Running the full pipelines environment using docker
-
-* Install Docker and Docker Compose (refer to Docker guides for your OS)
-* fork & clone the repo
-* change directory to the repo's directory
-* `bin/start.sh`
-
-This will provide:
-
-* Pipelines dashboard: http://localhost:5000/
-* PostgreSQL server: postgresql://postgres:123456@localhost:15432/postgres
-* Data files under: .data-docker/
-
-After every change in the code you should run `bin/build.sh && bin/start.sh`
-
 ## Using Redash to view the data
 
 Redash is a Web UI which allows to make queries against the DB.
@@ -60,6 +45,31 @@ You can run a local redash instance by running:
   * Database Name: postgres
   * Port: 5432
 * now you can make queries (once pipelines run and load some data to the DB)
+
+## Running the full pipelines environment using docker
+
+#### A note for windows users: 
+Using windows with docker is not currently recomended or supported. The build process seems to fail on numerous issues.
+If you wish to use windows, do so at your own risk, and please update this README file with instructions if you succeed.
+
+#### Instructions for running on Ubuntu (other distros and mac should follow a similar process):
+
+* Install Docker (refer to [Docker Official Docs](https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu) - The recommended method is "Install using the repository")
+* Install docker-compose: `sudo apt install docker-compose`
+* Make sure docker-compose is at version 1.13.0 or higher: `docker-compose --version`
+  * If not, upgrade docker compose (refer to [Docker-compose Official Docs](https://docs.docker.com/compose/install/#install-compose))
+* fork & clone the repo
+* change directory to the repo's directory
+* `sudo bin/start.sh`
+* verify all dockers started correctly: `sudo docker ps` (should show 3 images running - app, db, redis)
+
+This will provide:
+
+* Pipelines dashboard: http://localhost:5000/
+* PostgreSQL server: postgresql://postgres:123456@localhost:15432/postgres
+* Data files under: .data-docker/
+
+After every change in the code you should run `sudo bin/build.sh && sudo bin/start.sh`
 
 ## Installing the project locally and running tests
 
