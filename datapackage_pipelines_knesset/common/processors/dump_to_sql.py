@@ -6,7 +6,7 @@ from sqlalchemy.orm import mapper
 
 
 DEFAULT_COMMIT_EVERY = 1000
-DEFAULT_SAVE_SCHEMA = "../data/table_schemas/{table_name}.json"
+DEFAULT_SAVE_SCHEMA = "../data/table_schemas/{table_name}.{ext}"
 
 
 class Processor(BaseDumpProcessor):
@@ -68,12 +68,33 @@ class Processor(BaseDumpProcessor):
         # force a new session on next commit
         self._db_session = None
 
+    def _get_schema_fields_html(self):
+        html = "<table border=5 cellpadding=5 cellspacing=2><tr><th>name</th><th>type</th><th>description</th></tr>"
+        primaryKey = self._schema["primaryKey"]
+        for field in self._schema["fields"]:
+            html += "<tr><td>{name}</td><td>{type}</td><td dir=rtl align=right>{description}</td></tr>".format(
+                name=("{}" if field["name"] not in primaryKey else "<strong>{}</strong> (primaryKey)").format(field["name"]),
+                type=field["type"],
+                description=field.get("description", ""))
+        html += "</table>"
+        return html
+
+    def _get_schema_html(self):
+        return """<html><head></head><body>
+            <h1>{tablename}</h1>
+            {fields_html}
+        </body></html>""".format(tablename=self._tablename, fields_html=self._get_schema_fields_html())
+
     def _filter_resource(self, resource_number, resource_data):
         self._tablename = self._parameters["table"]
-        save_schema = self._parameters.get("save-schema", DEFAULT_SAVE_SCHEMA.format(table_name=self._tablename))
+        save_schema = self._parameters.get("save-schema", DEFAULT_SAVE_SCHEMA)
         if save_schema:
-            with open(save_schema, "w") as f:
-                json.dump(self._schema, f, indent=2, ensure_ascii=False)
+            save_schema_json = save_schema.format(table_name=self._tablename, ext="json")
+            save_schema_html = save_schema.format(table_name=self._tablename, ext="html")
+            with open(save_schema_json, "w") as f:
+                json.dump(self._schema, f, indent=2)
+            with open(save_schema_html, "w") as f:
+                f.write(self._get_schema_html())
         self._update_keys = self._schema["primaryKey"]
         if not self._update_keys or len(self._update_keys) == 0:
             raise Exception("dump requires a primaryKey")
