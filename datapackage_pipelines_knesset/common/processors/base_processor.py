@@ -53,6 +53,9 @@ class BaseProcessor(object):
             else:
                 yield data
 
+    def _get_output_resource_name(self):
+        return self._parameters.get("output-resource", self._parameters.get("input-resource"))
+
     def _process_filter(self, datapackage, resources):
         self._delete_resource_schema, self._filter_resource_i = None, None
         for i, resource_descriptor in enumerate(datapackage["resources"]):

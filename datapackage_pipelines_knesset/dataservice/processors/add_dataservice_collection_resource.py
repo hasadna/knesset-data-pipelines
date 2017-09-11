@@ -4,7 +4,6 @@ import logging, os
 
 
 class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
-    
 
     def _get_base_dataservice_class(self):
         return BaseKnessetDataServiceCollectionObject
@@ -14,7 +13,7 @@ class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
         class ExtendedDataserviceClass(BaseDataserviceClass):
             SERVICE_NAME = self._parameters["service-name"]
             METHOD_NAME = self._parameters["method-name"]
-            DEFAULT_ORDER_BY_FIELD = self._parameters.get("order_by", "id")
+            DEFAULT_ORDER_BY_FIELD = self._parameters.get("order_by", self._primary_key_field_name)
         return ExtendedDataserviceClass
 
     def _get_resource(self):

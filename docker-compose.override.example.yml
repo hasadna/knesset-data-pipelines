@@ -17,31 +17,3 @@ services:
   #   ports:
   #     - "18080:8080"
 
-## provides multiple paths on https://next.oknesset.org/
-## e.g. https://next.oknesset.org/pipelines/ https://next.oknesset.org/data/
-#  nginx:
-#    build: devops/nginx
-#    image: knesset-data/nginx
-#    ports:
-#      - "80:80"
-#      - "12443:12443"
-#    volumes:
-#      - .data-docker/nginx-html:/usr/share/nginx/html/
-#      - .data-docker:/knesset-data-pipelines
-
-## issue certificates using letsencrypt
-#  letsencrypt:
-#    build: devops/letsencrypt
-#    image: knesset-data/letsencrypt
-#    volumes:
-#      - .data-docker/letsencrypt/log:/var/log/letsencrypt
-#      - .data-docker/letsencrypt/etc:/etc/letsencrypt
-#      - .data-docker/nginx-html:/nginx-html
-
-## celery management UI
-#  flower:
-#    image: knesset-data/pipelines
-#    depends_on: ["app"]
-#    ports: ["15555:5555"]
-#    environment: ["DPP_REDIS_HOST=redis", "DPP_DB_ENGINE=postgresql://postgres:123456@db:5432/postgres"]
-#    command: ["flower"]

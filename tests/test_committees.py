@@ -3,7 +3,7 @@ from .mocks.dataservice import (MockDataserviceFunctionResourceProcessor,
                                 MockAddDataserviceCollectionResourceProcessor)
 from .mocks.committees import (MockDownloadCommitteeMeetingProtocols, MockParseCommitteeMeetingProtocols)
 from .common import (get_pipeline_processor_parameters_schema, assert_conforms_to_schema,
-                     get_pipeline_processor_parameters)
+                     get_pipeline_processor_parameters, assert_dataservice_processor_data)
 from itertools import chain
 import os, datetime
 from shutil import rmtree
@@ -94,6 +94,45 @@ def test_committees():
                                             ('note_eng', None),
                                             ('portal_link', 'knesset')])
     assert next(committees)["id"] == 2
+
+def test_kns_committeesession():
+    assert_dataservice_processor_data("committees", "kns_committeesession",
+                                      [{'CommitteeSessionID': 64515, 'Number': None, 'KnessetNum': 16, 'TypeID': 161,
+                                        'TypeDesc': 'פתוחה', 'CommitteeID': 22,
+                                        'Location': 'חדר הוועדה, באגף הוועדות (קדמה), קומה 2, חדר 2750',
+                                        'SessionUrl': 'http://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=64515',
+                                        'BroadcastUrl': None, 'StartDate': datetime.datetime(2003, 2, 25, 10, 30),
+                                        'FinishDate': None, 'Note': None,
+                                        'LastUpdatedDate': datetime.datetime(2012, 9, 19, 15, 27, 32)},
+                                       {'CommitteeSessionID': 64516, 'Number': 2, 'KnessetNum': 16, 'TypeID': 161,
+                                        'TypeDesc': 'פתוחה', 'CommitteeID': 21,
+                                        'Location': 'חדר הוועדה, באגף הוועדות (קדמה), קומה 3, חדר 3750',
+                                        'SessionUrl': 'http://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=64516',
+                                        'BroadcastUrl': None, 'StartDate': datetime.datetime(2003, 2, 24, 10, 0),
+                                        'FinishDate': None, 'Note': None,
+                                        'LastUpdatedDate': datetime.datetime(2012, 9, 19, 15, 27, 32)}],
+                                      expected_schema={'fields': [
+                                          {'type': 'integer', 'description': 'מספר השורה בטבלה זו',
+                                           'name': 'CommitteeSessionID'},
+                                          {'type': 'integer', 'description': 'מספר הישיבה', 'name': 'Number'},
+                                          {'type': 'integer', 'description': 'מספר הכנסת', 'name': 'KnessetNum'},
+                                          {'type': 'integer', 'description': 'קוד סוג הישיבה', 'name': 'TypeID'},
+                                          {'type': 'string', 'description': 'תיאור סוג הישיבה (פתוחה, חסויה, סיור)',
+                                           'name': 'TypeDesc'},
+                                          {'type': 'integer', 'description': 'קוד הוועדה', 'name': 'CommitteeID'},
+                                          {'type': 'string', 'description': 'מיקום הישיבה', 'name': 'Location'},
+                                          {'type': 'string', 'description': 'קישור לישיבה באתר הכנסת',
+                                           'name': 'SessionUrl'},
+                                          {'type': 'string', 'description': 'קישור לשידור הישיבה באתר הכנסת',
+                                           'name': 'BroadcastUrl'},
+                                          {'type': 'datetime', 'description': 'תאריך התחלה', 'name': 'StartDate',
+                                           'format': 'fmt:%Y-%m-%d %H:%M:%S.%f'},
+                                          {'type': 'datetime', 'description': 'תאריך סיום', 'name': 'FinishDate',
+                                           'format': 'fmt:%Y-%m-%d %H:%M:%S.%f'},
+                                          {'type': 'string', 'description': 'הערה', 'name': 'Note'},
+                                          {'type': 'datetime', 'description': 'תאריך עדכון אחרון',
+                                           'name': 'LastUpdatedDate', 'format': 'fmt:%Y-%m-%d %H:%M:%S.%f'}],
+                                                       'primaryKey': ['CommitteeSessionID']})
 
 
 def test_committee_meetings():

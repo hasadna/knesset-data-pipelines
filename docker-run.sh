@@ -1,9 +1,12 @@
 #!/bin/sh
 
 PIPELINES_BIN_PATH="${PIPELINES_BIN_PATH:-bin}"
+DPP_WORKER_CONCURRENCY="${DPP_WORKER_CONCURRENCY:-0}"
 
 # wait for redis
 sleep 2
+
+mkdir -p data/table_schemas
 
 if [ "${1}" == "" ]; then
     dpp init
