@@ -59,8 +59,8 @@ class BaseDataserviceProcessor(BaseProcessor):
         raise NotImplementedError()
 
     def _extend_dataservice_class(self, dataservice_class):
-        num_retries = self._parameters.get("num-retries", 5)
-        seconds_between_retries = self._parameters.get("seconds-between-retries", 5)
+        num_retries = self._parameters.get("num-retries", 10)
+        seconds_between_retries = self._parameters.get("seconds-between-retries", 60)
         class BaseExtendedDataserviceClass(dataservice_class):
             @classmethod
             def _get_response_content(cls, url, params, timeout, proxies, retry_num=1):

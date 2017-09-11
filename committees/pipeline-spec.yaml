@@ -260,6 +260,12 @@ committee-meeting-protocols:
 ### kns dataservice tables
 
 kns_committee:
+  description: >
+    <p>loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves table schema json file in https://next.oknesset.org/table_schemas/</li>
+    </ul>
   schedule:
     crontab: "10 0 * * *"
   pipeline:
@@ -350,6 +356,12 @@ kns_committee:
         table: kns_committee
 
 kns_jointcommittee:
+  description: >
+    <p>loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves table schema json file in https://next.oknesset.org/table_schemas/</li>
+    </ul>
   schedule:
     crontab: "10 0 * * *"
   pipeline:
@@ -384,6 +396,12 @@ kns_jointcommittee:
         table: kns_jointcommittee
 
 kns_cmtsitecode:
+  description: >
+    <p>loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves table schema json file in https://next.oknesset.org/table_schemas/</li>
+    </ul>
   schedule:
     crontab: "10 0 * * *"
   pipeline:
@@ -414,6 +432,12 @@ kns_cmtsitecode:
         table: kns_cmtsitecode
 
 kns_committeesession:
+  description: >
+    <p>loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves table schema json file in https://next.oknesset.org/table_schemas/</li>
+    </ul>
   schedule:
     crontab: "10 0 * * *"
   pipeline:
@@ -484,6 +508,12 @@ kns_committeesession:
         table: kns_committeesession
 
 kns_cmtsessionitem:
+  description: >
+    <p>loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves table schema json file in https://next.oknesset.org/table_schemas/</li>
+    </ul>
   schedule:
     crontab: "10 0 * * *"
   pipeline:
@@ -534,6 +564,12 @@ kns_cmtsessionitem:
         table: kns_cmtsessionitem
 
 kns_documentcommitteesession:
+  description: >
+    <p>loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves table schema json file in https://next.oknesset.org/table_schemas/</li>
+    </ul>
   schedule:
     crontab: "10 0 * * *"
   pipeline:
