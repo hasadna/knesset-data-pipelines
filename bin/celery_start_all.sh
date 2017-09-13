@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+# start all the celery services - can be used both locally and from within a docker container
+
 PIPELINES_BIN_PATH="${PIPELINES_BIN_PATH:-bin}"
 DPP_REDIS_HOST="${DPP_REDIS_HOST:-localhost}"
 DPP_WORKER_CONCURRENCY="${DPP_WORKER_CONCURRENCY:-2}"

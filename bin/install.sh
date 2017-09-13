@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+# install the local development environment
+
 set -e
 
 mkdir -p data/table_schemas

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# full app deployment procedure - applies configurations and waits for rollout to complete
+
 set -e
 
 echo " > Applying configurations"

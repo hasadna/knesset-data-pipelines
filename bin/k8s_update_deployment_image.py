@@ -2,6 +2,7 @@
 import yaml, sys
 
 # updates the image url in the k8s deployment yaml files
+# used by travis_deploy_script.sh
 
 if len(sys.argv) != 3:
     print("usage: bin/k8s_update_deployment_image.py <k8s_deployment_name> <image_url>")

@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+# run without parameters to update pipelines statuses immediately
+# can be used for some low level updating of the pipelines tasks
 # bin/update_pipelines.sh [status] [completed_pipeline_id] [completed_pipeline_trigger]
 
 PIPELINES_BIN_PATH="${PIPELINES_BIN_PATH:-bin}"

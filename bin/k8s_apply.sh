@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# apply all configuration changes to the kubernetes cluster
+
 set -e
 
 bin/k8s_connect.sh

@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 
+# schedule a pipeline to be execute immediately - can be used both locally and from docker container
 # bin/execute_scheduled_pipeline.sh <pipeline_id>
 
 PIPELINES_BIN_PATH="${PIPELINES_BIN_PATH:-bin}"

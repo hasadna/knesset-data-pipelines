@@ -21,8 +21,7 @@ This is done using travis, which eventually runs `bin/k8s_deploy.sh`
 
 * google container registry builds images on every push to master
 * images are tagged based on commit sha - which you refer to from the relevantk8s configuration image attribute
-* to update - edit the relevant configuration and change the image tag to the relevant sha1 commit
-* commit and push to master branch - this will trigger the deployment
+* travis deploy script automatically commits and pushed a change to the latest image
 
 ## Common Tasks
 

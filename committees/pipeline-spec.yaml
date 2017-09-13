@@ -5,7 +5,7 @@ kns_committee:
     <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
     <ul>
       <li>saves data to table with the same name in Knesset Data DB</li>
-      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">table schema json file</a></li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
     </ul>
   schedule:
     crontab: "10 0 * * *"
@@ -101,7 +101,7 @@ kns_jointcommittee:
     <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
     <ul>
       <li>saves data to table with the same name in Knesset Data DB</li>
-      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">table schema json file</a></li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
     </ul>
   schedule:
     crontab: "10 0 * * *"
@@ -141,7 +141,7 @@ kns_cmtsitecode:
     <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
     <ul>
       <li>saves data to table with the same name in Knesset Data DB</li>
-      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">table schema json file</a></li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
     </ul>
   schedule:
     crontab: "10 0 * * *"
@@ -177,7 +177,7 @@ kns_committeesession:
     <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
     <ul>
       <li>saves data to table with the same name in Knesset Data DB</li>
-      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">table schema json file</a></li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
     </ul>
   schedule:
     crontab: "10 0 * * *"
@@ -253,7 +253,7 @@ kns_cmtsessionitem:
     <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
     <ul>
       <li>saves data to table with the same name in Knesset Data DB</li>
-      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">table schema json file</a></li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
     </ul>
   schedule:
     crontab: "10 0 * * *"
@@ -309,7 +309,7 @@ kns_documentcommitteesession:
     <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
     <ul>
       <li>saves data to table with the same name in Knesset Data DB</li>
-      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">table schema json file</a></li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
     </ul>
   schedule:
     crontab: "10 0 * * *"
@@ -364,6 +364,12 @@ kns_documentcommitteesession:
 ### parse protocols
 
 committee-meeting-protocols:
+  description: >
+    <p>runs daily, downloads and parses committee meeting protocols</p>
+    <ul>
+      <li>saves data to DB table - committee_meeting_protocols_parsed</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
   schedule:
     crontab: "2 0 * * *"
   pipeline:
@@ -396,10 +402,14 @@ committee-meeting-protocols:
         # lower commit batches - because protocol parsing takes some time
         commit-every: 50
 
-
-### combine all committee related data from DB to a datapackage zip file
+# create datapackage
 
 all:
+  description: >
+    <p>runs daily, aggregates data from all relevant DB tables to a datapackage zip file</p>
+    <ul>
+      <li>zip file should be available at <a href="https://next.oknesset.org/data/">data/</a></li>
+    </ul>
   schedule:
     crontab: "4 0 * * *"
   pipeline:
