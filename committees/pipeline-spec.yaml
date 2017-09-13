@@ -409,9 +409,9 @@ all:
         description: Knesset committees and committee meetings data from Knesset dataservice API
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_committees.json
-        resource-name: kns_committees
-        table: kns_committees
+        schema: ../data/table_schemas/kns_committee.json
+        resource-name: kns_committee
+        table: kns_committee
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
         schema: ../data/table_schemas/kns_jointcommittee.json

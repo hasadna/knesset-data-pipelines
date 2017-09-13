@@ -27,6 +27,8 @@
 # create a github machine user (https://developer.github.com/v3/guides/managing-deploy-keys/#machine-users)
 # get a personal access token for this user, with public_repo access
 # add this bot user as collaborator with write access
+# you can add a collaborator from the api:
+# curl -u "YourGithubUserName" https://api.github.com/repos/hasadna/knesset-data-pipelines/collaborators/oknesset-deployment-bot -X PUT
 # DEPLOYMENT_BOT_GITHUB_TOKEN=
 
 ## following travis environment variables are used
@@ -64,7 +66,7 @@ ssh-keygen -f ~/.ssh/google_compute_engine -N ""
 
 echo " > update pipelines app image and commit to git"
 
-pip install yaml
+pip install pyyaml || pip3 install pyyaml || true
 bin/k8s_update_deployment_image.py "app" "gcr.io/hasadna-oknesset/knesset-data-pipelines:${TRAVIS_COMMIT}"
 git config user.email ori+oknesset-deployment-bot@uumpa.com
 git config user.name oknesset-deployment-bot
