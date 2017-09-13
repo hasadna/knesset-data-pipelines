@@ -1,4 +1,4 @@
-# Setting knesset-data environment on Kubernetes
+# knesset-data-pipelines kubernetes environment
 
 ## connecting to the Kubernetes cluster
 
@@ -7,34 +7,22 @@ We are currently using Google Container Engine (Kubernetes)
 You need to get permissions on the project (`id=hasadna-oknesset`)
 
 Once you have permissions and gcloud installed you should be able to run:
-* `gcloud container clusters get-credentials hasadna-oknesset --zone us-central1-a --project hasadna-oknesset`
-* `kubectl proxy`
+* `bin/k8s_proxy.sh`
 
 Kubernetes UI should be available at http://localhost:8001/ui
 
-## Initial setup
+## Continuous Deployment
 
-* `kubectl get nodes`
-  * should have 1 or more nodes with supported k8s version (tested with v1.6.7 - on GKE)
-* `cp devops/k8s_configmap{.example,}.yaml`
-* edit devops/k8s_configmap.yaml and set proper values
-* `bin/k8s_apply.sh`
+Every push to master updates the k8s configurations on the cluster
 
-## Deploying infrastructure changes
+This is done using travis, which eventually runs `bin/k8s_deploy.sh`
 
-* edit or pull changes to relevant files under devops/k8s
-* `bin/k8s_apply.sh`
+### Updating images (Deploying application changes)
 
-## Deploying code changes
-
-* `bin/k8s_deploy.sh <deploynemt_name> <image_suffix>`
-
-Some examples:
-
-* `bin/k8s_deploy.sh app pipelines:latest`
-* `bin/k8s_deploy.sh app pipelines:v1.0.4`
-* `bin/k8s_deploy.sh nginx nginx:v1.0.4`
-* `bin/k8s_deploy.sh letsencrypt letsencrypt:v1.0.4`
+* google container registry builds images on every push to master
+* images are tagged based on commit sha - which you refer to from the relevantk8s configuration image attribute
+* to update - edit the relevant configuration and change the image tag to the relevant sha1 commit
+* commit and push to master branch - this will trigger the deployment
 
 ## Common Tasks
 
