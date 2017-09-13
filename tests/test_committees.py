@@ -1,199 +1,85 @@
 from collections import OrderedDict
-from .mocks.dataservice import (MockDataserviceFunctionResourceProcessor,
-                                MockAddDataserviceCollectionResourceProcessor)
 from .mocks.committees import (MockDownloadCommitteeMeetingProtocols, MockParseCommitteeMeetingProtocols)
-from .common import (get_pipeline_processor_parameters_schema, assert_conforms_to_schema,
-                     get_pipeline_processor_parameters, assert_dataservice_processor_data)
-from itertools import chain
+from .common import assert_conforms_to_schema, get_pipeline_processor_parameters, assert_dataservice_processor_data
 import os, datetime
 from shutil import rmtree
 import logging, json
 
 
-def get_committees():
-    datapackage = {"name": "committees", "resources": []}
-    processor_matcher = lambda step: step["run"] == "..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource"
-    parameters, schema = get_pipeline_processor_parameters_schema("committees", "committees",
-                                                                  processor_matcher)
-    processor = MockAddDataserviceCollectionResourceProcessor(datapackage=datapackage,
-                                                              parameters=parameters)
-    datapackage, resources = processor.spew()
-    assert datapackage == {'name': 'committees',
-                           'resources': [{'name': 'committees',
-                                          'path': 'committees.csv',
-                                          'schema': schema}]}
-    resources = list(resources)
-    assert len(resources) == 1
-    resource = resources[0]
-    first_row = next(resource)
-    assert_conforms_to_schema(schema, first_row)
-    return chain([first_row], resource)
-
-
-def get_committee_meetings(committee_id=None):
-    if not committee_id:
-        committees = get_committees()
-    else:
-        committees = (o for o in [{"id": committee_id}])
-    datapackage = {"name": "committee-meetings", "resources": [{"name": "committees"}]}
-    processor_matcher = lambda step: step["run"] == "..datapackage_pipelines_knesset.dataservice.processors.dataservice_function_resource"
-    parameters, schema = get_pipeline_processor_parameters_schema("committees", "committee-meetings",
-                                                                  processor_matcher)
-    parameters["parameters"]["FromDate"].update(source="date", date="2017-07-23")
-    parameters["parameters"]["ToDate"].update(source="date", date="2017-07-23")
-    processor = MockDataserviceFunctionResourceProcessor(datapackage=datapackage, parameters=parameters,
-                                                         resources=[[next(committees)]])
-    datapackage, resources = processor.spew()
-    assert datapackage == {'name': 'committee-meetings',
-                           'resources': [{'name': 'committee-meetings',
-                                          'path': 'committee-meetings.csv',
-                                          'schema': schema}]}
-    resources = list(resources)
-    assert len(resources) == 1
-    resource = resources[0]
-    first_row = next(resource)
-    assert_conforms_to_schema(schema, first_row)
-    return chain([first_row], resource)
-
-
-def test_committees():
-    committees = get_committees()
-    assert next(committees) == OrderedDict([('id', 1),
-                                            ('type_id', 1),
-                                            ('parent_id', None),
-                                            ('name', 'ועדת הכנסת'),
-                                            ('name_eng', 'House Committee'),
-                                            ('name_arb', None),
-                                            ('begin_date', datetime.datetime(1950, 1, 1, 0, 0)),
-                                            ('end_date', None),
-                                            ('description',
-                                             'תקנון הכנסת ועניינים הנובעים ממנו; חסינות חברי הכנסת ובקשות '
-                                             'לנטילתה; סדרי הבית; המלצות על הרכב הוועדות הקבועות והוועדות '
-                                             'לעניינים מסוימים, ויושבי-הראש שלהן; תיחום ותיאום עבודות '
-                                             'הוועדות; העברת בקשות המוגשות לכנסת מן הציבור ליושב-ראש הכנסת או '
-                                             'לוועדות המתאימות; דיון בתלונות על חברי הכנסת; תשלומים לחברי '
-                                             'הכנסת; דיון בבקשות ובעניינים שאינם נוגעים לשום ועדה או שלא '
-                                             'נכללו בתפקידי ועדה אחרת.'),
-                                            ('description_eng',
-                                             'The Committee deals with the following issues: the Knesset '
-                                             'Rules of Procedure and all matters stemming from it; the '
-                                             'immunity of Knesset members and requests for lifting it; the '
-                                             'rules of the House; recommendations regarding the Parliamentary '
-                                             'Groups and personal make-up of the permanent committees and the '
-                                             'committes on a particular matter, as well as the appointment of '
-                                             'their chairmen; the distribution of functions amongst the '
-                                             'committees and coordination between them; decisions regarding '
-                                             'the transfer of bills to the appropriate committee; the passing '
-                                             'on of requests presented to the Knesset by the public for the '
-                                             'Knesset Speaker or one of the Knesset committees; payments to '
-                                             'Knesset members; discussions on requests and matters that are '
-                                             'not connected to any committee or are not included among the '
-                                             'functions of another committee. \r\n'),
-                                            ('description_arb', None),
-                                            ('note', None),
-                                            ('note_eng', None),
-                                            ('portal_link', 'knesset')])
-    assert next(committees)["id"] == 2
+def test_kns_committee():
+    assert_dataservice_processor_data("committees", "kns_committee", [{
+        'CommitteeID': 1,
+        'Name': 'הכנסת',
+        'CategoryID': 1,
+        'CategoryDesc': 'ועדת הכנסת',
+        'KnessetNum': 15,
+        'CommitteeTypeID': 70,
+        'CommitteeTypeDesc': 'ועדת הכנסת',
+        'Email': 'vadatk@knesset.gov.il',
+        'StartDate': datetime.datetime(1999, 6, 7, 0, 0),
+        'FinishDate': None,
+        'AdditionalTypeID': 991,
+        'AdditionalTypeDesc': 'קבועה',
+        'ParentCommitteeID': None,
+        'CommitteeParentName': None, 'IsCurrent': True,
+        'LastUpdatedDate': datetime.datetime(2017, 4, 24, 16, 47, 6)
+    }])
 
 def test_kns_committeesession():
-    assert_dataservice_processor_data("committees", "kns_committeesession",
-                                      [{'CommitteeSessionID': 64515, 'Number': None, 'KnessetNum': 16, 'TypeID': 161,
-                                        'TypeDesc': 'פתוחה', 'CommitteeID': 22,
-                                        'Location': 'חדר הוועדה, באגף הוועדות (קדמה), קומה 2, חדר 2750',
-                                        'SessionUrl': 'http://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=64515',
-                                        'BroadcastUrl': None, 'StartDate': datetime.datetime(2003, 2, 25, 10, 30),
-                                        'FinishDate': None, 'Note': None,
-                                        'LastUpdatedDate': datetime.datetime(2012, 9, 19, 15, 27, 32)},
-                                       {'CommitteeSessionID': 64516, 'Number': 2, 'KnessetNum': 16, 'TypeID': 161,
-                                        'TypeDesc': 'פתוחה', 'CommitteeID': 21,
-                                        'Location': 'חדר הוועדה, באגף הוועדות (קדמה), קומה 3, חדר 3750',
-                                        'SessionUrl': 'http://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=64516',
-                                        'BroadcastUrl': None, 'StartDate': datetime.datetime(2003, 2, 24, 10, 0),
-                                        'FinishDate': None, 'Note': None,
-                                        'LastUpdatedDate': datetime.datetime(2012, 9, 19, 15, 27, 32)}],
-                                      expected_schema={'fields': [
-                                          {'type': 'integer', 'description': 'מספר השורה בטבלה זו',
-                                           'name': 'CommitteeSessionID'},
-                                          {'type': 'integer', 'description': 'מספר הישיבה', 'name': 'Number'},
-                                          {'type': 'integer', 'description': 'מספר הכנסת', 'name': 'KnessetNum'},
-                                          {'type': 'integer', 'description': 'קוד סוג הישיבה', 'name': 'TypeID'},
-                                          {'type': 'string', 'description': 'תיאור סוג הישיבה (פתוחה, חסויה, סיור)',
-                                           'name': 'TypeDesc'},
-                                          {'type': 'integer', 'description': 'קוד הוועדה', 'name': 'CommitteeID'},
-                                          {'type': 'string', 'description': 'מיקום הישיבה', 'name': 'Location'},
-                                          {'type': 'string', 'description': 'קישור לישיבה באתר הכנסת',
-                                           'name': 'SessionUrl'},
-                                          {'type': 'string', 'description': 'קישור לשידור הישיבה באתר הכנסת',
-                                           'name': 'BroadcastUrl'},
-                                          {'type': 'datetime', 'description': 'תאריך התחלה', 'name': 'StartDate',
-                                           'format': 'fmt:%Y-%m-%d %H:%M:%S.%f'},
-                                          {'type': 'datetime', 'description': 'תאריך סיום', 'name': 'FinishDate',
-                                           'format': 'fmt:%Y-%m-%d %H:%M:%S.%f'},
-                                          {'type': 'string', 'description': 'הערה', 'name': 'Note'},
-                                          {'type': 'datetime', 'description': 'תאריך עדכון אחרון',
-                                           'name': 'LastUpdatedDate', 'format': 'fmt:%Y-%m-%d %H:%M:%S.%f'}],
-                                                       'primaryKey': ['CommitteeSessionID']})
+    assert_dataservice_processor_data("committees", "kns_committeesession", [{
+        'CommitteeSessionID': 64515, 'Number': None, 'KnessetNum': 16, 'TypeID': 161,
+        'TypeDesc': 'פתוחה', 'CommitteeID': 22,
+        'Location': 'חדר הוועדה, באגף הוועדות (קדמה), קומה 2, חדר 2750',
+        'SessionUrl': 'http://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=64515',
+        'BroadcastUrl': None, 'StartDate': datetime.datetime(2003, 2, 25, 10, 30),
+        'FinishDate': None, 'Note': None,
+        'LastUpdatedDate': datetime.datetime(2012, 9, 19, 15, 27, 32)
+    }, {
+        'CommitteeSessionID': 64516, 'Number': 2, 'KnessetNum': 16, 'TypeID': 161,
+        'TypeDesc': 'פתוחה', 'CommitteeID': 21,
+        'Location': 'חדר הוועדה, באגף הוועדות (קדמה), קומה 3, חדר 3750',
+        'SessionUrl': 'http://main.knesset.gov.il/Activity/committees/Pages/AllCommitteesAgenda.aspx?Tab=3&ItemID=64516',
+        'BroadcastUrl': None, 'StartDate': datetime.datetime(2003, 2, 24, 10, 0),
+        'FinishDate': None, 'Note': None,
+        'LastUpdatedDate': datetime.datetime(2012, 9, 19, 15, 27, 32)
+    }], expected_schema={
+        'fields': [
+            {'type': 'integer', 'description': 'מספר השורה בטבלה זו',
+             'name': 'CommitteeSessionID'},
+            {'type': 'integer', 'description': 'מספר הישיבה', 'name': 'Number'},
+            {'type': 'integer', 'description': 'מספר הכנסת', 'name': 'KnessetNum'},
+            {'type': 'integer', 'description': 'קוד סוג הישיבה', 'name': 'TypeID'},
+            {'type': 'string', 'description': 'תיאור סוג הישיבה (פתוחה, חסויה, סיור)',
+             'name': 'TypeDesc'},
+            {'type': 'integer', 'description': 'קוד הוועדה', 'name': 'CommitteeID'},
+            {'type': 'string', 'description': 'מיקום הישיבה', 'name': 'Location'},
+            {'type': 'string', 'description': 'קישור לישיבה באתר הכנסת',
+             'name': 'SessionUrl'},
+            {'type': 'string', 'description': 'קישור לשידור הישיבה באתר הכנסת',
+             'name': 'BroadcastUrl'},
+            {'type': 'datetime', 'description': 'תאריך התחלה', 'name': 'StartDate',
+             'format': 'fmt:%Y-%m-%d %H:%M:%S.%f'},
+            {'type': 'datetime', 'description': 'תאריך סיום', 'name': 'FinishDate',
+             'format': 'fmt:%Y-%m-%d %H:%M:%S.%f'},
+            {'type': 'string', 'description': 'הערה', 'name': 'Note'},
+            {'type': 'datetime', 'description': 'תאריך עדכון אחרון',
+             'name': 'LastUpdatedDate', 'format': 'fmt:%Y-%m-%d %H:%M:%S.%f'}],
+        'primaryKey': ['CommitteeSessionID']})
 
 
-def test_committee_meetings():
-    committee_meetings = get_committee_meetings()
-    assert next(committee_meetings) == OrderedDict([('id', 2020374),
-                                                        ('committee_id', 1),
-                                                        ('datetime', datetime.datetime(2017, 7, 19, 11, 40)),
-                                                        ('title',
-                                                         'בקשת חהכ מרב מיכאלי להקדמת הדיון בהצעת חוק ההוצאה לפועל'
-                                                         ' (תיקון – הפטר לחייב מוגבל באמצעים) התשעז-2017 (פ/4426/20)  '),
-                                                        ('session_content',
-                                                         'בקשת חה"כ מרב מיכאלי להקדמת הדיון בהצעת חוק ההוצאה לפועל'
-                                                         ' (תיקון – הפטר לחייב מוגבל באמצעים) התשע"ז-2017 (פ/4426/20)  '),
-                                                        ('url', None),
-                                                        ('location', 'חדר ועדה'),
-                                                        ('place', 'חדר הוועדה, באגף קדמה, קומה 3, חדר 3720'),
-                                                        ('meeting_stop', '19/07/2017 11:40'),
-                                                        ('agenda_canceled', 0),
-                                                        ('agenda_sub', None),
-                                                        ('agenda_associated', None),
-                                                        ('agenda_associated_id', None),
-                                                        ('agenda_special', None),
-                                                        ('agenda_invited1', None),
-                                                        ('agenda_invite', True),
-                                                        ('note', None),
-                                                        ('start_datetime', datetime.datetime(2017, 7, 19, 11, 40)),
-                                                        ('topic_id', 13834),
-                                                        ('creation_date', datetime.datetime(2017, 7, 19, 11, 40)),
-                                                        ('streaming_url', 'http://video.knesset.gov.il/knesset'),
-                                                        ('meeting_start', '19/07/2017 11:39'),
-                                                        ('is_paused', False),
-                                                        ('date_order', '2017-07-19'),
-                                                        ('date', '19/07/2017'),
-                                                        ('day', '19'),
-                                                        ('month', 'יולי'),
-                                                        ('material_id', None),
-                                                        ('material_committee_id', None),
-                                                        ('material_expiration_date', None),
-                                                        ('material_hour', None),
-                                                        ('old_url', None),
-                                                        ('background_page_link', None),
-                                                        ('agenda_invited', None)])
-    assert next(committee_meetings)["id"] == 2020370
-
-def test_committee_meeting_exception():
-    committee_meetings = get_committee_meetings(committee_id="572")
-    meeting = next(committee_meetings)
-    assert meeting["id"] == 2019965
 
 def test_download_committee_meeting_protocols():
     out_path = os.path.join(os.path.dirname(__file__), "..", "data", "test-committee-meeting-protocols")
     rmtree(out_path, ignore_errors=True)
-    datapackage = {"name": "committee-meeting-protocols", "resources": [{"name": "committee-meetings"}]}
+    datapackage = {"name": "committee-meeting-protocols", "resources": [{"name": "kns_documentcommitteesession"}]}
     processor_matcher = lambda step: step["run"] == "..datapackage_pipelines_knesset.committees.processors.download_committee_meeting_protocols"
     parameters = get_pipeline_processor_parameters("committees", "committee-meeting-protocols", processor_matcher)
     parameters["out-path"] = out_path
-    meeting_protocols = [{"committee_id": 1, "id": 2020275,
+    meeting_protocols = [{"kns_committee_id": 1, "kns_session_id": 2020275,
                           "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc"},
-                         {"committee_id": 1, "id": 268926,
+                         {"kns_committee_id": 1, "kns_session_id": 268926,
                           "url": "http://knesset.gov.il/protocols/data/rtf/knesset/2007-12-27.rtf"},
-                         {"committee_id": 2, "id": 2011909,
+                         {"kns_committee_id": 2, "kns_session_id": 2011909,
                           "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_387483.doc"}]
     processor = MockDownloadCommitteeMeetingProtocols(datapackage=datapackage, parameters=parameters, resources=[meeting_protocols])
     datapackage, resources = processor.spew()
@@ -221,18 +107,21 @@ def test_download_committee_meeting_protocols():
 def test_parse_committee_meeting_protocols():
     # this is the input to the parse committee meeting protocols processor
     # it contains downloaded meeting protocol source files (either .doc or .rtf)
-    downloaded_protocols = [{"committee_id": 1, "meeting_id": 2020275,
+    downloaded_protocols = [{"kns_committee_id": 1, "kns_session_id": 2020275,
                              "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_389210.doc",
+                             "protocol_url": "test.example.com",
                              "protocol_file": os.path.join(os.path.dirname(__file__),
                                                                              "mocks", "20_ptv_389210.doc")},
                             # rtf file - will be skipped
-                            {"committee_id": 1, "meeting_id": 268926,
+                            {"kns_committee_id": 1, "kns_session_id": 268926,
                              "url": "http://knesset.gov.il/protocols/data/rtf/knesset/2007-12-27.rtf",
+                             "protocol_url": "test.example.com",
                              "protocol_file": os.path.join(os.path.dirname(__file__),
                                                            "mocks", "2007-12-27.rtf")},
                             # invalid file - will be skipped
-                            {"committee_id": 5, "meeting_id": 576879,
+                            {"kns_committee_id": 5, "kns_session_id": 576879,
                              "url": "http://fs.knesset.gov.il//20/Committees/20_ptv_341203.doc",
+                             "protocol_url": "test.example.com",
                              "protocol_file": os.path.join(os.path.dirname(__file__),
                                                            "mocks", "20_ptv_341203.doc")}]
     # output files will be saves in this path
@@ -254,35 +143,38 @@ def test_parse_committee_meeting_protocols():
     # all docs are returned, but the invalid ones will have empty text / parts file
     assert len(resource) == 3
 
+    parsed_url = lambda f: "https://next.oknesset.org/data/committee-meeting-protocols-parsed/{}".format(f)
+    parsed_file = lambda f: os.path.join(out_path, f)
+
     # valid doc protocol
     valid_protocol = resource[0]
     assert_conforms_to_schema(schema, valid_protocol)
-    assert valid_protocol["parts_file"] == os.path.join(out_path, "1", "2020275.csv")
-    assert valid_protocol["text_file"] == os.path.join(out_path, "1", "2020275.txt")
-    assert os.path.exists(valid_protocol["parts_file"])
-    assert os.path.exists(valid_protocol["text_file"])
-    assert os.path.getsize(valid_protocol["parts_file"]) == 2335
-    assert os.path.getsize(valid_protocol["text_file"]) == 2306
+    assert valid_protocol["parts_url"] == parsed_url(os.path.join("1", "2020275.csv"))
+    assert valid_protocol["text_url"] == parsed_url(os.path.join("1", "2020275.txt"))
+    assert os.path.exists(parsed_file(os.path.join("1", "2020275.csv")))
+    assert os.path.exists(parsed_file(os.path.join("1", "2020275.txt")))
+    assert os.path.getsize(parsed_file(os.path.join("1", "2020275.csv"))) == 2335
+    assert os.path.getsize(parsed_file(os.path.join("1", "2020275.txt"))) == 2306
 
     # valid rtf protocol
     rtf_protocol = resource[1]
     assert_conforms_to_schema(schema, rtf_protocol)
     if os.environ.get("RTF_EXTRACTOR_BIN"):
-        assert rtf_protocol["parts_file"] == os.path.join(out_path, "1", "268926.csv")
-        assert rtf_protocol["text_file"] == os.path.join(out_path, "1", "268926.txt")
-        assert os.path.exists(rtf_protocol["parts_file"])
-        assert os.path.exists(rtf_protocol["text_file"])
+        assert rtf_protocol["parts_url"] == parsed_url(os.path.join("1", "268926.csv"))
+        assert rtf_protocol["text_url"] == parsed_url(os.path.join("1", "268926.txt"))
+        assert os.path.exists(parsed_file(os.path.join("1", "268926.csv")))
+        assert os.path.exists(parsed_file(os.path.join("1", "268926.txt")))
         # TODO: change to the actual file sizes after parsing
-        assert os.path.getsize(rtf_protocol["parts_file"]) == 2272
-        assert os.path.getsize(rtf_protocol["text_file"]) == 2246
+        assert os.path.getsize(parsed_file(os.path.join("1", "268926.csv"))) == 2272
+        assert os.path.getsize(parsed_file(os.path.join("1", "268926.txt"))) == 2246
     else:
         logging.warning("skipping rtf protocol test")
     
     # invalid doc - skipped
     invalid_doc = resource[2]
     assert_conforms_to_schema(schema, invalid_doc)
-    assert invalid_doc["parts_file"] == None
-    assert invalid_doc["text_file"] == None
+    assert invalid_doc["parts_url"] == None
+    assert invalid_doc["text_url"] == None
 
     # the datapackage contains only the valid files
     with open(os.path.join(out_path, "datapackage.json")) as f:
