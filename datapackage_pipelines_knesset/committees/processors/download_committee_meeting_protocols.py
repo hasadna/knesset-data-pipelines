@@ -47,6 +47,8 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
         ext = meeting["url"].strip()[-4:]
         if ext in [".doc", ".rtf"]:
             return ext[1:]
+        elif meeting["url"].strip()[-5:] == ".docx":
+            return "docx"
         else:
             logging.warning("unknown extension: {}".format(meeting["url"]))
 

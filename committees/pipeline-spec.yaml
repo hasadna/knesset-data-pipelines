@@ -393,6 +393,8 @@ committee-meeting-protocols:
       parameters:
         resource: committee-meeting-protocols-parsed
         table: committee_meeting_protocols_parsed
+        # lower commit batches - because protocol parsing takes some time
+        commit-every: 50
 
 
 ### combine all committee related data from DB to a datapackage zip file

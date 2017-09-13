@@ -1,6 +1,9 @@
 from datapackage_pipelines_knesset.common.base_processors.add_resource import AddResourceBaseProcessor
-import logging
-from sqlalchemy import inspect
+from sqlalchemy import or_
+
+
+# only loads documents which end with these extensions
+SUPPORTED_EXTENSIONS = ["doc", "rtf", "docx"]
 
 
 class Processor(AddResourceBaseProcessor):
@@ -28,6 +31,8 @@ class Processor(AddResourceBaseProcessor):
             .query(committee_table, committeesession_table, documentcommitteesession_table)\
             .filter(committeesession_table.c.CommitteeID==committee_table.c.CommitteeID)\
             .filter(committeesession_table.c.CommitteeSessionID==documentcommitteesession_table.c.CommitteeSessionID)\
+            .filter(or_(*(documentcommitteesession_table.c.FilePath.like("%.{}".format(e))
+                          for e in SUPPORTED_EXTENSIONS)))\
         .all():
             row = db_row._asdict()
             if str(row["GroupTypeID"]) == "23":

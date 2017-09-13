@@ -53,9 +53,6 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
             self._all_filenames += [parts_relpath]
         if text_filename:
             self._all_filenames += [text_relpath]
-        outrow = {"kns_committee_id": committee_id,
-                  "kns_session_id": meeting_id,
-                  "protocol_url": meeting_protocol["protocol_url"]}
         parsed_url = lambda f: "https://next.oknesset.org/data/committee-meeting-protocols-parsed/{}".format(f)
         yield {"kns_committee_id": committee_id,
                "kns_session_id": meeting_id,
