@@ -64,6 +64,7 @@ ssh-keygen -f ~/.ssh/google_compute_engine -N ""
 
 echo " > update pipelines app image and commit to git"
 
+pip install yaml
 bin/k8s_update_deployment_image.py "app" "gcr.io/hasadna-oknesset/knesset-data-pipelines:${TRAVIS_COMMIT}"
 git config user.email ori+oknesset-deployment-bot@uumpa.com
 git config user.name oknesset-deployment-bot
