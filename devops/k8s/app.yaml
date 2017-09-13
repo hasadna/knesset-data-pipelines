@@ -1,58 +1,42 @@
 apiVersion: apps/v1beta1
 kind: Deployment
-metadata:
-  name: app
+metadata: {name: app}
 spec:
   replicas: 1
-  strategy:
-    type: Recreate
+  strategy: {type: Recreate}
   template:
     metadata:
-      labels:
-        app: app
+      labels: {app: app}
     spec:
       containers:
-      - name: app
-        image: gcr.io/hasadna-oknesset/knesset-data-pipelines:latest
-        env:
+      - env:
         - name: DPP_DB_ENGINE
           valueFrom:
-            configMapKeyRef:
-              name: configmap
-              key: DPP_DB_ENGINE
+            configMapKeyRef: {key: DPP_DB_ENGINE, name: configmap}
         - name: DPP_REDIS_HOST
           valueFrom:
-            configMapKeyRef:
-              name: configmap
-              key: DPP_REDIS_HOST
+            configMapKeyRef: {key: DPP_REDIS_HOST, name: configmap}
         - name: DPP_WORKER_CONCURRENCY
           valueFrom:
-            configMapKeyRef:
-              name: configmap
-              key: DPP_WORKER_CONCURRENCY
-        - name: RTF_EXTRACTOR_BIN
-          value: /knesset/bin/rtf_extractor.py
+            configMapKeyRef: {key: DPP_WORKER_CONCURRENCY, name: configmap}
+        - {name: RTF_EXTRACTOR_BIN, value: /knesset/bin/rtf_extractor.py}
+        image: gcr.io/hasadna-oknesset/knesset-data-pipelines:8366a6c949cca2f761337ebf15d8628d6c3cc023
+        name: app
         ports:
-        - containerPort: 5000
+        - {containerPort: 5000}
         resources:
-          requests:
-            cpu: 20m
+          requests: {cpu: 20m}
         volumeMounts:
-        - mountPath: /knesset/data
-          name: knesset-data-pipelines
+        - {mountPath: /knesset/data, name: knesset-data-pipelines}
       restartPolicy: Always
       volumes:
-      - name: knesset-data-pipelines
-        hostPath:
-          path: /var/next-oknesset/knesset-data-pipelines
+      - hostPath: {path: /var/next-oknesset/knesset-data-pipelines}
+        name: knesset-data-pipelines
 ---
 apiVersion: v1
 kind: Service
-metadata:
-  name: app
+metadata: {name: app}
 spec:
-  selector:
-    app: app
   ports:
-  - name: "5000"
-    port: 5000
+  - {name: '5000', port: 5000}
+  selector: {app: app}

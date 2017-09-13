@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: letsencrypt
-        image: gcr.io/hasadna-oknesset/knesset-data-letsencrypt:latest
+        image: gcr.io/hasadna-oknesset/knesset-data-letsencrypt:8366a6c949cca2f761337ebf15d8628d6c3cc023
         resources:
           requests:
             cpu: 1m

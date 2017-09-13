@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 
-if [ "${1}" == "" ] || [ "${2}" == "" ]; then
-    echo "usage: bin/k8s_deploy.sh <deploynemt_name> <image_suffix>"
-else
-    kubectl set image "deployment/${1}" "${1}=gcr.io/hasadna-oknesset/knesset-data-${2}" && kubectl rollout status "deployment/${1}"
-fi
+set -e
+
+echo " > Applying configurations"
+bin/k8s_apply.sh
+
+echo " > waiting 10 seconds"  # for deployment to complete and to make sure we check the status of the new deployment
+sleep 10
+
+echo " > Waiting for successful rollout status"
+kubectl rollout status -w deployment/app
+kubectl rollout status -w deployment/db
+kubectl rollout status -w deployment/nginx

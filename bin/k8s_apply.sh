@@ -1,3 +1,13 @@
 #!/usr/bin/env bash
 
-kubectl apply -f devops/k8s_configmap.yaml -f devops/k8s/
+set -e
+
+bin/k8s_connect.sh
+
+kubectl apply -f devops/k8s/adminer.yaml \
+              -f devops/k8s/app.yaml \
+              -f devops/k8s/db.yaml \
+              -f devops/k8s/flower.yaml \
+              -f devops/k8s/letsencrypt.yaml \
+              -f devops/k8s/nginx.yaml \
+              -f devops/k8s/redis.yaml
