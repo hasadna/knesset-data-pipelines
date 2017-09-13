@@ -30,8 +30,8 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
         text_relpath = os.path.join(str(committee_id), "{}.txt".format(meeting_id))
         parts_filename = self._get_filename(parts_relpath)
         text_filename = self._get_filename(text_relpath)
-        protocol_filename = meeting_protocol["protocol_file"]
-        protocol_ext = protocol_filename.strip()[-4:]
+        protocol_filename = meeting_protocol["protocol_file"].strip()
+        protocol_ext = ".docx" if protocol_filename.endswith(".docx") else protocol_filename[-4:]
         if not os.path.exists(parts_filename) or os.path.getsize(parts_filename) < 5:
             self._ensure_parts_path_exists(parts_filename, parts_relpath)
             if protocol_ext == ".doc":
@@ -40,6 +40,8 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
             elif protocol_ext == ".rtf":
                 parse_res = self._parse_rtf_protocol(committee_id, meeting_id, protocol_filename, parts_filename,
                                                      text_filename)
+            elif protocol_ext == ".docx":
+                parse_res = None
             else:
                 raise Exception("unknown extension: {}".format(protocol_ext))
             if not parse_res:

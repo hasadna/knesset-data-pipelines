@@ -131,7 +131,7 @@ def test_parse_committee_meeting_protocols():
                              "url": "http://fs.knesset.gov.il//20/Committees/20_cs_bg_388526.docx",
                              "protocol_url": "test.example.com",
                              "protocol_file": os.path.join(os.path.dirname(__file__),
-                                                           "mocks", "20_ptv_341203.doc")}]
+                                                           "mocks", "20_cs_bg_388526.docx")}]
     # output files will be saves in this path
     out_path = os.path.join(os.path.dirname(__file__), "..", "data", "test-parse-committee-meeting-protocols")
     rmtree(out_path, ignore_errors=True)
