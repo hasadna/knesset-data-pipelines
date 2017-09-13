@@ -72,7 +72,7 @@ git config user.email ori+oknesset-deployment-bot@uumpa.com
 git config user.name oknesset-deployment-bot
 git add "devops/k8s/app.yaml"
 git commit -m "deployment image update: app=gcr.io/hasadna-oknesset/knesset-data-pipelines:${TRAVIS_COMMIT}"
-git push "https://${DEPLOYMENT_BOT_GITHUB_TOKEN}@github.com/hasadna/knesset-data-pipelines.git" master
+git push "https://${DEPLOYMENT_BOT_GITHUB_TOKEN}@github.com/hasadna/knesset-data-pipelines.git" HEAD:master
 
 
 echo " > deploy"
