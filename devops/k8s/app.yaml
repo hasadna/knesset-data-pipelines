@@ -20,7 +20,7 @@ spec:
           valueFrom:
             configMapKeyRef: {key: DPP_WORKER_CONCURRENCY, name: configmap}
         - {name: RTF_EXTRACTOR_BIN, value: /knesset/bin/rtf_extractor.py}
-        image: gcr.io/hasadna-oknesset/knesset-data-pipelines:8366a6c949cca2f761337ebf15d8628d6c3cc023
+        image: gcr.io/hasadna-oknesset/knesset-data-pipelines:2c535e4905afd9fd3d9bba07256463db0636991b
         name: app
         ports:
         - {containerPort: 5000}
