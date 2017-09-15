@@ -1,0 +1,71 @@
+kns_law:
+  schedule:
+    crontab: "0 0 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: kns_law
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_law
+        service-name: api
+        method-name: "KNS_Law"
+        fields:
+          id:
+            source: LawID
+            type: integer
+            description: קוד החוק
+          type_id:
+            source: TypeID
+            type: integer
+            description: קוד סוג החוק
+          type_desc:
+            source: TypeDesc
+            type: string
+            description: תיאור סוג החוק (תיקון טעות, חוקים אחרים)
+          sub_type_id:
+            source: SubTypeID
+            type: integer
+            description: קוד סוג משנה (רק לחוקים אחרים)
+          sub_type_desc:
+            source: SubTypeDesc
+            type: string
+            description: תיאור סוג משנה (רק לחוקים אחרים)
+          knesset_num:
+            source: KnessetNum
+            type: integer
+            description: מספר הכנסת
+          name:
+            source: Name
+            type: string
+            description: שם החוק
+          public_date:
+            source: PublicationDate
+            type: datetime
+            description: תאריך פרסום ברשומות
+          public_series_id:
+            source: PublicationSeriesID
+            type: integer
+            description: קוד סדרת פרסום
+          public_series_desc:
+            source: PublicationSeriesDesc
+            type: string
+            description: תיאור סדרת הפרסום
+          magazine_num:
+            source: MagazineNumber
+            type: string
+            description: מספר חוברת בסדרת הפרסום
+          page_num:
+            source: PageNumber
+            type: string
+            description: מספר עמוד
+          last_update:
+            source: LastUpdatedDate
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: dump.to_sql
+      parameters:
+        tables:
+          kns_law:
+            resource-name: kns_law
+            mode: update
