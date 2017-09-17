@@ -75,8 +75,25 @@ You can run a local redash instance by running:
 
 ## Installing the project locally and running tests
 
-Only the latest Python version is supported (3.6)
+You should have an activated python 3.6 virtualenv, following procedure will work on Ubuntu 17.04:
+```
+curl -kL https://raw.github.com/saghul/pythonz/master/pythonz-install | bash
+echo '[[ -s $HOME/.pythonz/etc/bashrc ]] && source $HOME/.pythonz/etc/bashrc' >> ~/.bashrc
+source ~/.bashrc
+sudo apt-get install build-essential zlib1g-dev libbz2-dev libssl-dev libreadline-dev libncurses5-dev libsqlite3-dev libgdbm-dev libdb-dev libexpat-dev libpcap-dev liblzma-dev libpcre3-dev
+pythonz install 3.6.2
+sudo pip install virtualenvwrapper
+echo 'export WORKON_HOME=$HOME/.virtualenvs; export PROJECT_HOME=$HOME/Devel; source /usr/local/bin/virtualenvwrapper.sh' >> ~/.bashrc
+source ~/.bashrc
+cd knesset-data-pipelines
+mkvirtualenv -a `pwd` -p $HOME/.pythonz/pythons/CPython-3.6.2/bin/python3.6 knesset-data-pipelines
+```
 
+Before running any knesset-data-pipelines script, be sure to activate the virtualenv
+
+You can do that by running `workon knesset-data-pipelines`
+
+Once you are inside a Python 3.6 virtualenv, you can run the following:
 * `bin/install.sh`
 * `bin/test.sh`
 
@@ -86,4 +103,3 @@ You can set some environment variables to modify behaviors, see a refernece at .
 
 * using docker: `bin/dpp.sh`
 * locally (from an activated virtualenv): `dpp`
-
