@@ -11,7 +11,9 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
 * public endpoints:
   * https://next.oknesset.org/pipelines/ - pipelines dashboard
   * https://next.oknesset.org/data/ - data files, also available in [json format](https://next.oknesset.org/data-json/)
+  * Metabase dashboards for quick friendly visualizations of the data in DB, for example [committees dashboard](https://next.oknesset.org/metabase/public/dashboard/57604bd2-73f3-4fbc-943f-53bf45287641)
 * internal admin interfaces - password required
+  * https://next.oknesset.org/metabase/ - user friendly DB queries and dashboards
   * https://next.oknesset.org/adminer/ - for admin DB access
     * in adminer UI login screen, you should choose:
       * System: PostgreSQL
