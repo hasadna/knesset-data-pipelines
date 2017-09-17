@@ -1,0 +1,34 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata: {name: "flower"}
+spec:
+  replicas: 1
+  strategy: {type: "Recreate"}
+  template:
+    metadata: {labels: {app: "flower"}}
+    spec:
+      containers:
+      - name: flower
+        image: gcr.io/hasadna-oknesset/knesset-data-pipelines:latest
+        args: ["flower"]
+        env:
+        # sets environment variables from configmap
+        - {name: "DPP_DB_ENGINE", valueFrom: {configMapKeyRef: {name: "configmap", key: "DPP_DB_ENGINE"}}}
+        - {name: "DPP_REDIS_HOST", valueFrom: {configMapKeyRef: {name: "configmap", key: "DPP_REDIS_HOST"}}}
+        - {name: "DPP_WORKER_CONCURRENCY", valueFrom: {configMapKeyRef: {name: "configmap", key: "DPP_WORKER_CONCURRENCY"}}}
+        - {name: "FLOWER_PORT", value: "5555"}
+        ports: [{containerPort: 5555}]
+        resources: {requests: {cpu: "1m"}}
+        volumeMounts:
+        - {name: "knesset-data-pipelines", mountPath: "/knesset/data"}
+      restartPolicy: Always
+      volumes:
+      - {name: "knesset-data-pipelines", hostPath: {path: "/var/next-oknesset/knesset-data-pipelines"}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: "flower"}
+spec:
+  selector: {app: "flower"}
+  ports:
+  - {name: "5555", port: 5555}

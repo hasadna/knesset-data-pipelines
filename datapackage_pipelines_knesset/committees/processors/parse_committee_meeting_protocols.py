@@ -8,12 +8,13 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
 
     def __init__(self, *args, **kwargs):
         super(ParseCommitteeMeetingProtocolsProcessor, self).__init__(*args, **kwargs)
-        self._schema["fields"] = [{"name": "committee_id", "type": "integer"},
-                                  {"name": "meeting_id", "type": "integer"},
-                                  {"name": "protocol_file", "type": "string",
-                                   "description": "relative path to the protocol file"},
-                                  {"name": "text_file", "type": "string"},
-                                  {"name": "parts_file", "type": "string"},]
+        self._schema["fields"] = [
+            {"name": "kns_committee_id", "type": "integer", "description": "primary key from kns_committee table"},
+            {"name": "kns_session_id", "type": "integer", "description": "primary key from kns_committeesession table"},
+            {"name": "protocol_url", "type": "string"},
+            {"name": "text_url", "type": "string"},
+            {"name": "parts_url", "type": "string"},]
+        self._schema["primaryKey"] = ["kns_session_id"]
         self._all_filenames = []
 
     def _process(self, datapackage, resources):
@@ -23,14 +24,14 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
         return os.path.join(self._parameters["out-path"], relpath)
 
     def _filter_row(self, meeting_protocol, **kwargs):
-        committee_id = meeting_protocol["committee_id"]
-        meeting_id = meeting_protocol["meeting_id"]
+        committee_id = meeting_protocol["kns_committee_id"]
+        meeting_id = meeting_protocol["kns_session_id"]
         parts_relpath = os.path.join(str(committee_id), "{}.csv".format(meeting_id))
         text_relpath = os.path.join(str(committee_id), "{}.txt".format(meeting_id))
         parts_filename = self._get_filename(parts_relpath)
         text_filename = self._get_filename(text_relpath)
-        protocol_filename = meeting_protocol["protocol_file"]
-        protocol_ext = protocol_filename.strip()[-4:]
+        protocol_filename = meeting_protocol["protocol_file"].strip()
+        protocol_ext = ".docx" if protocol_filename.endswith(".docx") else protocol_filename[-4:]
         if not os.path.exists(parts_filename) or os.path.getsize(parts_filename) < 5:
             self._ensure_parts_path_exists(parts_filename, parts_relpath)
             if protocol_ext == ".doc":
@@ -39,6 +40,8 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
             elif protocol_ext == ".rtf":
                 parse_res = self._parse_rtf_protocol(committee_id, meeting_id, protocol_filename, parts_filename,
                                                      text_filename)
+            elif protocol_ext == ".docx":
+                parse_res = None
             else:
                 raise Exception("unknown extension: {}".format(protocol_ext))
             if not parse_res:
@@ -52,11 +55,12 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
             self._all_filenames += [parts_relpath]
         if text_filename:
             self._all_filenames += [text_relpath]
-        yield {"committee_id": committee_id,
-               "meeting_id": meeting_id,
-               "protocol_file": protocol_filename,
-               "text_file": text_filename,
-               "parts_file": parts_filename}
+        parsed_url = lambda f: "https://next.oknesset.org/data/committee-meeting-protocols-parsed/{}".format(f)
+        yield {"kns_committee_id": committee_id,
+               "kns_session_id": meeting_id,
+               "protocol_url": meeting_protocol["protocol_url"],
+               "text_url": parsed_url(text_relpath) if text_filename is not None else None,
+               "parts_url": parsed_url(parts_relpath) if parts_filename is not None else None,}
 
     def _ensure_parts_path_exists(self, parts_filename, parts_relpath):
         if parts_relpath not in self._all_filenames:

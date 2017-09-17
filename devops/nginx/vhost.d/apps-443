@@ -4,4 +4,8 @@ location /pipelines/ {
     proxy_pass http://pipelines/;
 }
 
+# pipelines data directories
 include /etc/nginx/vhost.d/data;
+
+include /etc/nginx/vhost.d/adminer;
+include /etc/nginx/vhost.d/flower;

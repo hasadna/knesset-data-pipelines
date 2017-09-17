@@ -4,6 +4,8 @@ import os
 from pyth.plugins.rtf15.reader import Rtf15Reader
 from pyth.plugins.plaintext.writer import PlaintextWriter
 
+# used by pipelines to parse rtf files
+# requires python2
 
 def main():
     if len(sys.argv) < 2:

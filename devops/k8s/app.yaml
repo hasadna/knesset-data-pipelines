@@ -1,0 +1,42 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata: {name: app}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  template:
+    metadata:
+      labels: {app: app}
+    spec:
+      containers:
+      - env:
+        - name: DPP_DB_ENGINE
+          valueFrom:
+            configMapKeyRef: {key: DPP_DB_ENGINE, name: configmap}
+        - name: DPP_REDIS_HOST
+          valueFrom:
+            configMapKeyRef: {key: DPP_REDIS_HOST, name: configmap}
+        - name: DPP_WORKER_CONCURRENCY
+          valueFrom:
+            configMapKeyRef: {key: DPP_WORKER_CONCURRENCY, name: configmap}
+        - {name: RTF_EXTRACTOR_BIN, value: /knesset/bin/rtf_extractor.py}
+        image: gcr.io/hasadna-oknesset/knesset-data-pipelines:f4918485dc2d1b0d612e4e69afcb8cd2a4721f6a
+        name: app
+        ports:
+        - {containerPort: 5000}
+        resources:
+          requests: {cpu: 20m}
+        volumeMounts:
+        - {mountPath: /knesset/data, name: knesset-data-pipelines}
+      restartPolicy: Always
+      volumes:
+      - hostPath: {path: /var/next-oknesset/knesset-data-pipelines}
+        name: knesset-data-pipelines
+---
+apiVersion: v1
+kind: Service
+metadata: {name: app}
+spec:
+  ports:
+  - {name: '5000', port: 5000}
+  selector: {app: app}

@@ -27,6 +27,5 @@ services:
       - "DPP_REDIS_HOST=redis"
       - "DPP_DB_ENGINE=postgresql://postgres:123456@db:5432/postgres"
       - "DPP_WORKER_CONCURRENCY=1"
-      - "RTF_EXTRACTOR_BIN=/knesset/bin/rtf_extractor.py"
     volumes:
       - .data-docker:/knesset/data

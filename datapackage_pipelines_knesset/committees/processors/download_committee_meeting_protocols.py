@@ -7,10 +7,13 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
 
     def __init__(self, *args, **kwargs):
         super(DownloadCommitteeMeetingProtocolsProcessor, self).__init__(*args, **kwargs)
-        self._schema["fields"] = [{"name": "committee_id", "type": "integer"},
-                                  {"name": "meeting_id", "type": "integer"},
-                                  {"name": "protocol_file", "type": "string",
-                                   "description": "relative path to the protocol file"}]
+        self._schema["fields"] = [
+            {"name": "kns_committee_id", "type": "integer", "description": "primary key from kns_committee table"},
+            {"name": "kns_session_id", "type": "integer", "description": "primary key from kns_committeesession table"},
+            {"name": "protocol_file", "type": "string", "description": "relative path to the protocol file"},
+            {"name": "protocol_url", "type": "string", "description": "full url to the downloaded protocol file"}
+        ]
+        self._schema["primaryKey"] = ["kns_session_id"]
         self._all_filenames = []
 
     def _process(self, datapackage, resources):
@@ -44,20 +47,22 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
         ext = meeting["url"].strip()[-4:]
         if ext in [".doc", ".rtf"]:
             return ext[1:]
+        elif meeting["url"].strip()[-5:] == ".docx":
+            return "docx"
         else:
             logging.warning("unknown extension: {}".format(meeting["url"]))
 
     def _filter_row(self, meeting, **kwargs):
         if meeting["url"]:
-            relpath = os.path.join(str(meeting["committee_id"]), "{}.{}".format(meeting["id"], self._get_extension(meeting)))
+            relpath = os.path.join(str(meeting["kns_committee_id"]), "{}.{}".format(meeting["kns_session_id"], self._get_extension(meeting)))
             filename = self._get_filename(relpath)
             if relpath not in self._all_filenames:
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
             override_meeting_ids = os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
-            if not override_meeting_ids or str(meeting["id"]) in override_meeting_ids.split(","):
+            if not override_meeting_ids or str(meeting["kns_session_id"]) in override_meeting_ids.split(","):
                 if not os.path.exists(filename):
                     override_meeting_ids = os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
-                    if not override_meeting_ids or str(meeting["id"]) in override_meeting_ids.split(","):
+                    if not override_meeting_ids or str(meeting["kns_session_id"]) in override_meeting_ids.split(","):
                         num_retries = self._parameters.get("num-retries", 5)
                         seconds_between_retries = self._parameters.get("seconds-between-retries", 60)
                         if self._save_url_to_file(meeting["url"], filename, num_retries, seconds_between_retries):
@@ -66,9 +71,10 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
                         else:
                             filename = None
                 if filename is not None:
-                    yield {"committee_id": meeting["committee_id"],
-                           "meeting_id": meeting["id"],
-                           "protocol_file": filename}
+                    yield {"kns_committee_id": meeting["kns_committee_id"],
+                           "kns_session_id": meeting["kns_session_id"],
+                           "protocol_file": filename,
+                           "protocol_url": "https://next.oknesset.org/data/committee-meeting-protocols/{}".format(relpath)}
 
     def _process_cleanup(self):
         filename = self._get_filename("datapackage.json")

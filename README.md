@@ -7,14 +7,42 @@ Knesset data scrapers and data sync
 
 Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines) to scrape Knesset data and aggregate to different data stores (PostgreSQL, Elasticsearch, Files)
 
+## Available Endpoints
+* public endpoints:
+  * https://next.oknesset.org/pipelines/ - pipelines dashboard
+  * https://next.oknesset.org/data/ - data files, also available in [json format](https://next.oknesset.org/data-json/)
+  * Metabase dashboards for quick friendly visualizations of the data in DB, for example [committees dashboard](https://next.oknesset.org/metabase/public/dashboard/57604bd2-73f3-4fbc-943f-53bf45287641)
+* internal admin interfaces - password required
+  * https://next.oknesset.org/metabase/ - user friendly DB queries and dashboards
+  * https://next.oknesset.org/adminer/ - for admin DB access
+    * in adminer UI login screen, you should choose:
+      * System: PostgreSQL
+      * Server: db
+      * Username, Password, Database: **secret**
+  * https://next.oknesset.org/flower/ - celery tasks management
+* deployment of this environment was done using Kubernetes (K8S) on Google Container Engine (GKE)
+  * [deployment details and devops documentation](https://github.com/hasadna/knesset-data-pipelines/blob/master/devops/K8S.md)
+
+## Contributing
+
 Looking to contribute? check out the [Help Wanted Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) or the [Noob Friendly Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22noob+friendly%22) for some ideas.
 
 ## Running the full pipelines environment using docker
 
-* Install Docker and Docker Compose (refer to Docker guides for your OS)
+#### A note for windows users: 
+Using windows with docker is not currently recomended or supported. The build process seems to fail on numerous issues.
+If you wish to use windows, do so at your own risk, and please update this README file with instructions if you succeed.
+
+#### Instructions for running on Ubuntu (other distros and mac should follow a similar process):
+
+* Install Docker (refer to [Docker Official Docs](https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu) - The recommended method is "Install using the repository")
+* Install docker-compose: `sudo apt install docker-compose`
+* Make sure docker-compose is at version 1.13.0 or higher: `docker-compose --version`
+  * If not, upgrade docker compose (refer to [Docker-compose Official Docs](https://docs.docker.com/compose/install/#install-compose))
 * fork & clone the repo
 * change directory to the repo's directory
-* `bin/start.sh`
+* `sudo bin/start.sh`
+* verify all dockers started correctly: `sudo docker ps` (should show 3 images running - app, db, redis)
 
 This will provide:
 
@@ -22,7 +50,7 @@ This will provide:
 * PostgreSQL server: postgresql://postgres:123456@localhost:15432/postgres
 * Data files under: .data-docker/
 
-After every change in the code you should run `bin/build.sh && bin/start.sh`
+After every change in the code you should run `sudo bin/build.sh && sudo bin/start.sh`
 
 ## Using Redash to view the data
 

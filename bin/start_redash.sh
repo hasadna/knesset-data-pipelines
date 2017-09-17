@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# start the redash local testing environment
+
 bin/start.sh
 
 # wait 3 seconds to ensure DB is up

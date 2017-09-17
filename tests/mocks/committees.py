@@ -17,6 +17,10 @@ class MockDownloadCommitteeMeetingProtocols(DownloadCommitteeMeetingProtocolsPro
             filename = "2007-12-27.rtf"
         elif url == "http://fs.knesset.gov.il//20/Committees/20_ptv_387483.doc":
             filename = "20_ptv_387483.doc"
+        elif url == "http://fs.knesset.gov.il//17/Committees/17_cs_bg_337938.rtf":
+            filename = "17_cs_bg_337938.rtf"
+        elif url == "http://fs.knesset.gov.il//20/Committees/20_cs_bg_388526.docx":
+            filename = "20_cs_bg_388526.docx"
         else:
             raise Exception("unknown url: {}".format(url))
         filename = os.path.join(os.path.dirname(__file__), filename)

@@ -1,0 +1,37 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: letsencrypt
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: letsencrypt
+    spec:
+      containers:
+      - name: letsencrypt
+        image: gcr.io/hasadna-oknesset/knesset-data-letsencrypt:8366a6c949cca2f761337ebf15d8628d6c3cc023
+        resources:
+          requests:
+            cpu: 1m
+        volumeMounts:
+        - name: letsencrypt-log
+          mountPath: /var/log/letsencrypt
+        - name: letsencrypt-etc
+          mountPath: /etc/letsencrypt
+        - name: nginx-html
+          mountPath: /nginx-html
+      restartPolicy: Always
+      volumes:
+      - name: nginx-html
+        hostPath:
+          path: /var/next-oknesset/nginx-html
+      - name: letsencrypt-etc
+        hostPath:
+          path: /var/next-oknesset/letsencrypt-etc
+      - name: letsencrypt-log
+        hostPath:
+          path: /var/next-oknesset/letsencrypt-log
