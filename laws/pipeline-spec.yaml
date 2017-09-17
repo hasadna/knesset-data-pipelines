@@ -1,0 +1,83 @@
+### kns dataservice tables
+
+kns_law:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_law
+        service-name: api
+        method-name: "KNS_Law"
+        fields:
+          LawID:
+            source: "{name}"
+            type: integer
+            description: קוד החוק
+            primaryKey: true
+          TypeID:
+            source: "{name}"
+            type: integer
+            description: קוד סוג החוק
+          TypeDesc:
+            source: "{name}"
+            type: string
+            description: תיאור סוג החוק (תיקון טעות, חוקים אחרים)
+          SubTypeID:
+            source: "{name}"
+            type: integer
+            description: קוד סוג משנה (רק לחוקים אחרים)
+          SubTypeDesc:
+            source: "{name}"
+            type: string
+            description: >
+              תיאור סוג משנה (רק לחוקים אחרים)
+              (חוק בנוסח חדש, חוק בנוסח משולב, פקודות מועצת המדינה הזמנית, פקודות מנדטוריות, עות'מאני)
+          KnessetNum:
+            source: "{name}"
+            type: integer
+            description: מספר הכנסת
+          Name:
+            source: "{name}"
+            type: string
+            description: שם החוק
+          PublicationDate:
+            source: "{name}"
+            type: datetime
+            description: >
+              תאריך פרסום ברשומות
+              (או בסדרת הפרסום הרלוונטית בהתאם לסוג החוק, למשל עיתון רשמי לפקודות מועצת המדינה הזמנית)
+          PublicationSeriesID:
+            source: "{name}"
+            type: integer
+            description: קוד סדרת פרסום
+          PublicationSeriesDesc:
+            source: "{name}"
+            type: string
+            description: >
+              תיאור סדרת הפרסום
+              (ספר החוקים, דיני מדינת ישראל, עיתון רשמי - מועצת המדינה הזמנית, עיתון רשמי מנדטורי, חוקי ארץ ישראל, חוקי תקציב)
+          MagazineNumber:
+            source: "{name}"
+            type: string
+            description: מספר חוברת בסדרת הפרסום
+          PageNumber:
+            source: "{name}"
+            type: string
+            description: מספר עמוד
+          LastUpdatedDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_law
+        table: kns_law
