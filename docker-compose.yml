@@ -7,8 +7,6 @@ services:
 
   db:
     image: sameersbn/postgresql:9.6-2
-    depends_on:
-      - redis
     ports:
       - "15432:5432"
     environment:
@@ -21,6 +19,7 @@ services:
     image: knesset-data/pipelines
     depends_on:
       - db
+      - redis
     ports:
       - "5000:5000"
     environment:
