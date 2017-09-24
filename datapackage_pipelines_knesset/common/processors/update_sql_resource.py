@@ -2,9 +2,9 @@ from datapackage_pipelines_knesset.common.processors.base_processor import BaseP
 import json, logging
 from datapackage_pipelines_knesset.common.db import get_session
 from sqlalchemy import *
-from jsontableschema_sql import Storage
-import jsontableschema
-from jsontableschema_sql.storage import mappers
+from tableschema_sql import Storage
+import tableschema
+from tableschema_sql.storage import mappers
 
 
 class UpdateSqlResource(BaseProcessor):
@@ -60,7 +60,7 @@ class UpdateSqlResource(BaseProcessor):
         id = int(row.pop(self._id_field_name)) if self._id_field_name in row else None
         values = self._get_values(row)
         if self.db_table is None:
-            jsontableschema.validate(self._table_schema)
+            tableschema.validate(self._table_schema)
             prefix, bucket = "", self.table_name
             index_fields = []
             autoincrement = None

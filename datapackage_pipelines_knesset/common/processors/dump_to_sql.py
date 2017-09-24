@@ -1,5 +1,5 @@
 from datapackage_pipelines_knesset.common.base_processors.base_dump import BaseDumpProcessor
-from jsontableschema_sql.mappers import descriptor_to_columns_and_constraints
+from tableschema_sql.mappers import descriptor_to_columns_and_constraints
 from sqlalchemy import Table
 import logging, json
 from sqlalchemy.orm import mapper
