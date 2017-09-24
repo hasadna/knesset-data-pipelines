@@ -419,5 +419,5 @@ all:
         table: kns_billunion
     - run: dump.to_zip
       parameters:
-        out-file: ../data/committees.zip
+        out-file: ../data/bills.zip
 
