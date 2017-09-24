@@ -9,3 +9,4 @@ include /etc/nginx/vhost.d/data;
 
 include /etc/nginx/vhost.d/adminer;
 include /etc/nginx/vhost.d/flower;
+include /etc/nginx/vhost.d/metabase;
