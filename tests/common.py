@@ -1,6 +1,6 @@
 import os, yaml
 from copy import deepcopy
-from jsontableschema.field import Field
+from tableschema.field import Field
 from .mocks.dataservice import MockAddDataserviceCollectionResourceProcessor
 from itertools import chain
 
