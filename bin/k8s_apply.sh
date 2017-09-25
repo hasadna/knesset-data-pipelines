@@ -8,6 +8,7 @@ bin/k8s_connect.sh
 
 kubectl apply -f devops/k8s/adminer.yaml \
               -f devops/k8s/app.yaml \
+              -f devops/k8s/committees-webapp.yaml \
               -f devops/k8s/db.yaml \
               -f devops/k8s/flower.yaml \
               -f devops/k8s/letsencrypt.yaml \

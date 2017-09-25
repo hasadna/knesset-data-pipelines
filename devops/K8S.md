@@ -58,3 +58,12 @@ This is done using travis, which eventually runs `bin/k8s_deploy.sh`
   * `kubectl exec <app_pod_name> -- /knesset/bin/execute_scheduled_pipeline.sh <PIPELINE_ID>`
 * update tasks (runs every minute, but you can scheduled to run immediately as well)
   * `kubectl exec <app_pod_name> -- /knesset/bin/update_pipeline_status.sh`
+
+### Exporting all committees data from DB
+
+This export is used by knesset-data-committees-webapp
+
+```
+kubectl exec -it db-87339143-v3mpl -- bash -c "sudo -u postgres pg_dump -t kns_committee -t kns_jointcommittee -t kns_cmtsitecode -t kns_committeesession -t kns_cmtsessionitem -t kns_documentcommitteesession > /committees_db_dump.sql"
+kubectl cp db-87339143-v3mpl:/committees_db_dump.sql ./committees_db_dump.sql
+```
