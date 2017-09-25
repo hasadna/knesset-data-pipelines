@@ -35,8 +35,12 @@ If you wish to use windows, do so at your own risk, and please update this READM
 
 #### Instructions for running on Ubuntu (other distros and mac should follow a similar process):
 
-* Install Docker (refer to [Docker Official Docs](https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu) - The recommended method is "Install using the repository")
-* Install docker-compose: `sudo apt install docker-compose`
+* Install Docker
+  * Ubuntu - [Docker Official Docs - Ubuntu installation](https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu) - The recommended method is "Install using the repository")
+  * Mac - https://store.docker.com/editions/community/docker-ce-desktop-mac
+* Install docker-compose
+  * Ubuntu - `sudo apt install docker-compose`
+  * Mac - should be installed as part of the toolbox
 * Make sure docker-compose is at version 1.13.0 or higher: `docker-compose --version`
   * If not, upgrade docker compose (refer to [Docker-compose Official Docs](https://docs.docker.com/compose/install/#install-compose))
 * fork & clone the repo
