@@ -16,7 +16,7 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
     * [חקיקה](http://next.oknesset.org/metabase/public/dashboard/edf65569-8ca3-41cb-a917-39951c80b9bc)
     * [הצעות חוק](http://next.oknesset.org/metabase/public/dashboard/0c78c5f7-2d1b-4d99-9800-0c7495e2f7be)
   * Graphana dashboards for metrics / analytics:
-    * [Knesset Dataservice Processors Metrics](https://next.oknesset.org/grafana/dashboard/snapshot/OXIpN9joKPSjNdXY5RhN5AshuC6Qp6X9?orgId=1)
+    * [Knesset Dataservice Processors Metrics](https://next.oknesset.org/grafana/dashboard/db/knesset-dataservice-pipelines)
 * internal admin interfaces - password required
   * https://next.oknesset.org/metabase/ - user friendly DB queries and dashboards
   * https://next.oknesset.org/adminer/ - for admin DB access

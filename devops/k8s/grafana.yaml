@@ -36,6 +36,12 @@ spec:
         env:
         - name: GF_SERVER_ROOT_URL
           value: https://next.oknesset.org/grafana/
+        - name: GF_AUTH_ANONYMOUS_ENABLED
+          value: "true"
+        - name: GF_AUTH_ANONYMOUS_ORG_NAME
+          value: main
+        - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+          value: anonymous
         name: grafana
         ports:
         - containerPort: 3000
