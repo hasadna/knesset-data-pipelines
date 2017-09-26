@@ -14,4 +14,6 @@ kubectl apply -f devops/k8s/adminer.yaml \
               -f devops/k8s/letsencrypt.yaml \
               -f devops/k8s/nginx.yaml \
               -f devops/k8s/redis.yaml \
-              -f devops/k8s/metabase.yaml
+              -f devops/k8s/metabase.yaml \
+              -f devops/k8s/influxdb.yaml \
+              -f devops/k8s/grafana.yaml

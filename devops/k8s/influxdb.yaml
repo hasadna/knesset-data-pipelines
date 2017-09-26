@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: influxdb
+spec:
+  selector:
+    app: influxdb
+  ports:
+  - name: "8086"
+    port: 8086
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: knesset-data-influxdb
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: influxdb
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      containers:
+      - image: influxdb:1.3-alpine
+        name: influxdb
+        ports:
+        - containerPort: 8086
+        resources:
+          requests:
+            cpu: 5m
+        volumeMounts:
+        - name: knesset-data-influxdb
+          mountPath: /var/lib/influxdb
+      volumes:
+      - name: knesset-data-influxdb
+        persistentVolumeClaim:
+          claimName: knesset-data-influxdb
