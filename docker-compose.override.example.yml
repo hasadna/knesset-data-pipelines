@@ -8,6 +8,8 @@ services:
     environment:
       # you can set to 0 to disable worker but still run in docker and use the dashboard
       - "DPP_WORKER_CONCURRENCY=0"
+#      - "DPP_INFLUXDB_URL=http://influxdb:8086"
+#      - "DPP_INFLUXDB_DB=dpp"
 
   # additional optional services
 
@@ -31,3 +33,16 @@ services:
 #      - MB_DB_USER=postgres
 #      - MB_DB_PASS=123456
 #      - MB_DB_HOST=db
+
+## InfluxDB - time series DB for metrics
+#  influxdb:
+#    image: influxdb:1.3-alpine
+#    ports: ["18086:8086"]
+    # volumes:
+    # - .data-docker/influxdb:/var/lib/influxdb
+
+## Grafana - Graphing UI over InfluxDB
+#  grafana:
+#    image: grafana/grafana
+    # default username/password = admin/admin
+#    ports: ["13030:3000"]
