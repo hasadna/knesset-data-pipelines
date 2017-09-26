@@ -79,22 +79,45 @@ class Processor(BaseDumpProcessor):
         html += "</table>"
         return html
 
+    def _get_schema_sql_query(self):
+        what = ["{table}.\"{name}\" \"{title}\"".format(table=self._tablename,
+                                                        name=field["name"],
+                                                        title=field.get("description", "").split("\n")[0])
+                for field in self._schema["fields"]]
+        what = ",\n            ".join(what)
+        return """
+          select
+            {what}
+          from
+            {table_name}
+        """.format(table_name=self._tablename,
+                   what=what)
+
     def _get_schema_html(self):
         return """<html><head></head><body>
             <h1>{tablename}</h1>
             {fields_html}
-        </body></html>""".format(tablename=self._tablename, fields_html=self._get_schema_fields_html())
+            <pre>{sql_query}</pre>
+        </body></html>""".format(tablename=self._tablename,
+                                 fields_html=self._get_schema_fields_html(),
+                                 sql_query=self._get_schema_sql_query())
+
+    def _save_schema_json(self, save_schema):
+        filename = save_schema.format(table_name=self._tablename, ext="json")
+        with open(filename, "w") as f:
+            json.dump(self._schema, f, indent=2)
+
+    def _save_schema_html(self, save_schema):
+        filename = save_schema.format(table_name=self._tablename, ext="html")
+        with open(filename, "w") as f:
+            f.write(self._get_schema_html())
 
     def _filter_resource(self, resource_number, resource_data):
         self._tablename = self._parameters["table"]
         save_schema = self._parameters.get("save-schema", DEFAULT_SAVE_SCHEMA)
         if save_schema:
-            save_schema_json = save_schema.format(table_name=self._tablename, ext="json")
-            save_schema_html = save_schema.format(table_name=self._tablename, ext="html")
-            with open(save_schema_json, "w") as f:
-                json.dump(self._schema, f, indent=2)
-            with open(save_schema_html, "w") as f:
-                f.write(self._get_schema_html())
+            self._save_schema_json(save_schema)
+            self._save_schema_html(save_schema)
         self._update_keys = self._schema["primaryKey"]
         if not self._update_keys or len(self._update_keys) == 0:
             raise Exception("dump requires a primaryKey")
