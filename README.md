@@ -11,7 +11,12 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
 * public endpoints:
   * https://next.oknesset.org/pipelines/ - pipelines dashboard
   * https://next.oknesset.org/data/ - data files, also available in [json format](https://next.oknesset.org/data-json/)
-  * Metabase dashboards for quick friendly visualizations of the data in DB, for example [committees dashboard](https://next.oknesset.org/metabase/public/dashboard/57604bd2-73f3-4fbc-943f-53bf45287641)
+  * Metabase dashboards for quick friendly visualizations of the data in DB:
+    * [ועדות](http://next.oknesset.org/metabase/public/dashboard/57604bd2-73f3-4fbc-943f-53bf45287641)
+    * [חקיקה](http://next.oknesset.org/metabase/public/dashboard/edf65569-8ca3-41cb-a917-39951c80b9bc)
+    * [הצעות חוק](http://next.oknesset.org/metabase/public/dashboard/0c78c5f7-2d1b-4d99-9800-0c7495e2f7be)
+  * Graphana dashboards for metrics / analytics:
+    * [Knesset Dataservice Processors Metrics](https://next.oknesset.org/grafana/dashboard/snapshot/OXIpN9joKPSjNdXY5RhN5AshuC6Qp6X9?orgId=1)
 * internal admin interfaces - password required
   * https://next.oknesset.org/metabase/ - user friendly DB queries and dashboards
   * https://next.oknesset.org/adminer/ - for admin DB access
@@ -20,6 +25,7 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
       * Server: db
       * Username, Password, Database: **secret**
   * https://next.oknesset.org/flower/ - celery tasks management
+  * https://next.oknesset.org/grafana/ - Web UI for graphing metrics (via InfluxDB)
 * deployment of this environment was done using Kubernetes (K8S) on Google Container Engine (GKE)
   * [deployment details and devops documentation](https://github.com/hasadna/knesset-data-pipelines/blob/master/devops/K8S.md)
 
@@ -56,26 +62,24 @@ This will provide:
 
 After every change in the code you should run `sudo bin/build.sh && sudo bin/start.sh`
 
-## Using Redash to view the data
+## Using Adminer to view the data
 
-Redash is a Web UI which allows to make queries against the DB.
+Adminer is a simple Web UI which allows to make queries against the DB.
 
-It's the main interface for both developers and users of the project that want to get the data.
+To start the adminer service as part of the local docker compose environment:
 
-You can run a local redash instance by running:
-
-* `bin/start_redash.sh`
-* redash is available at: http://localhost:5010
-* setup an admin user
-* add a datasource:
-  * Name: knesset_data
-  * Type: PostgreSQL
-  * Host: knessetdatapipelines_db_1
-  * Password: 123456
-  * User: postgres
-  * Database Name: postgres
-  * Port: 5432
-* now you can make queries (once pipelines run and load some data to the DB)
+* (If you haven't do so already) Copy `docker-compose.override.example.yml` to `docker-compose.override.yml`
+* Edit `docker-compose.override.yml`
+  * Uncomment the adminer section
+* Start the services
+  * `bin/start.sh`
+* adminer is available at: http://localhost:18080
+  * Database Type = PostgreSQL
+  * Host = db
+  * Port = 5431
+  * Database = postgres
+  * User = postgres
+  * Password = 123456
 
 ## Installing the project locally and running tests
 
