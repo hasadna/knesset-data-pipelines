@@ -84,13 +84,13 @@ class Processor(BaseDumpProcessor):
                                                         name=field["name"],
                                                         title=field.get("description", "").split("\n")[0])
                 for field in self._schema["fields"]]
-        what = ",\n            ".join(what)
+        what = ",\n    ".join(what)
         return """
-          select
-            {what}
-          from
-            {table_name}
-        """.format(table_name=self._tablename,
+select
+    {what}
+from
+    {table_name}
+""".format(table_name=self._tablename,
                    what=what)
 
     def _get_schema_html(self):
