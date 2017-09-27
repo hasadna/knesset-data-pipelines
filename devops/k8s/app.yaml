@@ -22,7 +22,7 @@ spec:
         - {name: RTF_EXTRACTOR_BIN, value: /knesset/bin/rtf_extractor.py}
         - {name: DPP_INFLUXDB_URL, value: 'http://influxdb:8086'}
         - {name: DPP_INFLUXDB_DB, value: dpp}
-        image: gcr.io/hasadna-oknesset/knesset-data-pipelines:012a78e6450502fe34943e7c1d866785badb8105
+        image: gcr.io/hasadna-oknesset/knesset-data-pipelines:58a017709c26686809222f753b1c0ddbc308dcdc
         name: app
         ports:
         - {containerPort: 5000}
