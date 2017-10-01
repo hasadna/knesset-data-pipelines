@@ -34,10 +34,13 @@ class BaseDataserviceProcessor(BaseProcessor):
     def __init__(self, *args, **kwargs):
         super(BaseDataserviceProcessor, self).__init__(*args, **kwargs)
         fields = []
+        self._primary_key_field_name = "id"
         class DataServiceClass(self._get_base_dataservice_class()):
             ORDERED_FIELDS = []
             for name, field in self._parameters["fields"].items():
                 field_source = field.pop("source", None)
+                if field.pop("primaryKey", False):
+                    self._primary_key_field_name = name
                 field["name"] = name
                 # dump.to_path forces these formats for dates
                 if field["type"] == "datetime":
@@ -46,16 +49,17 @@ class BaseDataserviceProcessor(BaseProcessor):
                     field["format"] = "fmt:%Y-%m-%d"
                 fields.append(field)
                 if field_source:
+                    field_source = field_source.format(name=name)
                     ORDERED_FIELDS.append((name, KnessetDataServiceSimpleField(field_source, field["type"])))
         self._schema = {"fields": fields,
-                       "primaryKey": ["id"]}
+                       "primaryKey": [self._primary_key_field_name]}
         self.dataservice_class = self._extend_dataservice_class(DataServiceClass)
 
     def _get_base_dataservice_class(self):
         raise NotImplementedError()
 
     def _extend_dataservice_class(self, dataservice_class):
-        num_retries = self._parameters.get("num-retries", 5)
+        num_retries = self._parameters.get("num-retries", 10)
         seconds_between_retries = self._parameters.get("seconds-between-retries", 60)
         class BaseExtendedDataserviceClass(dataservice_class):
             @classmethod

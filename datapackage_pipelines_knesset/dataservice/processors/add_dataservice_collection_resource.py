@@ -1,10 +1,10 @@
 from datapackage_pipelines_knesset.dataservice.processors.base_processor import BaseDataserviceProcessor
 from knesset_data.dataservice.base import BaseKnessetDataServiceCollectionObject
-import logging, os
+import os
+from datapackage_pipelines_knesset.common.influxdb import send_metric_parameters
 
 
 class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
-    
 
     def _get_base_dataservice_class(self):
         return BaseKnessetDataServiceCollectionObject
@@ -14,7 +14,7 @@ class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
         class ExtendedDataserviceClass(BaseDataserviceClass):
             SERVICE_NAME = self._parameters["service-name"]
             METHOD_NAME = self._parameters["method-name"]
-            DEFAULT_ORDER_BY_FIELD = self._parameters.get("order_by", "id")
+            DEFAULT_ORDER_BY_FIELD = self._parameters.get("order_by", self._primary_key_field_name)
         return ExtendedDataserviceClass
 
     def _get_resource(self):
@@ -24,11 +24,18 @@ class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
             if os.environ.get("OVERRIDE_DATASERVICE_COLLECTION_LIMIT_ITEMS",""):
                 if int(os.environ.get("OVERRIDE_DATASERVICE_COLLECTION_LIMIT_ITEMS","")) < resources_yielded:
                     return
-            
-            yield self._filter_dataservice_object(dataservice_object)
+            row = self._filter_dataservice_object(dataservice_object)
+            self._send_metric("filter_row", {}, {"fields": len(row)})
+            yield row
+        self._send_metric("filter_resource", {}, {"filtered_rows": resources_yielded})
 
     def _process(self, datapackage, resources):
         return self._process_append(datapackage, resources)
+
+    def _send_metric(self, measurement, tags, values):
+        parameters = {"metric-tags": {"pipeline": self._parameters["resource-name"],
+                                      "processor": "add_dataservice_collection_resource"}}
+        send_metric_parameters(measurement, tags, values, parameters)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap
+data:
+  DPP_DB_ENGINE: "postgresql://postgres:<POSTGRESQL_PASSWORD>@db:5432/postgres"
+  DPP_REDIS_HOST: "redis"
+  DPP_WORKER_CONCURRENCY: "4"
+  PG_PASSWORD: "<POSTGRESQL_PASSWORD>"

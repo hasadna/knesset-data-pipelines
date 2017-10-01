@@ -1,0 +1,66 @@
+version: '3.2'
+
+# this compose stack allows to quickly setup a local redash instance against your docker (or local) DB
+#
+# if you run the default app using bin/start.sh, then you can just run:
+#
+# bin/start_redash.sh
+#
+# redash is available at: http://localhost:5010
+#
+# otherwise, you might need to change some settings,
+# in that case, you can copy this configuration into your docker-compose.override file and override what you need
+
+services:
+
+  # we use the redis and DB from the app compose stack
+  # redis:
+  #   image: redis:alpine
+  # db:
+  #   image: postgres:9.6.3-alpine
+  #   environment:
+  #     - "POSTGRES_PASSWORD=123456"
+  #   volumes:
+  #     - .data-docker/redash/db:/var/lib/postgresql
+
+  server:
+    image: redash/redash:latest
+    command: server
+    ports:
+      - "5010:5000"
+    environment:
+      PYTHONUNBUFFERED: 0
+      REDASH_LOG_LEVEL: "INFO"
+      REDASH_REDIS_URL: "redis://knessetdatapipelines_redis_1:6379/0"
+      REDASH_DATABASE_URL: "postgresql://postgres:123456@knessetdatapipelines_db_1/redash"
+      REDASH_COOKIE_SECRET: lpwm2mnm1828ks
+      # you should raise this value for production deployments
+      REDASH_WEB_WORKERS: 1
+      # to enable google auth: cd /opt/redash/current && sudo -u redash bin/run ./manage.py org set_google_apps_domains {{domains_separated_by_comma}}
+      # REDASH_GOOGLE_CLIENT_ID:
+      # REDASH_GOOGLE_CLIENT_SECRET:
+      # REDASH_MAIL_SERVER:
+      # REDASH_MAIL_PORT:
+      # REDASH_MAIL_USE_TLS:
+      # REDASH_MAIL_USERNAME:
+      # REDASH_MAIL_PASSWORD:
+      # REDASH_MAIL_DEFAULT_SENDER:
+      REDASH_HOST: http://localhost:5010
+
+  worker:
+    image: redash/redash:latest
+    command: scheduler
+    environment:
+      PYTHONUNBUFFERED: 0
+      REDASH_LOG_LEVEL: "INFO"
+      REDASH_REDIS_URL: "redis://knessetdatapipelines_redis_1:6379/0"
+      REDASH_DATABASE_URL: "postgresql://postgres:123456@knessetdatapipelines_db_1/redash"
+      QUEUES: "queries,scheduled_queries,celery"
+      # you should raise this value for production deployments
+      WORKERS_COUNT: 1
+
+
+networks:
+  default:
+    external:
+      name: knessetdatapipelines_default

@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+  - name: "3000"
+    port: 3000
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: knesset-data-grafana
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - image: grafana/grafana
+        env:
+        - name: GF_SERVER_ROOT_URL
+          value: https://next.oknesset.org/grafana/
+        - name: GF_AUTH_ANONYMOUS_ENABLED
+          value: "true"
+        - name: GF_AUTH_ANONYMOUS_ORG_NAME
+          value: main
+        - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+          value: anonymous
+        name: grafana
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            cpu: 10m
+        volumeMounts:
+        - name: knesset-data-grafana
+          mountPath: /var/lib/grafana
+      volumes:
+      - name: knesset-data-grafana
+        persistentVolumeClaim:
+          claimName: knesset-data-grafana

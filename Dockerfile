@@ -1,22 +1,4 @@
-FROM python:3.6-alpine
-
-# install system requirements
-RUN apk add --update --no-cache --virtual=build-dependencies \
-    antiword \
-    build-base \
-    curl \
-    jpeg-dev \
-    libxml2-dev libxml2 \
-    libxslt-dev libxslt \
-    libstdc++ \
-    libpq \
-    python3-dev postgresql-dev
-RUN apk --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --update add leveldb leveldb-dev
-RUN pip install psycopg2 datapackage-pipelines-github lxml datapackage-pipelines[speedup]
-RUN apk add --update --no-cache git
-
-# libre office was used to parse rtf file but it's too heavy, dropping for now
-# RUN apk add libreoffice
+FROM orihoch/knesset-data-pipelines-base:v1.0.5
 
 COPY requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
@@ -26,6 +8,12 @@ WORKDIR /knesset
 COPY . /knesset/
 
 ENV PYTHONUNBUFFERED 1
+ENV PIPELINES_BIN_PATH /knesset/bin
+ENV RTF_EXTRACTOR_BIN /knesset/bin/rtf_extractor.py
+
+# this environment variable is set by k8s - so we force it to the default here
+# see the comments on https://github.com/puckel/docker-airflow/issues/46
+ENV FLOWER_PORT 5555
 
 RUN cd /knesset && pip install .
 

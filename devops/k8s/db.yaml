@@ -1,0 +1,56 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+      - env:
+        - name: PG_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: configmap
+              key: PG_PASSWORD
+        image: sameersbn/postgresql:9.6-2
+        name: db
+        ports:
+        - containerPort: 5432
+        resources:
+          requests:
+            cpu: 20m
+        volumeMounts:
+        - name: knesset-data-db
+          mountPath: /var/lib/postgresql
+      volumes:
+      - name: knesset-data-db
+        persistentVolumeClaim:
+          claimName: knesset-data-db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  selector:
+    app: db
+  ports:
+  - name: "5432"
+    port: 5432
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: knesset-data-db
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi

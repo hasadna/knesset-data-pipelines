@@ -1,0 +1,1 @@
+server_name _; # This is just an invalid value which will never trigger on a real hostname.

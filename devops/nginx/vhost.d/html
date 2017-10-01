@@ -1,0 +1,5 @@
+# serve arbitrary html files - used by letsencrypt for authentication challenge
+location / {
+    allow all;
+    root /usr/share/nginx/html/;
+}

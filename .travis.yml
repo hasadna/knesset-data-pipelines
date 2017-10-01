@@ -11,6 +11,8 @@ install:
   - pip install tox
 script:
   - bin/test.sh
+  - bin/travis_deploy_script.sh
 cache:
   directories:
   - "$HOME/.cache"
+  - "$HOME/google-cloud-sdk/"

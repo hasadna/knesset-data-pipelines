@@ -1,4 +1,5 @@
 from itertools import chain
+from datapackage_pipelines.utilities.resources import PROP_STREAMING
 
 
 class BaseProcessor(object):
@@ -53,6 +54,9 @@ class BaseProcessor(object):
             else:
                 yield data
 
+    def _get_output_resource_name(self):
+        return self._parameters.get("output-resource", self._parameters.get("input-resource"))
+
     def _process_filter(self, datapackage, resources):
         self._delete_resource_schema, self._filter_resource_i = None, None
         for i, resource_descriptor in enumerate(datapackage["resources"]):
@@ -72,7 +76,8 @@ class BaseProcessor(object):
     def _process_append(self, datapackage, resources):
         datapackage["resources"].append({"name": self._parameters["resource-name"],
                                          "schema": self._schema,
-                                         "path": "{}.csv".format(self._parameters["resource-name"])})
+                                         "path": "{}.csv".format(self._parameters["resource-name"]),
+                                         PROP_STREAMING: True})
         resources = chain(resources, [self._get_resource()])
         return datapackage, resources
 

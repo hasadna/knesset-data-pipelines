@@ -1,290 +1,423 @@
-bills:
+### kns dataservice tables
+
+kns_bill:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
   schedule:
-    crontab: "0 0 * * *"
+    crontab: "10 0 * * *"
   pipeline:
-    - run: add_metadata
-      parameters:
-        name: bills
     - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
-        resource-name: bills
+        resource-name: kns_bill
         service-name: api
         method-name: "KNS_Bill"
         override-id-env: "OVERRIDE_BILL_IDS"
         fields:
-          id:
-            source: BillID
+          BillID:
+            source: "{name}"
             type: integer
-            description: the primary key
-          kns_num:
-            source: KnessetNum
+            primaryKey: true
+            description: >
+              קוד הצעת החוק המהווה מספר מזהה לכל הצעה
+              מתחילת הטיפול בה בכנסת וכל אורך חייה
+          KnessetNum:
+            source: "{name}"
             type: integer
-            description: kneset number
-          name:
-            source: Name
+            description: מספר הכנסת
+          Name:
+            source: "{name}"
             type: string
-            description: hebrew name
-          type_id:
-            source: SubTypeID
+            description: שם הצעת החוק
+          SubTypeID:
+            source: "{name}"
             type: integer
-            description: type id of the bill
-          type_description:
-            source: SubTypeDesc
+            description: >
+              קוד סוג הצעת החוק
+              כל הצעה יוצג סוג הצעת החוק ותיאור הסוג
+          SubTypeDesc:
+            source: "{name}"
             type: string
-            description: type description of the bill
-          private_num:
-            source: PrivateNumber
+            description: תיאור סוג הצעת החוק (פרטית, ממשלתית, וועדה)
+          PrivateNumber:
+            source: "{name}"
             type: integer
-          committee_id:
-            source: CommitteeID
+            description: מספר ה-פ' של הצעת החוק
+          CommitteeID:
+            source: "{name}"
             type: integer
-          status_id:
-            source: StatusID
+            description: >
+              קוד הוועדה המטפלת בהצעת החוק
+              כל עוד לא נקבעה ועדה מטפלת העמודה תהיה ריקה
+          StatusID:
+            source: "{name}"
             type: integer
-          num:
-            source: Number
+            description: קוד סטטוס
+          Number:
+            source: "{name}"
             type: integer
-          postponent_reason_id:
-            source: PostponementReasonID
+            description: >
+              מספר ה-כ' או ה-מ' של הצעת החוק
+              ההצעה ממשלתית תקבל מספר מ' - מספר החוברת בסדרת הפרסום של הצעות חוק הממשלה
+              הצעה פרטית או של הצעה של ועדה תקבל מספר כ' - מספר החוברת בסדרת הפרסום של הצעות חוק הכנסת
+              העמודה תהיה ריקה טרם פרסום נוסח הצעת החוק לקריאה הראשונה
+          PostponementReasonID:
+            source: "{name}"
             type: integer
-          postponent_reason_desc:
-            source: PostponementReasonDesc
+            description: קוד סיבת העצירה (אם ההצעה נעצרה)
+          PostponementReasonDesc:
+            source: "{name}"
             type: string
-          public_date:
-            source: PublicationDate
+            description: תיאור סיבת העצירה (אם ההצעה נעצרה)
+          PublicationDate:
+            source: "{name}"
             type: datetime
-          magazine_num:
-            source: MagazineNumber
+            description: >
+              תאריך פרסום בספר החוקים
+              תאריך זה מעודכן רק לאחר הפרסום בספר החוקים ורק בשלב של יצירת הקשר בין הצעת החוק שהתקבלה בקריאה שלישית לבין חוק מדינת ישראל שאותו היא מתקנת או יוצרת. לכן העמודה עשויה להיות ריקה כל עוד המידע לא התעדכן.
+          MagazineNumber:
+            source: "{name}"
             type: integer
-          page_num:
-            source: PageNumber
+            description: מספר חוברת בספר החוקים – ראה הערה לעיל לגבי PublicationDate
+          PageNumber:
+            source: "{name}"
             type: integer
-          is_continuation:
-            source: IsContinuationBill
+            description: מספר עמוד בספר החוקים – ראה הערה לעיל לגבי PublicationDate
+          IsContinuationBill:
+            source: "{name}"
             type: boolean
-          summary_law:
-            source: SummaryLaw
+            description: האם הוחל על הצעת החוק דין רציפות
+          SummaryLaw:
+            source: "{name}"
             type: string
-          public_series_id:
-            source: PublicationSeriesID
+            description: >
+              תקציר החוק
+              יהיה מידע רק לגבי הצעות חוק שהתקבלו בקריאה שלישית. העמודה עשויה להיות ריקה אם מדובר בהצעות חוק שהתקבלו בקריאה שלישית לפני הכנסת ה-17 שכן רק מאז תקופה זו החלו להכין אותם. כמו כן, בהצעות חוק שהתקבלו בקריאה שלישית אם התקציר טרם נכתב במערכת הפנימית.
+          PublicationSeriesID:
+            source: "{name}"
             type: integer
-          public_series_desc:
-            source: PublicationSeriesDesc
+            description: קוד סדרת הפרסום של החוק
+          PublicationSeriesDesc:
+            source: "{name}"
             type: string
-          public_series_first_call:
-            source: PublicationSeriesFirstCall
-            type: string
-          last_update:
-            source: LastUpdatedDate
+            description: >
+              תיאור סדרת הפרסום של החוק
+              (ספר החוקים, דיני מדינת ישראל, עיתון רשמי מועצת המדינה הזמנית, עיתון רשמי מנדטורי, חוקי ארץ ישראל)
+          #PublicationSeriesFirstCallID:
+          #  source: "{name}"
+          #  type: integer
+          #  description: קוד סדרת הפרסום של הצעת החוק לקריאה הראשונה – המידע יוצג רק לגבי הצעות חוק שפורסמו לקראת קריאה ראשונה
+          #PublicationSeriesFirstCallDesc:
+          #  source: "{name}"
+          #  type: string
+          #  description: >
+          #    קוד סדרת הפרסום של הצעת החוק לקריאה הראשונה – המידע יוצג רק לגבי הצעות חוק שפורסמו לקראת קריאה ראשונהתיאור סדרת הפרסום של הצעת החוק לקריאה הראשונה
+          #    (הצעות חוק הכנסת וממשלה (עד אוקטובר 2003), ממועד זה ואילך יש שתי סדרות פרסום - הצעות חוק - הכנסת, הצעות חוק - הממשלה) - המידע יוצג רק לגבי הצעות חוק שפורסמו לקראת קריאה ראשונה
+          LastUpdatedDate:
+            source: "{name}"
             type: datetime
-    - run: dump.to_sql
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
       parameters:
-        tables:
-          bills:
-            resource-name: bills
-            mode: update
+        resource: kns_bill
+        table: kns_bill
 
-bill-names:
+kns_billname:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
   schedule:
-    crontab: "0 0 * * *"
+    crontab: "10 0 * * *"
   pipeline:
-    - run: add_metadata
-      parameters:
-        name: bill-names
     - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
-        resource-name: bill-names
+        resource-name: kns_billname
         service-name: api
         method-name: "KNS_BillName"
         fields:
-          id:
-            source: BillNameID
+          BillNameID:
+            source: "{name}"
             type: integer
-            description: the primary key
-          bill_id:
-            source: BillID
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          BillID:
+            source: "{name}"
             type: integer
-            description: The bill id
-          name:
-            source: Name
+            description: קוד הצעת החוק
+          Name:
+            source: "{name}"
             type: string
-            description: The bill heb name
-          name_history_type_id:
-            source: NameHistoryTypeID
+            description: שם הצעת החוק
+          NameHistoryTypeID:
+            source: "{name}"
             type: integer
-            description: Code for the name change time ie before first or second call
-          name_history_type_desc:
-            source: NameHistoryTypeDesc
+            description: >
+              קוד סוג שינוי שם הצעת החוק
+              האם השינוי נעשה לקראת הקריאה הראשונה או לקראת הקריאה השנייה
+              (שם לקריאה הראשונה, שם לקריאה השנייה וכד')
+          NameHistoryTypeDesc:
+            source: "{name}"
             type: string
-            description: Type of name change
-          last_update:
-            source: LastUpdatedDate
+            description: >
+              תיאור סוג שם הצעת החוק
+              (שם לקריאה הראשונה, שם לקריאה השנייה וכד')
+          LastUpdatedDate:
+            source: "{name}"
             type: datetime
-    - run: dump.to_sql
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
       parameters:
-        tables:
-          bill-names:
-            resource-name: bill-names
-            mode: update
+        resource: kns_billname
+        table: kns_billname
 
-bill-initiators:
+kns_billinitiator:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
   schedule:
-    crontab: "0 0 * * *"
+    crontab: "10 0 * * *"
   pipeline:
-    - run: add_metadata
-      parameters:
-        name: bill-initiators
     - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
-        resource-name: bill-initiators
+        resource-name: kns_billinitiator
         service-name: api
         method-name: "KNS_BillInitiator"
         fields:
-          id:
-            source: BillInitiatorID
+          BillInitiatorID:
+            source: "{name}"
             type: integer
-            description: the primary key
-          bill_id:
-            source: BillID
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          BillID:
+            source: "{name}"
             type: integer
-            description: The bill id
-          person_id:
-            source: PersonID
+            description: קוד הצעת החוק
+          PersonID:
+            source: "{name}"
             type: integer
-            description: the initiator peron id
-          ordinal:
-            source: Ordinal
+            description: קוד חבר הכנסת
+          IsInitiator:
+            source: "{name}"
+            type: boolean
+            description: האם חבר הכנסת הוא ברשימת היוזמים (1=יוזם, 0=מצטרף)
+          Ordinal:
+            source: "{name}"
             type: integer
-            description: The position of the initiator in the list of initiators
-          last_update:
-            source: LastUpdatedDate
+            description: >
+              מקומו של חבר הכנסת ברשימת המציעים של הצעת החוק
+              (מציעים = יוזמים + מצטרפים)
+          LastUpdatedDate:
+            source: "{name}"
             type: datetime
-    - run: dump.to_sql
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
       parameters:
-        tables:
-          bill-initiators:
-            resource-name: bill-initiators
-            mode: update
+        resource: kns_billinitiator
+        table: kns_billinitiator
 
-
-bill-history-initiators:
+kns_billhistoryinitiator:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
   schedule:
-    crontab: "0 0 * * *"
+    crontab: "10 0 * * *"
   pipeline:
-    - run: add_metadata
-      parameters:
-        name: bill-history-initiators
     - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
-        resource-name: bill-history-initiators
+        resource-name: kns_billhistoryinitiator
         service-name: api
         method-name: "KNS_BillHistoryInitiator"
         fields:
-          id:
-            source: BillHistoryInitiatorID
+          BillHistoryInitiatorID:
+            source: "{name}"
             type: integer
-            description: the primary key
-          bill_id:
-            source: BillID
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          BillID:
+            source: "{name}"
             type: integer
-            description: The bill id
-          person_id:
-            source: PersonID
+            description: קוד הצעת החוק
+          PersonID:
+            source: "{name}"
             type: integer
-            description: the initiator peron id
-          is_initiator:
-            source: IsInitiator
+            description: קוד חבר הכנסת
+          IsInitiator:
+            source: "{name}"
             type: boolean
-            description: Is the person initiator of the bill
-          start_date:
-            source: StartDate
+            description: האם חבר הכנסת הוא ברשימת היוזמים (1=יוזם, 0=מצטרף)
+          StartDate:
+            source: "{name}"
             type: datetime
-          end_date:
-            source: EndDate
+            description: התאריך בו צורף חבר הכנסת לרשימת המציעים
+          EndDate:
+            source: "{name}"
             type: datetime
-          reason_id:
-            source: ReasonID
+            description: התאריך בו הוסר חבר הכנסת מרשימת המציעים
+          ReasonID:
+            source: "{name}"
             type: integer
-            description: The code reason of the person removal from the bill
-          last_update:
-            source: LastUpdatedDate
+            description: קוד סיבת ההסרה
+          ReasonDesc:
+            source: "{name}"
+            type: string
+            description: תיאור סיבת ההסרה
+          LastUpdatedDate:
+            source: "{name}"
             type: datetime
-    - run: dump.to_sql
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
       parameters:
-        tables:
-          bill-history-initiators:
-            resource-name: bill-history-initiators
-            mode: update
+        resource: kns_billhistoryinitiator
+        table: kns_billhistoryinitiator
 
-bill-splits:
+kns_billsplit:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
   schedule:
-    crontab: "0 0 * * *"
+    crontab: "10 0 * * *"
   pipeline:
-    - run: add_metadata
-      parameters:
-        name: bill-splits
     - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
-        resource-name: bill-splits
+        resource-name: kns_billsplit
         service-name: api
         method-name: "KNS_BillSplit"
         fields:
-          id:
-            source: BillSplitID
+          BillSplitID:
+            source: "{name}"
             type: integer
-            description: the primary key
-          bill_id:
-            source: MainBillID
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          MainBillID:
+            source: "{name}"
             type: integer
-            description: The bill that was split
-          split_bill_id:
-            source: SplitBillID
+            description: קוד הצעת החוק ממנה בוצע הפיצול
+          SplitBillID:
+            source: "{name}"
             type: integer
-            description: the bill that was created from the split
-          name:
-            source: Name
+            description: >
+              קוד הצעת החוק שנוצרה כתוצאה מהפיצול
+              בשלב בו הפיצול עדיין לא אושר, עדיין אין מספר והוא יופיע רק לאחר אישור הפיצול של ההצעה
+          Name:
+            source: "{name}"
             type: string
-            description: The newly created bill heb name
-          last_update:
-            source: LastUpdatedDate
+            description: >
+              שם הצעת החוק שנוצרה כתוצאה מהפיצול
+              כל עוד לא אושרה בקשת הוועדה לפיצול יוצג רק השם המוצע על ידי הוועדה וטרם יוצג קוד הצעת החוק החדשה
+              לאחר אישור הפיצול, השם העדכני יופיע בטבלת KNS_Bill
+          LastUpdatedDate:
+            source: "{name}"
             type: datetime
-    - run: dump.to_sql
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
       parameters:
-        tables:
-          bill-splits:
-            resource-name: bill-splits
-            mode: update
-bill-unions:
+        resource: kns_billsplit
+        table: kns_billsplit
+
+kns_billunion:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
   schedule:
-    crontab: "0 0 * * *"
+    crontab: "10 0 * * *"
   pipeline:
-    - run: add_metadata
-      parameters:
-        name: bill-unions
     - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
-        resource-name: bill-unions
+        resource-name: kns_billunion
         service-name: api
         method-name: "KNS_BillUnion"
         fields:
-          id:
-            source: BillUnionID
+          BillUnionID:
+            source: "{name}"
             type: integer
-            description: the primary key
-          main_bill_id:
-            source: MainBillID
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          MainBillID:
+            source: "{name}"
             type: integer
-            description: The referenced bill id
-          union_bill_id:
-            source: UnionBillID
+            description: קוד הצעת החוק המובילה במיזוג
+          UnionBillID:
+            source: "{name}"
             type: integer
-            description: the merged bill
-          last_update:
-            source: LastUpdatedDate
+            description: קוד הצעת החוק הממוזגת
+          LastUpdatedDate:
+            source: "{name}"
             type: datetime
-    - run: dump.to_sql
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
       parameters:
-        tables:
-          bill-unions:
-            resource-name: bill-unions
-            mode: update
+        resource: kns_billunion
+        table: kns_billunion
+
+all:
+  description: >
+    <p>runs daily, aggregates data from all relevant DB tables to a datapackage zip file</p>
+    <ul>
+      <li>zip file should be available at <a href="https://next.oknesset.org/data/">data/</a></li>
+    </ul>
+  schedule:
+    crontab: "4 0 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: knesset_data_bills
+        description: Knesset bills data from Knesset dataservice API
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/table_schemas/kns_bill.json
+        resource-name: kns_bill
+        table: kns_bill
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/table_schemas/kns_billname.json
+        resource-name: kns_billname
+        table: kns_billname
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/table_schemas/kns_billinitiator.json
+        resource-name: kns_billinitiator
+        table: kns_billinitiator
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/table_schemas/kns_billhistoryinitiator.json
+        resource-name: kns_billhistoryinitiator
+        table: kns_billhistoryinitiator
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/table_schemas/kns_billsplit.json
+        resource-name: kns_billsplit
+        table: kns_billsplit
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/table_schemas/kns_billunion.json
+        resource-name: kns_billunion
+        table: kns_billunion
+    - run: dump.to_zip
+      parameters:
+        out-file: ../data/bills.zip
+

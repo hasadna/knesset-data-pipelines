@@ -1,256 +1,408 @@
-committees:
-  schedule:
-    crontab: "0 0 * * *"
-  pipeline:
-    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
-      parameters:
-        resource-name: committees
-        service-name: committees
-        method-name: "View_committee"
-        fields:
-          id:
-            source: committee_id
-            type: integer
-            description: the primary key
-          type_id:
-            source: committee_type_id
-            type: integer
-            description: linked to committee types dataservice
-          parent_id:
-            source: committee_parent_id
-            type: integer
-            description: used for sub-committees, not sure if reliable
-          name:
-            source: committee_name
-            type: string
-            description: hebrew name
-          name_eng:
-            source: committee_name_eng
-            type: string
-          name_arb:
-            source: committee_name_arb
-            type: string
-          begin_date:
-            source: committee_begin_date
-            type: date
-          end_date:
-            source: committee_end_date
-            type: datetime
-            description: we assume empty end_date means committee is active in current Knesset
-          description:
-            source: committee_desc
-            type: string
-            description: hebrew description
-          description_eng:
-            source: committee_desc_eng
-            type: string
-          description_arb:
-            source: committee_desc_arb
-            type: string
-          note:
-            source: committee_note
-            type: string
-          note_eng:
-            source: committee_note_eng
-            type: string
-          portal_link:
-            source: committee_portal_link
-            type: string
-            description: can be used to link to the dedicated page in knesset website
-    - run: ..datapackage_pipelines_knesset.common.processors.update_sql_resource
-      parameters:
-        input-resource: committees
-        output-resource: committees
-        table: committees
-        save-schema: ../data/committees.json
+### kns dataservice tables
 
-committee-meetings:
+kns_committee:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
   schedule:
     crontab: "10 0 * * *"
   pipeline:
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:
-        schema: ../data/committees.json
-        resource-name: committees
-        table: committees
-    - run: ..datapackage_pipelines_knesset.dataservice.processors.dataservice_function_resource
-      parameters:
-        input-resource: committees
-        output-resource: committee-meetings
-        base-url: http://online.knesset.gov.il/WsinternetSps/KnessetDataService/CommitteeScheduleData.svc/CommitteeAgendaSearch
-        # these are the dataservice function parameters
-        parameters:
-          CommitteeId:
-            source: input-resource
-            field: id
-            override-values-env: OVERRIDE_COMMITTEE_IDS
-          FromDate:
-            source: current-date
-            timedelta:
-              - unit: days
-                value: -120
-                override-value-env: OVERRIDE_COMMITTEE_MEETING_FROM_DAYS
-          ToDate:
-            source: current-date
-            timedelta:
-              - unit: days
-                value: 0
-                override-value-env: OVERRIDE_COMMITTEE_MEETING_TO_DAYS
-        parameter-retries:
-          - FromDate:
-              timedelta-value: -60
-          - FromDate:
-              timedelta-value: -30
-          - FromDate:
-              timedelta-value: -15
-          - FromDate:
-              timedelta-value: -1
-        # mapping between the dataservice fields and the datapackage fields
+        resource-name: kns_committee
+        service-name: api
+        method-name: "KNS_Committee"
         fields:
-          id:
-            source: Committee_Agenda_id
+          CommitteeID:
+            source: "{name}"
             type: integer
-            description: the primary key of committee meetings
-          committee_id:
-            source: Committee_Agenda_committee_id
+            description: קוד הוועדה
+            primaryKey: true
+          Name:
+            source: "{name}"
+            type: string
+            description: שם הוועדה
+          CategoryID:
+            source: "{name}"
             type: integer
-            description: id of the committee (linked to Committee object)
-          datetime:
-            source: committee_agenda_date
+            description: קוד הקטגוריה של הוועדה
+          CategoryDesc:
+            source: "{name}"
+            type: string
+            description: >
+              תיאור הקטגוריה של הוועדה
+              בכל כנסת, כל הוועדות מוקמות מחדש.
+              השדה קטגוריה כולל את רשימת הקטגוריות הנושאיות שאליהן משויכות הוועדות.
+              למשל הקטגוריה של ועדת הפנים והגנת הסביבה היא "פנים" וכך היה גם כאשר שם הוועדה היה ועדת הפנים ואיכות הסביבה.
+              גם ועדות המשנה של כל ועדה משויכות לקטגוריה שלה.
+              מדובר בשיוך נושאי של הוועדות.
+          KnessetNum:
+            source: "{name}"
+            type: integer
+            description: מספר הכנסת
+          CommitteeTypeID:
+            source: "{name}"
+            type: integer
+            description: קוד סוג הוועדה
+          CommitteeTypeDesc:
+            source: "{name}"
+            type: string
+            description: >
+              תיאור סוג הוועדה
+              (ראשית, מיוחדת, משנה, משותפת, הכנסת)
+          Email:
+            source: "{name}"
+            type: string
+            description: כתובת הדוא"ל של הוועדה
+          StartDate:
+            source: "{name}"
             type: datetime
-            description: date/time when the meeting started
-          title:
-            source: title
-            type: string
-            description: title of the meeting
-          session_content:
-            source: committee_agenda_session_content
-            type: string
-            description: seems like in some committee meetings, the title field is empty, in that case title can be taken from this field
-          url:
-            source: url
-            type: string
-            description: url to download the protocol
-          location:
-            source: committee_location
-            type: string
-            description: this seems like a shorter name of the place where meeting took place
-          place:
-            source: Committee_Agenda_place
-            type: string
-            description: this looks like a longer field with the specific details of where the meeting took place
-          meeting_stop:
-            source: meeting_stop
-            type: string
-            description: date/time when the meeting ended - this is not always available, in some meetings it's empty
-          ### following fields seem less interesting ###
-          agenda_canceled:
-            source: Committee_Agenda_canceled
+            description: תאריך התחלה
+          FinishDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך סיום
+          AdditionalTypeID:
+            source: "{name}"
             type: integer
-          agenda_sub:
-            source: Committee_agenda_sub
+            description: קוד סוג משנה של הוועדה
+          AdditionalTypeDesc:
+            source: "{name}"
             type: string
-          agenda_associated:
-            source: Committee_agenda_associated
+            description: תיאור סוג משנה של הוועדה (קבועה, מיוחדת, חקירה)
+          ParentCommitteeID:
+            source: "{name}"
+            type: integer
+            description: קוד ועדת האם (רלוונטי רק לוועדת משנה)
+          CommitteeParentName:
+            source: "{name}"
             type: string
-          agenda_associated_id:
-            source: Committee_agenda_associated_id
-            type: string
-          agenda_special:
-            source: Committee_agenda_special
-            type: string
-          agenda_invited1:
-            source: Committee_agenda_invited1
-            type: string
-          agenda_invite:
-            source: sd2committee_agenda_invite
+            description: תיאור ועדת האם
+          IsCurrent:
+            source: "{name}"
             type: boolean
-          note:
-            source: Committee_agenda_note
-            type: string
-          start_datetime:
-            source: StartDateTime
+            description: האם הוועדה פעילה?
+          LastUpdatedDate:
+            source: "{name}"
             type: datetime
-          topic_id:
-            source: Topic_ID
-            type: integer
-          creation_date:
-            source: Date_Creation
-            type: datetime
-          streaming_url:
-            source: streaming_url
-            type: string
-          meeting_start:
-            source: meeting_start
-            type: string
-          is_paused:
-            source: meeting_is_paused
-            type: boolean
-          date_order:
-            source: committee_date_order
-            type: string
-          date:
-            source: committee_date
-            type: string
-          day:
-            source: committee_day
-            type: string
-          month:
-            source: committee_month
-            type: string
-          material_id:
-            source: material_id
-            type: string
-          material_committee_id:
-            source: material_comittee_id
-            type: string
-          material_expiration_date:
-            source: material_expiration_date
-            type: string
-          material_hour:
-            source: committee_material_hour
-            type: string
-          old_url:
-            source: OldUrl
-            type: string
-          background_page_link:
-            source: CommitteeBackgroundPageLink
-            type: string
-          agenda_invited:
-            source: Committee_agenda_invited
-            type: string
-    - run: ..datapackage_pipelines_knesset.common.processors.update_sql_resource
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
       parameters:
-        input-resource: committee-meetings
-        output-resource: committee-meetings
-        table: committee-meetings
-        save-schema: ../data/committee-meetings.json
+        resource: kns_committee
+        table: kns_committee
+
+kns_jointcommittee:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_jointcommittee
+        service-name: api
+        method-name: "KNS_JointCommittee"
+        fields:
+          JointCommitteeID:
+            source: "{name}"
+            type: integer
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          CommitteeID:
+            source: "{name}"
+            type: integer
+            description: קוד הוועדה המשותפת
+          ParticipantCommitteeID:
+            source: "{name}"
+            type: integer
+            description: קוד הוועדה המשתתפת
+          LastUpdatedDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_jointcommittee
+        table: kns_jointcommittee
+
+kns_cmtsitecode:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_cmtsitecode
+        service-name: api
+        method-name: "KNS_CmtSiteCode"
+        fields:
+          CmtSiteCode:
+            source: "{name}"
+            type: integer
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          KnsID:
+            source: "{name}"
+            type: integer
+            description: קוד הוועדה במערכת סנהדרין (המשתקף בטבלאות אלו)
+          SiteId:
+            source: "{name}"
+            type: integer
+            description: קוד הוועדה בבסיס הנתונים של אתר הכנסת (משמש את חלק מדפי האתר)
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_cmtsitecode
+        table: kns_cmtsitecode
+
+kns_committeesession:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_committeesession
+        service-name: api
+        method-name: "KNS_CommitteeSession"
+        fields:
+          CommitteeSessionID:
+            source: "{name}"
+            type: integer
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          Number:
+            source: "{name}"
+            type: integer
+            description: מספר הישיבה
+          KnessetNum:
+            source: "{name}"
+            type: integer
+            description: מספר הכנסת
+          TypeID:
+            source: "{name}"
+            type: integer
+            description: קוד סוג הישיבה
+          TypeDesc:
+            source: "{name}"
+            type: string
+            description: תיאור סוג הישיבה (פתוחה, חסויה, סיור)
+          CommitteeID:
+            source: "{name}"
+            type: integer
+            description: קוד הוועדה
+          Location:
+            source: "{name}"
+            type: string
+            description: מיקום הישיבה
+          SessionUrl:
+            source: "{name}"
+            type: string
+            description: קישור לישיבה באתר הכנסת
+          BroadcastUrl:
+            source: "{name}"
+            type: string
+            description: קישור לשידור הישיבה באתר הכנסת
+          StartDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך התחלה
+          FinishDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך סיום
+          Note:
+            source: "{name}"
+            type: string
+            description: הערה
+          LastUpdatedDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_committeesession
+        table: kns_committeesession
+
+kns_cmtsessionitem:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_cmtsessionitem
+        service-name: api
+        method-name: "KNS_CmtSessionItem"
+        fields:
+          CmtSessionItemID:
+            source: "{name}"
+            type: integer
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          ItemID:
+            source: "{name}"
+            type: integer
+            description: קוד הפריט ששובץ לישיבת הוועדה
+          CommitteeSessionID:
+            source: "{name}"
+            type: integer
+            description: קוד ישיבת הוועדה
+          Ordinal:
+            source: "{name}"
+            type: integer
+            description: מספר סידורי של הפריט בישיבה
+          StatusID:
+            source: "{name}"
+            type: string
+            description: קוד סטטוס של הפריט בזמן הישיבה
+          Name:
+            source: "{name}"
+            type: string
+            description: שם הפריט בישיבה
+          ItemTypeID:
+            source: "{name}"
+            type: string
+            description: קוד סוג הפריט
+          LastUpdatedDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_cmtsessionitem
+        table: kns_cmtsessionitem
+
+kns_documentcommitteesession:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_documentcommitteesession
+        service-name: api
+        method-name: "KNS_DocumentCommitteeSession"
+        fields:
+          DocumentCommitteeSessionID:
+            source: "{name}"
+            type: integer
+            description: קוד המסמך
+            primaryKey: true
+          CommitteeSessionID:
+            source: "{name}"
+            type: integer
+            description: קוד ישיבת הוועדה
+          GroupTypeID:
+            source: "{name}"
+            type: integer
+            description: קוד סוג המסמך
+          GroupTypeDesc:
+            source: "{name}"
+            type: string
+            description: תיאור סוג המסמך
+          ApplicationID:
+            source: "{name}"
+            type: integer
+            description: קוד פורמט המסמך
+          ApplicationDesc:
+            source: "{name}"
+            type: string
+            description: תיאור פורמט המסמך (Word, PDF, TIFF)
+          FilePath:
+            source: "{name}"
+            type: string
+            description: הנתיב אל המסמך
+          LastUpdatedDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_documentcommitteesession
+        table: kns_documentcommitteesession
+
+
+### parse protocols
 
 committee-meeting-protocols:
+  description: >
+    <p>runs daily, downloads and parses committee meeting protocols</p>
+    <ul>
+      <li>saves data to DB table - committee_meeting_protocols_parsed</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
   schedule:
-    crontab: "0 2 * * *"
+    crontab: "2 0 * * *"
   pipeline:
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+    - run: ..datapackage_pipelines_knesset.committees.processors.load_committee_meeting_protocols
       parameters:
-        schema: ../data/committee-meetings.json
-        resource-name: committee-meetings
-        table: committee-meetings
+        resource: kns_documentcommitteesession
     # downloads the source protocol files for meetings which weren't downloaded before
     # saves the files in a (non tabular) datapackage in out-path
+    # all meetings with url are yielded for parse processor
     - run: ..datapackage_pipelines_knesset.committees.processors.download_committee_meeting_protocols
       parameters:
-        input-resource: committee-meetings
+        input-resource: kns_documentcommitteesession
         output-resource: committee-meeting-protocols
         out-path: ../data/committee-meeting-protocols
         data-resource-descriptor:
           name: committee-meeting-protocols
     # parses the downloaded protocols into text and parts files which will be saved in out-path
+    # will re-parse meetings which have missing or empty files
     - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_protocols
       parameters:
         input-resource: committee-meeting-protocols
+        output-resource: committee-meeting-protocols-parsed
         out-path: ../data/committee-meeting-protocols-parsed
         data-resource-descriptor:
           name: committee-meeting-protocols-parsed
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: committee-meeting-protocols-parsed
+        table: committee_meeting_protocols_parsed
+        # lower commit batches - because protocol parsing takes some time
+        commit-every: 50
+
+# create datapackage
 
 committee-meeting-attendees:
   schedule:
@@ -274,19 +426,53 @@ committee-meeting-attendees:
             mode: insert
 
 all:
+  description: >
+    <p>runs daily, aggregates data from all relevant DB tables to a datapackage zip file</p>
+    <ul>
+      <li>zip file should be available at <a href="https://next.oknesset.org/data/">data/</a></li>
+    </ul>
   schedule:
-    crontab: "0 0 * * 1"
+    crontab: "4 0 * * *"
   pipeline:
+    - run: add_metadata
+      parameters:
+        name: knesset_data_committees
+        description: Knesset committees and committee meetings data from Knesset dataservice API
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/committees.json
-        resource-name: committees
-        table: committees
+        schema: ../data/table_schemas/kns_committee.json
+        resource-name: kns_committee
+        table: kns_committee
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/committee-meetings.json
-        resource-name: committee-meetings
-        table: committee-meetings
+        schema: ../data/table_schemas/kns_jointcommittee.json
+        resource-name: kns_jointcommittee
+        table: kns_jointcommittee
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/table_schemas/kns_cmtsitecode.json
+        resource-name: kns_cmtsitecode
+        table: kns_cmtsitecode
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/table_schemas/kns_committeesession.json
+        resource-name: kns_committeesession
+        table: kns_committeesession
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/table_schemas/kns_cmtsessionitem.json
+        resource-name: kns_cmtsessionitem
+        table: kns_cmtsessionitem
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/table_schemas/kns_documentcommitteesession.json
+        resource-name: kns_documentcommitteesession
+        table: kns_documentcommitteesession
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema: ../data/table_schemas/committee_meeting_protocols_parsed.json
+        resource-name: committee_meeting_protocols_parsed
+        table: committee_meeting_protocols_parsed
     - run: dump.to_zip
       parameters:
-        out-file: ../data/committees-all/datapackage.zip
+        out-file: ../data/committees.zip
