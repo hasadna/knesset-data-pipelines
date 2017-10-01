@@ -61,6 +61,7 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
             override_meeting_ids = os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
             if not override_meeting_ids or str(meeting["kns_session_id"]) in override_meeting_ids.split(","):
                 if not os.path.exists(filename):
+                    logging.info("filename %s" % filename)
                     override_meeting_ids = os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
                     if not override_meeting_ids or str(meeting["kns_session_id"]) in override_meeting_ids.split(","):
                         num_retries = self._parameters.get("num-retries", 5)

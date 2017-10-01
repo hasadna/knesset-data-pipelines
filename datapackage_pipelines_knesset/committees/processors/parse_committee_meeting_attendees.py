@@ -13,8 +13,8 @@ class ParseCommitteeMeetingAttendeesProcessor(BaseProcessor):
         return self._process_filter(datapackage, resources)
 
     def _filter_row(self, row, **kwargs):
-        committee_id = row["committee_id"]
-        meeting_id = row["id"]
+        committee_id = row["kns_committee_id"]
+        meeting_id = row["kns_session_id"]
 
         protocol_path = os.path.join(self._parameters["input-path"],str(committee_id),"%s.txt" % meeting_id)
         if os.path.exists(protocol_path):
