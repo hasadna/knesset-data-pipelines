@@ -455,3 +455,4 @@ all:
     - run: dump.to_zip
       parameters:
         out-file: ../data/committees.zip
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_html
