@@ -14,3 +14,7 @@ tests
 tox.ini
 docker-compose*
 .data-docker
+.env.*
+devops/k8s/Chart.yaml
+devops/k8s/charts/*/Chart.yaml
+devops/k8s/values-*.yaml

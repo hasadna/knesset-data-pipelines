@@ -107,3 +107,7 @@ ENV/
 /docker-compose-deployment-combined.yml
 /docker-compose-deployment.yml
 /docker-compose.override.yml
+.env.*
+devops/k8s/Chart.yaml
+devops/k8s/charts/*/Chart.yaml
+devops/k8s/values-*.yaml
