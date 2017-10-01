@@ -34,13 +34,3 @@ spec:
         name: knesset-data-pipelines
       - hostPath: {path: /var/next-oknesset/nginx-conf-d}
         name: nginx-conf-d
----
-apiVersion: v1
-kind: Service
-metadata: {name: nginx}
-spec:
-  ports:
-  - {name: '80', port: 80}
-  - {name: '443', port: 443}
-  selector: {app: nginx}
-  type: LoadBalancer

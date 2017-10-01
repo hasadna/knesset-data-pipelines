@@ -1,0 +1,72 @@
+{{ if .Values.enabled }}
+apiVersion: v1
+kind: Service
+metadata: {name: {{.Values.name | default "nginx" | quote}}}
+spec:
+  ports:
+  - port: 80
+  selector: {app: {{.Values.name | default "nginx" | quote}}}
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{.Values.configMapName | default "nginx-conf-d" | quote}}
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name  _;
+        include /etc/nginx/conf.d/healthcheck.inc;
+        {{ if .Values.enablePipelines }}include /etc/nginx/conf.d/pipelines.inc;{{ end }}
+        {{ if .Values.enableAdminer }}include /etc/nginx/conf.d/adminer.inc;{{ end }}
+        {{ if .Values.enableFlower }}include /etc/nginx/conf.d/flower.inc;{{ end }}
+    }
+  healthcheck.inc: |
+    location = / {
+        return 200 'it works!';
+        add_header Content-Type text/plain;
+    }
+  pipelines.inc: |
+    location /pipelines/ {
+        proxy_pass http://app:5000/;
+    }
+  adminer.inc: |
+    location /adminer/ {
+        proxy_pass http://adminer:8080;
+    }
+  flower.inc: |
+    location /flower/ {
+        rewrite ^/flower/(.*)$ /$1 break;
+        proxy_pass http://flower:5555;
+        proxy_set_header Host $host;
+    }
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata: {name: {{.Values.name | default "nginx" | quote}}}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels: {app: {{.Values.name | default "nginx" | quote}}}
+    spec:
+      containers:
+      - image: {{.Values.image | default "nginx:alpine" | quote}}
+        name: {{.Values.name | default "nginx" | quote}}
+        ports:
+        - {containerPort: 80}
+        - {containerPort: 443}
+        resources:
+          requests:
+            cpu: {{.Values.cpuRequests | default "0.01"}}
+            memory: {{.Values.memoryRequests | default "10Mi"}}
+        volumeMounts:
+        - name: nginx-conf-d
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
+      volumes:
+      - name: nginx-conf-d
+        configMap:
+          name: {{.Values.configMapName | default "nginx-conf-d" | quote}}
+{{ end }}

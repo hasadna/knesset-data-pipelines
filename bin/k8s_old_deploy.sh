@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# full app deployment procedure - applies configurations and waits for rollout to complete
+
+# this is run from the travis deploy script
+
+set -e
+
+echo " > Applying configurations"
+bin/k8s_apply.sh
+
+echo " > waiting 10 seconds"  # for deployment to complete and to make sure we check the status of the new deployment
+sleep 10
+
+echo " > Waiting for successful rollout status"
+kubectl rollout status -w deployment/app
+kubectl rollout status -w deployment/db
+kubectl rollout status -w deployment/nginx

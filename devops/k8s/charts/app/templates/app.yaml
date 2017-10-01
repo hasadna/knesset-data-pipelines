@@ -1,0 +1,60 @@
+{{ if .Values.enabled }}
+apiVersion: v1
+kind: Service
+metadata: {name: {{.Values.name | default "app"}}}
+spec:
+  ports:
+  - port: 5000
+  selector: {app: {{.Values.name | default "app"}}}
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata: {name: {{.Values.name | default "app"}}}
+spec:
+  replicas: 1
+  # app can be very CPU intensive, so it's better to use recreate strategy
+  # we can live with a few seconds of down-time
+  strategy: {type: Recreate}
+  template:
+    metadata:
+      labels: {app: {{.Values.name | default "app"}}}
+    spec:
+      containers:
+      - env:
+        - {name: DPP_DB_ENGINE, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "DPP_DB_ENGINE"}}}
+        - {name: DPP_REDIS_HOST, value: "redis"}
+        - {name: DPP_WORKER_CONCURRENCY, value: {{.Values.dppWorkerConcurrency | default "1" | quote}}}
+        - {name: RTF_EXTRACTOR_BIN, value: "/knesset/bin/rtf_extractor.py"}
+        {{ if .Values.influxDb }}
+        - {name: DPP_INFLUXDB_URL, value: "http://influxdb:8086"}
+        - {name: DPP_INFLUXDB_DB, value: {{.Values.influxDb | quote}}}
+        {{ end }}
+        image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
+        name: {{.Values.name | default "app" | quote}}
+        ports:
+        - containerPort: 5000
+        resources:
+          requests:
+            # this cpu requests should have corresponding dppWorkerConcurrency of 1
+            cpu: {{.Values.cpuRequests | default "0.4"}}
+            memory: {{.Values.memoryRequests | default "500Mi" | quote}}
+        volumeMounts:
+        - name: knesset-data-pipelines-app
+          mountPath: /knesset/data
+          subPath: data
+      initContainers:
+      - name: postgresql-create-db
+        image: sameersbn/postgresql:9.6-2
+        command: ['bash', '-c', 'psql -h ${APP_DB_HOST} -U ${APP_DB_USER} -p ${APP_DB_PORT} -c "CREATE DATABASE ${APP_DB_NAME}" || true']
+        env:
+        - {name: APP_DB_HOST, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "APP_DB_HOST"}}}
+        - {name: APP_DB_NAME, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "APP_DB_NAME"}}}
+        - {name: APP_DB_USER, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "APP_DB_USER"}}}
+        - {name: APP_DB_PORT, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "APP_DB_PORT"}}}
+        - {name: PGPASSWORD, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "APP_DB_PASS"}}}
+      volumes:
+      - name: knesset-data-pipelines-app
+        gcePersistentDisk:
+          pdName: {{.Values.gcePersistentDiskName | quote}}
+          fsType: ext4
+{{ end }}

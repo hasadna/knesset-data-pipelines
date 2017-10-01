@@ -1,0 +1,53 @@
+{{ if .Values.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Values.name | default "db" | quote}}
+spec:
+  selector:
+    app: {{.Values.name | default "db" | quote}}
+  ports:
+  - name: "5432"
+    port: 5432
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{.Values.name | default "db" | quote}}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{.Values.name | default "db" | quote}}
+    spec:
+      containers:
+      - env:
+        - name: PG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{.Values.global.secretEnvVars | quote}}
+              key: "PG_PASSWORD"
+        image: {{.Values.image | default "sameersbn/postgresql:9.6-2" | quote}}
+        name: {{.Values.name | default "db" | quote}}
+        ports:
+        - containerPort: 5432
+        resources:
+          requests:
+            cpu: {{.Values.cpuRequests | default "0.2"}}
+            memory: {{.Values.memoryRequests | default "150Mi" | quote}}
+        volumeMounts:
+        - name: knesset-data-pipelines-db
+          mountPath: /var/lib/postgresql
+        readinessProbe:
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 1
+          exec:
+            command: ["psql", "-h", "127.0.0.1", "-U", "postgres", "-d", "postgres", "-c", "select 1"]
+      volumes:
+      - name: knesset-data-pipelines-db
+        gcePersistentDisk:
+          pdName: {{.Values.gcePersistentDiskName | quote}}
+          fsType: ext4
+{{ end }}

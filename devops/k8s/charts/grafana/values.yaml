@@ -1,0 +1,4 @@
+createDatabase:
+  databaseName: grafana
+  userSecretEnvVar: GF_DATABASE_USER
+  passwordSecretEnvVar: GF_DATABASE_PASSWORD
