@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# apply the secrets to the K8S cluster of the current environment
+
 source bin/k8s_connect.sh
 
 echo " > recreating secrets for ${K8S_ENVIRONMENT} environment"

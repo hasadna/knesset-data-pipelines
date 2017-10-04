@@ -1,17 +1,27 @@
 #!/usr/bin/env bash
 
-source bin/k8s_connect.sh
+# some files are based on .template files which are compiled using this script
+# it uses bin/templater.sh to do simple replacing inside the template files
+# it's mostly used to apply the current version in chart files
+
+if [ -f VERSION.txt ]; then
+    # version is set by external tool - use it directly
+    export VERSION=`cat VERSION.txt`
+elif which git > /dev/null; then
+    # use git to get the version name, add timestamp to ensure version uniqueness (and help debugging)
+    export VERSION="`git describe --tags`-`date +%Y-%m-%d-%H-%M`"
+else
+    # edge-cases where git is not available - version will only include timestamp
+    export VERSION="v0.0.0-`date +%Y-%m-%d-%H-%M`"
+fi
+
+echo " > VERSION=${VERSION}"
+
 
 echo " > generating main release chart devops/k8s/Chart.yaml"
 export COMMENT="Helm chart configuration for knesset-data-pipelines project"
-if [ -f VERSION.txt ]; then
-    export VERSION=`cat VERSION.txt`
-elif which git > /dev/null; then
-    export VERSION="`git describe --tags`-`date +%Y-%m-%d-%H-%M`"
-else
-    export VERSION="v0.0.0-`date +%Y-%m-%d-%H-%M`"
-fi
 # Helm linter requires name to be same as parent directory containing the Chart.yaml
+# k8s name is not ideal but it works and the name doesn't really matter
 export NAME="k8s"
 bin/templater.sh devops/k8s/Chart.yaml.template > devops/k8s/Chart.yaml
 

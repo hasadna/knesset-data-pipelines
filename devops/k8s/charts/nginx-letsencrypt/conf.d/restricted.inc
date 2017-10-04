@@ -1,2 +1,0 @@
-auth_basic "Restricted Content";
-auth_basic_user_file /etc/nginx/htpasswd/htpasswd;

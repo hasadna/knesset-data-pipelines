@@ -1,6 +1,6 @@
 # Knesset Data Pipelines Kubernetes Environment
 
-## Setting up a staging cluster - for local testing, experimantation and discovery
+## Setting up a staging cluster - for local testing / development
 
 ### Prerequisites
 
@@ -9,7 +9,7 @@
 * Fork / Clone the knesset-data-pipelines repository
 * All commands should run from the root of the knesset-data-pipelines project repository, with authenticated gcloud cli
 
-## Create the cluster
+### Create the cluster
 
 This will create a standard staging cluster for infrastructure development and testing.
 
@@ -17,9 +17,9 @@ Running the script will show the deployment details and require to input a billa
 
 * `bin/k8s_create.sh`
 
-## Pre-Deployment
+### Pre-Deployment
 
-This steps should be done on first deployment:
+This steps should be done before first deployment:
 
 * Build the images and push to the private google docker registry
   * `bin/k8s_build_push.sh`
@@ -28,11 +28,17 @@ This steps should be done on first deployment:
 * Create the secrets
   * `bin/k8s_recreate_secrets.sh`
 
-## Deployment
+### Deployment
 
 * `bin/k8s_helm_upgrade.sh`
 
-## Post-Deployment
+### Post-Deployment
+
+The helm upgrade script doesn't always restart pods, depending on the changes made.
+
+Bear in mind that some services might take a while to start, so be patient before panicking that something doesn't work.
+
+If you find that a service or pod doesn't start, or to debug:
 
 * Connect to the relevant environment and setup kubectl bash autocompletion
   * `source bin/k8s_connect.sh`
@@ -40,6 +46,8 @@ This steps should be done on first deployment:
   * `kubectl get pods`
   * Drill down to a specific pod
     * `kubectl describe <TAB><TAB>`
+* Force update of a specific deployment:
+  * `bin/k8s_force_update.sh <DEPLOYMENT_NAME>`
 * Wait for rollout of a specific deployment
   * `kubectl rollout status deployment <TAB><TAB>`
 * Do a hard-reset to ensure everything is deployed:
@@ -72,67 +80,263 @@ You can use the following snippet to open all endpoints in Google Chrome:
 
 The default staging environment is minimal, to enable additional services:
 
-* Create custom values file (make sure it's not committeed to Git):
-  * `test ! -f devops/k8s/values-staging.yaml && cp devops/k8s/values-staging{.example,}.yaml`
-* Edit the file
-  * `devops/k8s/values-staging.yaml`
-* Follow the comments in that file and uncomment / modify as needed
+* Create custom values file (make sure it's not committeed to Git)
+  * `touch devops/k8s/values-staging.yaml`
+* Append configurations to the file, according to the following sections
+* Follow the deployment and post-deployment procedures above
 
-Just remember that when you run the deploy again without this parameter - environment will return to minimal state
+### Running pipeline workers
 
-## Running pipeline workers
+```
+app:
+  dppWorkerConcurrency: 1
+```
 
 The default staging environment runs with 0 pipeline workers - this means data will not be gathered and aggregated.
 
-* start a single worker:
-  * `bin/k8s_deploy.sh --set app.dppWorkerConcurrency=1`
-  * Pipelines should start running, you can follow status in the [Pipelines Dashboard](http://localhost:8001/api/v1/namespaces/default/services/app/proxy/)
-* You can schedule a specific pipeline to run using:
-  * `source bin/k8s_connect.sh && kubectl exec -it app-<TAB><TAB> -- bin/execute_scheduled_pipeline.sh ./committees/kns_committee`
+For staging or low cpu environment you shouldn't enable more then 1 worker.
+
+Once you enable the worker, scheduled pipelines should start running automatically
+
+You can also schedule a pipeline manually to run on the workers using this snippet:
+
+```kubectl exec `kubectl get pod -l app=app -o json | jq -r '.items[0].metadata.name'` -- bin/execute_scheduled_pipeline.sh ./committees/kns_committee```
 
 ### Metabase - user friendly DB UI
 
-* Start a single pipeline worker with Metabase to visualize the data in DB
-  * `bin/k8s_deploy.sh --set app.dppWorkerConcurrency=1,metabase.enabled=true`
-* on first run, log-in to set the admin user password
-  * http://localhost:8001/api/v1/namespaces/default/services/metabase/proxy/
-* Set up a database using the same configuration you used for Adminer
+```
+metabase:
+  enabled: true
+```
+
+depends on DB for persistency (database name = metabase)
+
+on first run, log-in to set the admin user password:
+
+http://localhost:8001/api/v1/namespaces/default/services/metabase/proxy/
+
+You can add a database using the same configuration detailed above for Adminer
 
 ### Visualize pipeline metrics in Grafana (Via InfluxDB)
 
-* Start a single pipeline worker along with influxDB and grafana
-  * `bin/k8s_deploy.sh --set app.dppWorkerConcurrency=1,influxdb.enabled=true,app.influxDb=dpp,grafana.enabled=true`
-* Initial Grafana setup
-  * http://localhost:8001/api/v1/namespaces/default/services/grafana/proxy/
-  * default login is `admin:admin`
-  * Add a datasource:
-    * Name: influxdb
-    * Type: InfluxDB
-    * Url: http://influxdb:8086/
-    * Access: Proxy
-    * Database: dpp
-  * In Grafana web UI - go to Dashboards > Import
-    * Import the dashboard from `devops/grafana_dataservice_processors_dashboard.json`
-* To force some pipelines to run (to get metrics):
-  * `source bin/k8s_connect.sh`
-  * `kubectl exec -it app-<TAB><TAB> -- bin/execute_scheduled_pipeline.sh ./committees/kns_committee`
-  * You should see some metrics in Grafana in a few seconds
+```
+app:
+  influxDb: dpp
+
+influxdb:
+  enabled: true
+  # persistent disk is optional - if you leave it commented it means it will loose historical metrics on every new pod - which should be fine for staging environment
+  # gcePersistentDiskName: knesset-data-pipelines-staging-influxdb
+
+grafana:
+  enabled: true
+```
+
+Once deployed, do the initial Grafana setup:
+
+* http://localhost:8001/api/v1/namespaces/default/services/grafana/proxy/
+* default login is `admin:admin`
+* Add a datasource:
+  * Name: influxdb
+  * Type: InfluxDB
+  * Url: http://influxdb:8086/
+  * Access: Proxy
+  * Database: dpp
+* In Grafana web UI - go to Dashboards > Import
+  * Import the dashboard from `devops/grafana_dataservice_processors_dashboard.json`
+
+### Enable shared host path - to allow sharing paths between nginx, let's encrypt and app pods
+
+the shared host path hack allows simple shared directories between pods
+
+first, get the name of the current node nginx is running - to use it as the shared host path:
+
+```
+source bin/k8s_connect.sh
+export SHARED_HOST_NAME=`kubectl get pod -l app=nginx -o json | jq -r '.items[0].spec.nodeName'`
+```
+
+Create the required directories on the node:
+
+```
+gcloud compute ssh $SHARED_HOST_NAME --command "sudo mkdir -p /var/shared-host-path/{nginx-html,letsencrypt-etc,letsencrypt-log,app-data} && sudo chown -R root:root /var/shared-host-path"
+```
+
+Enable the shared host - which mounts the path and ensure all pods are on the same node:
+
+```
+global:
+  # to get the current nginx node name:
+  # kubectl get pod -l app=nginx -o json | jq -r '.items[0].spec.nodeName'
+  sharedHostName: <SHARED_HOST_NAME>
+```
+
 
 ### Nginx
 
-publically exposes services via K8S LoadBalancer
+```
+nginx:
+  enabled: true
 
-* Start the default environment with nginx
-  * `bin/k8s_deploy.sh --set nginx.enabled=true,flower.urlPrefix=flower`
-* Once service started and has external IP, you can save the IP in you environment's .env file
-  * `source bin/k8s_connect.sh`
-  * ```echo "NGINX_HOST=`kubectl get service nginx -o json | jq '.status.loadBalancer.ingress[0].ip' -r`" >> "devops/k8s/.env.${K8S_ENVIRONMENT}"```
-  * `source/bin/k8s_connect.sh`
-* Services are available as subpaths of the nginx host
-  * If you have Google Chrome and configured the NGINX_HOST environment variable, you can use the following command to open all endpoints:
-    * `google-chrome "${NGINX_HOST}/pipelines" "${NGINX_HOST}/adminer" "${NGINX_HOST}/flower"`
+  # you should explicitly enable / disable sub-service mount points depending on services you run
+  enableData: true
+  enablePipelines: true
+  enableFlower: true
+  enableAdminer: true
+  # enableMetabase: true
+  # enableGrafana: true
 
-## Common tasks and issues
+flower:
+    # when flower is used with nginx, this is required
+    # it will then stop working properly on the localhost proxy
+    urlPrefix: flower
+```
+
+Once service started and has external IP, you need to update the global rootUrl value which is used to get proper url to services:
+
+```
+global:
+  # to get the nginx load balancer ip:
+  # kubectl get service nginx -o json  | jq -r '.status.loadBalancer.ingress[0].ip'
+  rootUrl: http://1.2.3.4
+```
+
+You can use the following to open the core services in google chrome:
+
+```
+source bin/k8s_connect.sh
+export NGINX_HOST=`kubectl get service nginx -o json | jq '.status.loadBalancer.ingress[0].ip' -r`
+google-chrome "${NGINX_HOST}/pipelines" "${NGINX_HOST}/adminer" "${NGINX_HOST}/flower"
+```
+
+Flower and Adminer services should not be publically exposed, to enable restricted access -
+
+Create an htpasswd file:
+
+```
+export USERNAME=superadmin
+export TEMPDIR=`mktemp -d`
+which htpasswd > /dev/null || sudo apt-get install apache2-utils
+htpasswd -c "${TEMPDIR}/htpasswd" $USERNAME
+```
+
+Create a secret based on it and cleanup:
+
+```
+kubectl create secret generic nginx-htpasswd --from-file "${TEMPDIR}/"
+rm -rf $TEMPDIR
+kubectl describe secret nginx-htpasswd
+```
+
+Enable by setting the secret name in the values file:
+
+```
+nginx:
+  htpasswdSecretName: nginx-htpasswd
+```
+
+Insecure services like Adminer / Flower will now be password protected
+
+You should also enable SSL - otherwise password is sent in clear-text:
+
+You must enable the shared host feature - see above
+
+Enable the let's encrypt pod which issues and renew certificates
+
+```
+letsencrypt:
+  enabled: true
+```
+
+Setup DNS to your load balancer IP and issue a certificate:
+
+```
+source bin/k8s_connect.sh
+kubectl exec -it `kubectl get pod -l app=letsencrypt -o json | jq -r '.items[0].metadata.name'` /issue_cert.sh your.domain.com
+```
+
+enable nginx and other services to use the secure domain:
+
+```
+nginx:
+  sslDomain: your.domain.com
+
+global:
+  rootUrl: https://your.domain.com
+```
+
+When shared host is enabled, app will also be forced to select the shared host node
+
+This allows nginx to serve data files generated by the pipelines, these are available at:
+
+http://your.domain.com/data/
+http://your.domain.com/data-json/
+
+### Committees Webapp
+
+You should build and push the committees webapp:
+
+`bin/k8s_build_push.sh --committees`
+
+enable it:
+
+```
+committees:
+  enabled: true
+
+nginx:
+  enableCommittees: true
+```
+
+### Forcing DB pod to use the same node
+
+DB and App have persistent disks which might take a bit of time to be released when restarting pods.
+
+App is already selected for the hostpath node - so it should be fine
+
+You can set the DB to use the same node
+
+```
+db:
+  # to get the current node db pos is attached to:
+  # kubectl get pod -l app=db -o json | jq -r '.items[0].spec.nodeName'
+  # make sure it's different then the shared host node - not to overload a single node
+  nodeSelectorHostname: <HOST_NAME>
+```
+
+### Upload daily DB backups to google cloud storage
+
+We use google service accounts to provide limited access to upload backups from a pod:
+
+```
+db:
+  # google cloud project id
+  backupUploadProjectId: ""
+  # google cloud zone
+  backupUploadZone: us-central1-a
+  # create a new service account:
+  # export SERVICE_ACCOUNT_NAME="knesset-data-db-backup-upload"
+  # gcloud iam service-accounts create "${SERVICE_ACCOUNT_NAME}"
+  # export SERVICE_ACCOUNT_ID="${SERVICE_ACCOUNT_NAME}@${CLOUDSDK_CORE_PROJECT}.iam.gserviceaccount.com"
+  # echo $SERVICE_ACCOUNT_ID
+  backupUploadServiceAccountId: <replace with the service account id>
+  # create a key allows this service account to add objects to storage buckets and add it as a k8s secret:
+  # export UPLOAD_KEY_SECRET_NAME="db-backup-upload-google-key"
+  # gcloud iam service-accounts keys create "--iam-account=${SERVICE_ACCOUNT_ID}" "${SERVICE_ACCOUNT_NAME}.google-secret-key"
+  # gcloud --quiet  projects add-iam-policy-binding "${CLOUDSDK_CORE_PROJECT}" "--member=serviceAccount:${SERVICE_ACCOUNT_ID}" "--role=roles/storage.objectCreator"
+  # kubectl create secret generic ${UPLOAD_KEY_SECRET_NAME} --from-file "${SERVICE_ACCOUNT_NAME}.google-secret-key"
+  # rm "${SERVICE_ACCOUNT_NAME}.google-secret-key"
+  backupUploadServiceAccountKeySecret: db-backup-upload-google-key
+  # google cloud storage bucket name, you should create it beforehand:
+  # gsutil mb gs://knesset-data-pipelines-staging-db-backups/
+  # and give permissions for the service account on this bucket:
+  # gsutil iam ch "serviceAccount:${SERVICE_ACCOUNT_ID}:objectCreator,objectViewer,objectAdmin" "gs://knesset-data-pipelines-staging-db-backups"
+  backupUploadBucketName: knesset-data-pipelines-staging-db-backups
+```
+
+
+
+## Common tasks, issues, tips and tricks
 
 ### Updating app image
 
@@ -149,3 +353,6 @@ You might need to do this from time to time to reauth with google
 
 * `source bin/k8s_connect.sh`
 * `gcloud container clusters get-credentials $CLOUDSDK_CONTAINER_CLUSTER`
+
+### DB Backup
+

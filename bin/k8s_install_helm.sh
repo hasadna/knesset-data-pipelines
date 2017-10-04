@@ -1,5 +1,9 @@
 #!/bin/bash
-
+#
+# Helm installation script - installs the `helm` executable on the host machine
+#
+# downloaded from https://github.com/kubernetes/helm/blob/master/scripts/get
+#
 # Copyright 2016 The Kubernetes Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

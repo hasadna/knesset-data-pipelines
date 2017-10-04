@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-bin/k8s_connect.sh
+# force an update for a K8S deployment by setting a label with unix timestamp
 
-set -e
+source bin/k8s_connect.sh
 
 if [ "${1}" == "" ]; then
     echo "usage: bin/k8s_force_update.sh <deployment_name>"

@@ -24,8 +24,13 @@ spec:
       containers:
       - image: {{.Values.image | default "grafana/grafana" | quote}}
         env:
+        {{ if .Values.global.rootUrl }}
+        - name: GF_SERVER_ROOT_URL
+          value: "{{.Values.global.rootUrl}}/grafana"
+        {{ else }}
         - name: GF_SERVER_ROOT_URL
           value: "http://localhost:8001/api/v1/namespaces/default/services/grafana/proxy/"
+        {{ end }}
 #        - {name: GF_AUTH_ANONYMOUS_ENABLED, value: "true"}
 #        - {name: GF_AUTH_ANONYMOUS_ORG_NAME, value: main}
 #        - {name: GF_AUTH_ANONYMOUS_ORG_ROLE, value: anonymous}

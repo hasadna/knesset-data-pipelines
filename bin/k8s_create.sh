@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# creates and configures a knesset-data-pipelines Kubernetes cluster and related resources on Google cloud
+
 if [ "${K8S_ENVIRONMENT}" == "" ]; then
     export K8S_ENVIRONMENT="staging"
 fi
@@ -10,8 +12,19 @@ if [ "${K8S_ENVIRONMENT}" != "staging" ]; then
 fi
 
 if [ -f "devops/k8s/.env.${K8S_ENVIRONMENT}" ]; then
-    echo "destroy the existing cluster first by running bin/k8s_destroy.sh"
-    exit 1
+    if [ "${1}" == "--force" ]; then
+        echo " > Deleting existing env file: devops/k8s/.env.${K8S_ENVIRONMENT}"
+        read -p "Are you sure you want to continue? [y/N] "
+        if [ "${REPLY}" == "y" ]; then
+            rm "devops/k8s/.env.${K8S_ENVIRONMENT}"
+        else
+            exit 1
+        fi
+    else
+        echo "destroy the existing cluster first by running bin/k8s_destroy.sh"
+        echo "alternatively - run bin/k8s_create.sh --force"
+        exit 1
+    fi
 fi
 
 echo " > Will create a new staging cluster, this might take a while..."
