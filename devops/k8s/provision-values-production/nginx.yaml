@@ -1,0 +1,13 @@
+nginx:
+  enabled: true
+  enableData: true
+  enablePipelines: true
+  enableFlower: true
+  enableAdminer: true
+  enableMetabase: true
+  enableGrafana: true
+  htpasswdSecretName: nginx-htpasswd
+flower:
+  urlPrefix: flower
+global:
+  rootUrl: http://35.188.115.32

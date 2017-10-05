@@ -79,6 +79,9 @@ build_push() {
     if [ "${APP_NAME}" == "db-backup" ]; then
         echo "db:" > "${IMAGE_VALUES_FILE}"
         echo "  dbBackupImage: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
+        echo >> "${IMAGE_VALUES_FILE}"
+        echo "jobs:" >> "${IMAGE_VALUES_FILE}"
+        echo "  restoreDbImage: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
     else
         echo "${APP_NAME}:" > "${IMAGE_VALUES_FILE}"
         echo "  image: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"

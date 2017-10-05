@@ -20,16 +20,12 @@ redis:
 # PostgreSQL - used by app and other services (adminer / metabase / grafana)
 db:
   enabled: true
-  # this persistnet disk should be created beforehand, it's created by bin/k8s_create.sh
-  gcePersistentDiskName: knesset-data-pipelines-staging-db
 
 # the main app - runs the pipelines and serves the pipelines dashboard
 # depends on db and redis (and possibly other services)
 # database name = app
 app:
   enabled: true
-  # this disk should be created beforehand, it's created by the bin/k8s_create.sh script for staging environment
-  gcePersistentDiskName: knesset-data-pipelines-staging-app
   dppWorkerConcurrency: "0"
 
 # lightweight DB web ui

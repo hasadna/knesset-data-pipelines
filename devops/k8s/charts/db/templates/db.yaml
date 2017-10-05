@@ -46,7 +46,7 @@ spec:
         - {name: "PGHOST", valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "DB_BACKUP_HOST"}}}
         - {name: "PGPORT", valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "DB_BACKUP_PORT"}}}
         - {name: "PGUSER", valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "DB_BACKUP_USER"}}}
-        - {name: "GOOGLE_AUTH_SECRET_KEY_FILE", value: "/upload-secret/knesset-data-db-backup-upload.google-secret-key"}
+        - {name: "GOOGLE_AUTH_SECRET_KEY_FILE", value: "/upload-secret/key"}
         - {name: "SERVICE_ACCOUNT_ID", value: {{.Values.backupUploadServiceAccountId | quote}}}
         - {name: "CLOUDSDK_CORE_PROJECT", value: {{.Values.backupUploadProjectId | quote}}}
         - {name: "CLOUDSDK_COMPUTE_ZONE", value: {{.Values.backupUploadZone | quote}}}

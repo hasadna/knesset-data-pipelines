@@ -1,6 +1,6 @@
 # Knesset Data Pipelines Kubernetes Environment
 
-## Setting up a staging cluster - for local testing / development
+## Setting up a new cluster
 
 ### Prerequisites
 
@@ -16,6 +16,7 @@ This will create a standard staging cluster for infrastructure development and t
 Running the script will show the deployment details and require to input a billable google project id before creating the cluster.
 
 * `bin/k8s_create.sh`
+  * To modify cluster creation or for production environment, read this script and run manually as needed
 
 ### Pre-Deployment
 
@@ -57,10 +58,9 @@ If you find that a service or pod doesn't start, or to debug:
 
 Keep the proxy running the background
 
-* `source bin/k8s_connect.sh`
-* `kubectl proxy`
+* `bin/k8s_proxy.sh`
 
-With default staging environment configuration you should have access to the following endpoints:
+With the default minimal environment you should have access to the following endpoints:
 
 * Kubernetes UI: http://localhost:8001/ui
 * Pipelines dashboard: http://localhost:8001/api/v1/namespaces/default/services/app/proxy/
@@ -80,33 +80,60 @@ You can use the following snippet to open all endpoints in Google Chrome:
 
 The default staging environment is minimal, to enable additional services:
 
-* Create custom values file (make sure it's not committeed to Git)
+* Create custom values file
   * `touch devops/k8s/values-staging.yaml`
 * Append configurations to the file, according to the following sections
 * Follow the deployment and post-deployment procedures above
 
+### Restoring from DB backup
+
+If you have a DB backup, now is a good time to restore from it - before starting additional services which complicates it
+
+Pay attention that this db dump contains sensitive details, so do not publically expose it.
+
+If you don't have a gs url but have a dump file locally, run the following:
+
+```
+source bin/k8s_connect.sh
+export STORAGE_BUCKET_NAME="kdp-${K8S_ENVIRONMENT}-db-backups"
+gsutil mb "gs://${STORAGE_BUCKET_NAME}"
+gsutil cp -Z dump.sql "gs://${STORAGE_BUCKET_NAME}/dump.sql"
+```
+
+Provision the db restore resources
+
+```
+source bin/k8s_connect.sh
+GS_URL="<google storage url with an sql dump>" bin/k8s_provision.sh db-restore
+bin/k8s_helm_upgrade.sh
+```
+
+Once restore is complete, you might need to setup the services:
+
+* Metabase -
+  * google login won't work if you have different domain, you can do a forgot password procedure - and should get the email from next.oknesset.org
+  * **because mail settings are in metbase DB**
+  * once logged-in, you might also need to change the db password
+* Grafana -
+  * simple enough to re-setup if you have problems
+
+
 ### Running pipeline workers
 
+The default environment doesn't run any workers, this provisions 1 worker:
+
 ```
-app:
-  dppWorkerConcurrency: 1
+source bin/k8s_connect.sh
+bin/k8s_provision.sh dpp-workers
+bin/k8s_helm_upgrade.sh
 ```
-
-The default staging environment runs with 0 pipeline workers - this means data will not be gathered and aggregated.
-
-For staging or low cpu environment you shouldn't enable more then 1 worker.
-
-Once you enable the worker, scheduled pipelines should start running automatically
-
-You can also schedule a pipeline manually to run on the workers using this snippet:
-
-```kubectl exec `kubectl get pod -l app=app -o json | jq -r '.items[0].metadata.name'` -- bin/execute_scheduled_pipeline.sh ./committees/kns_committee```
 
 ### Metabase - user friendly DB UI
 
 ```
-metabase:
-  enabled: true
+source bin/k8s_connect.sh
+bin/k8s_provision.sh metabase
+bin/k8s_helm_upgrade.sh
 ```
 
 depends on DB for persistency (database name = metabase)
@@ -120,16 +147,9 @@ You can add a database using the same configuration detailed above for Adminer
 ### Visualize pipeline metrics in Grafana (Via InfluxDB)
 
 ```
-app:
-  influxDb: dpp
-
-influxdb:
-  enabled: true
-  # persistent disk is optional - if you leave it commented it means it will loose historical metrics on every new pod - which should be fine for staging environment
-  # gcePersistentDiskName: knesset-data-pipelines-staging-influxdb
-
-grafana:
-  enabled: true
+source bin/k8s_connect.sh
+bin/k8s_provision.sh grafana
+bin/k8s_helm_upgrade.sh
 ```
 
 Once deployed, do the initial Grafana setup:
@@ -149,56 +169,20 @@ Once deployed, do the initial Grafana setup:
 
 the shared host path hack allows simple shared directories between pods
 
-first, get the name of the current node nginx is running - to use it as the shared host path:
-
 ```
 source bin/k8s_connect.sh
-export SHARED_HOST_NAME=`kubectl get pod -l app=nginx -o json | jq -r '.items[0].spec.nodeName'`
+bin/k8s_provision.sh shared-host
+bin/k8s_helm_upgrade.sh
 ```
-
-Create the required directories on the node:
-
-```
-gcloud compute ssh $SHARED_HOST_NAME --command "sudo mkdir -p /var/shared-host-path/{nginx-html,letsencrypt-etc,letsencrypt-log,app-data} && sudo chown -R root:root /var/shared-host-path"
-```
-
-Enable the shared host - which mounts the path and ensure all pods are on the same node:
-
-```
-global:
-  # to get the current nginx node name:
-  # kubectl get pod -l app=nginx -o json | jq -r '.items[0].spec.nodeName'
-  sharedHostName: <SHARED_HOST_NAME>
-```
-
 
 ### Nginx
 
-```
-nginx:
-  enabled: true
-
-  # you should explicitly enable / disable sub-service mount points depending on services you run
-  enableData: true
-  enablePipelines: true
-  enableFlower: true
-  enableAdminer: true
-  # enableMetabase: true
-  # enableGrafana: true
-
-flower:
-    # when flower is used with nginx, this is required
-    # it will then stop working properly on the localhost proxy
-    urlPrefix: flower
-```
-
-Once service started and has external IP, you need to update the global rootUrl value which is used to get proper url to services:
+Expose services via paths on a load balancer, supports ssl and http password
 
 ```
-global:
-  # to get the nginx load balancer ip:
-  # kubectl get service nginx -o json  | jq -r '.status.loadBalancer.ingress[0].ip'
-  rootUrl: http://1.2.3.4
+source bin/k8s_connect.sh
+bin/k8s_provision.sh nginx
+bin/k8s_helm_upgrade.sh
 ```
 
 You can use the following to open the core services in google chrome:
@@ -209,132 +193,62 @@ export NGINX_HOST=`kubectl get service nginx -o json | jq '.status.loadBalancer.
 google-chrome "${NGINX_HOST}/pipelines" "${NGINX_HOST}/adminer" "${NGINX_HOST}/flower"
 ```
 
-Flower and Adminer services should not be publically exposed, to enable restricted access -
-
-Create an htpasswd file:
+### Let's encrypt
 
 ```
-export USERNAME=superadmin
-export TEMPDIR=`mktemp -d`
-which htpasswd > /dev/null || sudo apt-get install apache2-utils
-htpasswd -c "${TEMPDIR}/htpasswd" $USERNAME
+source bin/k8s_connect.sh
+bin/k8s_provision.sh letsencrypt
+bin/k8s_helm_upgrade.sh
 ```
 
-Create a secret based on it and cleanup:
-
-```
-kubectl create secret generic nginx-htpasswd --from-file "${TEMPDIR}/"
-rm -rf $TEMPDIR
-kubectl describe secret nginx-htpasswd
-```
-
-Enable by setting the secret name in the values file:
-
-```
-nginx:
-  htpasswdSecretName: nginx-htpasswd
-```
-
-Insecure services like Adminer / Flower will now be password protected
-
-You should also enable SSL - otherwise password is sent in clear-text:
-
-You must enable the shared host feature - see above
-
-Enable the let's encrypt pod which issues and renew certificates
-
-```
-letsencrypt:
-  enabled: true
-```
+#### Issuing a new certificate
 
 Setup DNS to your load balancer IP and issue a certificate:
 
 ```
+export SSL_DOMAIN="your.dmain.com"
 source bin/k8s_connect.sh
-kubectl exec -it `kubectl get pod -l app=letsencrypt -o json | jq -r '.items[0].metadata.name'` /issue_cert.sh your.domain.com
+kubectl exec -it `kubectl get pod -l app=letsencrypt -o json | jq -r '.items[0].metadata.name'` /issue_cert.sh "${SSL_DOMAIN}"
 ```
 
-enable nginx and other services to use the secure domain:
+If you provision let's encrypt again with SSL_DOMAIN environment variable - it will use it
 
 ```
-nginx:
-  sslDomain: your.domain.com
-
-global:
-  rootUrl: https://your.domain.com
+bin/k8s_provision.sh letsencrypt
+bin/k8s_helm_upgrade.sh
+google-chrome "https://${SSL_DOMAIN}/pipelines" "https://${SSL_DOMAIN}/adminer" "https://${SSL_DOMAIN}/flower" "https://${SSL_DOMAIN}/data" "https://${SSL_DOMAIN}/data-json"
 ```
 
-When shared host is enabled, app will also be forced to select the shared host node
+#### Importing existing certificate
 
-This allows nginx to serve data files generated by the pipelines, these are available at:
-
-http://your.domain.com/data/
-http://your.domain.com/data-json/
+```
+export SSL_DOMAIN="domain.com"
+# from other cluster
+mkdir -p ./etc-letsencrypt-bak
+kubectl cp letsencrypt-3851873296-ffljt:/etc/letsencrypt ./etc-letsencrypt-bak/letsencrypt
+# from this cluster
+source bin/k8s_connect.sh
+kubectl cp ./etc-letsencrypt-bak/letsencrypt letsencrypt-3851873296-ffljt:/etc/
+kubectl exec -it letsencrypt-797647080-9n2vn bash -- -c "cd /etc/letsencrypt/live/ && rm -f "${SSL_DOMAIN}/*" && cd $SSL_DOMAIN && ln -s "../../archive/${SSL_DOMAIN}/cert1.pem" cert.pem && ln -s "../../archive/${SSL_DOMAIN}/chain1.pem" chain.pem && ln -s "../../archive/${SSL_DOMAIN}/fullchain1.pem" fullchain.pem && ln -s "../../archive/${SSL_DOMAIN}/privkey1.pem" privkey.pem"
+bin/k8s_provision.sh letsencrypt
+```
 
 ### Committees Webapp
 
-You should build and push the committees webapp:
-
-`bin/k8s_build_push.sh --committees`
-
-enable it:
-
 ```
-committees:
-  enabled: true
-
-nginx:
-  enableCommittees: true
-```
-
-### Forcing DB pod to use the same node
-
-DB and App have persistent disks which might take a bit of time to be released when restarting pods.
-
-App is already selected for the hostpath node - so it should be fine
-
-You can set the DB to use the same node
-
-```
-db:
-  # to get the current node db pos is attached to:
-  # kubectl get pod -l app=db -o json | jq -r '.items[0].spec.nodeName'
-  # make sure it's different then the shared host node - not to overload a single node
-  nodeSelectorHostname: <HOST_NAME>
+source bin/k8s_connect.sh
+bin/k8s_provision.sh committees
+bin/k8s_helm_upgrade.sh
+google-chrome "https://${SSL_DOMAIN}/committees"
 ```
 
 ### Upload daily DB backups to google cloud storage
 
-We use google service accounts to provide limited access to upload backups from a pod:
-
 ```
-db:
-  # google cloud project id
-  backupUploadProjectId: ""
-  # google cloud zone
-  backupUploadZone: us-central1-a
-  # create a new service account:
-  # export SERVICE_ACCOUNT_NAME="knesset-data-db-backup-upload"
-  # gcloud iam service-accounts create "${SERVICE_ACCOUNT_NAME}"
-  # export SERVICE_ACCOUNT_ID="${SERVICE_ACCOUNT_NAME}@${CLOUDSDK_CORE_PROJECT}.iam.gserviceaccount.com"
-  # echo $SERVICE_ACCOUNT_ID
-  backupUploadServiceAccountId: <replace with the service account id>
-  # create a key allows this service account to add objects to storage buckets and add it as a k8s secret:
-  # export UPLOAD_KEY_SECRET_NAME="db-backup-upload-google-key"
-  # gcloud iam service-accounts keys create "--iam-account=${SERVICE_ACCOUNT_ID}" "${SERVICE_ACCOUNT_NAME}.google-secret-key"
-  # gcloud --quiet  projects add-iam-policy-binding "${CLOUDSDK_CORE_PROJECT}" "--member=serviceAccount:${SERVICE_ACCOUNT_ID}" "--role=roles/storage.objectCreator"
-  # kubectl create secret generic ${UPLOAD_KEY_SECRET_NAME} --from-file "${SERVICE_ACCOUNT_NAME}.google-secret-key"
-  # rm "${SERVICE_ACCOUNT_NAME}.google-secret-key"
-  backupUploadServiceAccountKeySecret: db-backup-upload-google-key
-  # google cloud storage bucket name, you should create it beforehand:
-  # gsutil mb gs://knesset-data-pipelines-staging-db-backups/
-  # and give permissions for the service account on this bucket:
-  # gsutil iam ch "serviceAccount:${SERVICE_ACCOUNT_ID}:objectCreator,objectViewer,objectAdmin" "gs://knesset-data-pipelines-staging-db-backups"
-  backupUploadBucketName: knesset-data-pipelines-staging-db-backups
+source bin/k8s_connect.sh
+bin/k8s_provision.sh db-backup
+bin/k8s_helm_upgrade.sh
 ```
-
-
 
 ## Common tasks, issues, tips and tricks
 
@@ -344,8 +258,6 @@ db:
   * `bin/k8s_build_push.sh`
   * This builds the images and pushes to current google project private repository
   * It creates a values files with the tagged version
-  * This files is used automatically by the bin/k8s_deploy.sh script
-* You can inspect the script to build / push images differently
 
 ### Google Authentication
 
@@ -354,5 +266,42 @@ You might need to do this from time to time to reauth with google
 * `source bin/k8s_connect.sh`
 * `gcloud container clusters get-credentials $CLOUDSDK_CONTAINER_CLUSTER`
 
-### DB Backup
+### Getting a DB backup from non-helm installations
 
+Sometime you have a DB not in the cluster, the following can be used to run the backup daemon on it and get the gs url
+
+```
+export DATE=`date +%y-%m-%d-%H-%M`
+export CLOUDSDK_CORE_PROJECT=""
+export CLOUDSDK_CONTAINER_CLUSTER=""
+export PGPASSWORD=""
+export PGHOST="db"
+export SERVICE_ACCOUNT_NAME="knesset-data-db-backup-upload"
+export STORAGE_BUCKET_NAME="knesset-data-pipelines-staging-db-backups"
+export CLOUDSDK_COMPUTE_ZONE="us-central1-a"
+export TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/knesset-data-pipelines-db-backup:v0.0.0-${DATE}"
+devops/db_backup/cleanup_resources.sh "${SERVICE_ACCOUNT_NAME}" "${STORAGE_BUCKET_NAME}"
+source <(devops/db_backup/provision_resources.sh "${SERVICE_ACCOUNT_NAME}" "${STORAGE_BUCKET_NAME}")
+docker build -t "${TAG}" devops/db_backup
+gcloud docker -- push "${TAG}"
+gcloud container clusters get-credentials $CLOUDSDK_CONTAINER_CLUSTER
+kubectl run "db-backup-${DATE}" --image="${TAG}" \
+    --env "PGPASSWORD=${PGPASSWORD}" \
+    --env "PGHOST=${PGHOST}" \
+    --env "PGPORT=5432" \
+    --env "PGUSER=postgres" \
+    --env "GOOGLE_AUTH_SECRET_KEY_B64_JSON=`cat $SECRET_KEY_FILE | base64 -w0`" \
+    --env "SERVICE_ACCOUNT_ID=${SERVICE_ACCOUNT_ID}" \
+    --env "CLOUDSDK_CORE_PROJECT=${CLOUDSDK_CORE_PROJECT}" \
+    --env "CLOUDSDK_COMPUTE_ZONE=${CLOUDSDK_COMPUTE_ZONE}" \
+    --env "STORAGE_BUCKET_NAME=${STORAGE_BUCKET_NAME}" \
+    --env "BACKUP_INITIAL_DELAY_SECONDS=1"
+```
+
+Check the pod logs for the gs url
+
+```
+kubectl logs `kubectl get pods | grep "db-backup-${DATE}" | cut -d" " -f1 -`
+```
+
+If it's in the same project, use it directly, otherwise, download and re-upload where needed with `gsutil cp -Z`

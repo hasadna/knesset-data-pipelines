@@ -1,0 +1,4 @@
+committees:
+  enabled: true
+nginx:
+  enableCommittees: true

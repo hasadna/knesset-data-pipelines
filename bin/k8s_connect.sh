@@ -41,7 +41,12 @@ if [ -f "devops/k8s/.env.${K8S_ENVIRONMENT}" ]; then
     if [ "${KNESSET_DATA_PIPELINES_K8S_CONNECT_ORIGINAL_PS1}" == "" ]; then
         export KNESSET_DATA_PIPELINES_K8S_CONNECT_ORIGINAL_PS1="${PS1}"
     fi
-    export PS1="${KNESSET_DATA_PIPELINES_K8S_CONNECT_ORIGINAL_PS1}\[\033[01;32m\]${K8S_ENVIRONMENT}\[\033[0m\]$ "
+    if [ "${K8S_ENVIRONMENT}" == "production" ]; then
+        COLOR="33"
+    else
+        COLOR="32"
+    fi
+    export PS1="${KNESSET_DATA_PIPELINES_K8S_CONNECT_ORIGINAL_PS1}\[\033[01;${COLOR}m\]${K8S_ENVIRONMENT}\[\033[0m\]$ "
 fi
 
 if [ `kubectl config current-context` == "gke_${CLOUDSDK_CORE_PROJECT}_${CLOUDSDK_COMPUTE_ZONE}_${CLOUDSDK_CONTAINER_CLUSTER}" ]; then

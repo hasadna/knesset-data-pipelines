@@ -41,7 +41,6 @@ spec:
         - containerPort: 5000
         resources:
           requests:
-            # this cpu requests should have corresponding dppWorkerConcurrency of 1
             cpu: {{.Values.cpuRequests | default "0.4"}}
             memory: {{.Values.memoryRequests | default "500Mi" | quote}}
         volumeMounts:
