@@ -1,2 +1,3 @@
 docker-compose.stack.yml
 /k8s_configmap.yaml
+k8s/values-staging*
