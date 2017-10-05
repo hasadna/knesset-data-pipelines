@@ -1,7 +1,0 @@
-# metabase - serve from upstream
-location /metabase/ {
-    allow all;
-    rewrite ^/metabase/(.*)$ /$1 break;
-    proxy_pass http://metabase:3000;
-    proxy_set_header Host $host;
-}

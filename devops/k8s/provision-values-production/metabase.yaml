@@ -1,4 +1,1 @@
 metabase:
-  enabled: true
-nginx:
-  enableMetabase: true

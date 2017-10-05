@@ -1,9 +1,0 @@
-# pipelines - redirect to https
-#location /pipelines/ {
-#    return 301 https://$host$request_uri;
-#}
-
-# default behavior is to serve apps on 80 - to simplify development
-# to enable serving via ssl, you should uncomment above code
-
-include /etc/nginx/vhost.d/apps-443;

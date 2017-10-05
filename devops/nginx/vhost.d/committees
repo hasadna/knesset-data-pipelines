@@ -1,6 +1,0 @@
-# committees webapp
-location /committees/ {
-    rewrite ^/committees/(.*)$ /$1 break;
-    proxy_pass http://committees-webapp:5050;
-    proxy_set_header Host $host;
-}
