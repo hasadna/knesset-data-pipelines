@@ -330,14 +330,7 @@ elif [ "${ACTION}-${WHAT}" == "--provision-continuous-deployment" ]; then
         echo
         echo " > according to GitHub policies - we are not allowed to automate creation of machine users"
         echo
-        echo " > please proceed according to the instructions here: https://developer.github.com/v3/guides/managing-deploy-keys/#machine-users"
-        echo " > you need to get a personal access token for this machine user, with public_repo access permissions"
-        echo " > add this machine user as collaborator with write access to your project"
-        echo " > you can add a collaborator from the api:"
-        echo " > curl -u YourGithubUserName https://api.github.com/repos/${CONTINUOUS_DEPLOYMENT_REPO}/collaborators/MACHINE_USER_NAME -X PUT"
-        echo
-        echo " > Then, set the token in travis:"
-        echo " > travis env --repo ${CONTINUOUS_DEPLOYMENT_REPO} --private --org set DEPLOYMENT_BOT_GITHUB_TOKEN \"${TOKEN}\""
+        echo " > See the relevant section in devops/k8s/README.md for details"
         echo
         exit 1
     fi

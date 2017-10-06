@@ -236,6 +236,28 @@ bin/k8s_provision.sh continuous-deployment
 bin/k8s_helm_upgrade.sh
 ```
 
+According to GitHub policies, we are not allowed to automate creation of machine users.
+
+Please proceed according to the instructions [here](https://developer.github.com/v3/guides/managing-deploy-keys/#machine-users)
+
+You need to get a personal access token for this machine user, with public_repo access permission
+
+Add this machine user as collaborator with write access to your project"
+
+You can add a collaborator from the api:"
+* `curl -u YourGithubUserName https://api.github.com/repos/${CONTINUOUS_DEPLOYMENT_REPO}/collaborators/MACHINE_USER_NAME -X PUT"`
+
+Finally, set the token in Travis:
+* `travis env --repo ${CONTINUOUS_DEPLOYMENT_REPO} --private --org set DEPLOYMENT_BOT_GITHUB_TOKEN \"${TOKEN}\""`
+
+A push to master branch should now cause deployment
+* `git checkout master`
+* `echo " " >> README.md`
+* `git add README.md`
+* `git push origin master`
+
+
+
 ## Common tasks, issues, tips and tricks
 
 ### Updating app image
