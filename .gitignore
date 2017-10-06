@@ -119,3 +119,6 @@ devops/k8s/.env.staging
 devops/k8s/Chart.yaml
 devops/k8s/charts/*/Chart.yaml
 devops/k8s/secrets.env.production
+devops/k8s/values-staging-image-*.yaml
+devops/k8s/iidfile-staging-*
+devops/k8s/provision-values-staging
