@@ -17,7 +17,7 @@ source bin/k8s_connect.sh
 if [ -f VERSION.txt ]; then
     export VERSION=`cat VERSION.txt`
 elif which git > /dev/null; then
-    export VERSION="`git describe --tags`-`date +%Y-%m-%d-%H-%M`"
+    export VERSION="`git describe --tags`"
 else
     export VERSION="v0.0.0-`date +%Y-%m-%d-%H-%M`"
 fi
@@ -52,10 +52,9 @@ build_push() {
     DOCKER_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/knesset-data-pipelines-${APP_NAME}:${VERSION}"
     IMAGE_VALUES_FILE="devops/k8s/values-${K8S_ENVIRONMENT}-image-${APP_NAME}.yaml"
 
-
     if [ "${GITHUB_REPO}" == "" ]; then
         echo " > building from local directory ${BUILD_DIR}"
-        gcloud docker -- build -t "${DOCKER_TAG}" "${BUILD_DIR}"
+        gcloud docker -- build -t "${DOCKER_TAG}" "${BUILD_DIR}" || exit 1
     else
         echo " > downloading source code from ${SOURCE_CODE_URL}"
         TEMPDIR=`mktemp -d`
@@ -66,13 +65,13 @@ build_push() {
         popd
         pushd "${TEMPDIR}/${GITHUB_REPO}-master"
         echo " > building directory ${TEMPDIR}/${BUILD_DIR}"
-        gcloud docker -- build -t "${DOCKER_TAG}" "${BUILD_DIR}"
+        gcloud docker -- build -t "${DOCKER_TAG}" "${BUILD_DIR}" || exit 2
         popd
         rm -rf $TEMPDIR
     fi
 
     echo " > pushing tag ${DOCKER_TAG}"
-    gcloud docker -- push "${DOCKER_TAG}"
+    gcloud docker -- push "${DOCKER_TAG}" || exit 3
 
     echo " > generating values file ${IMAGE_VALUES_FILE}"
     echo " > image: \"${DOCKER_TAG}\""
@@ -96,13 +95,19 @@ build_push() {
 }
 
 if [ "${1}" == "" ]; then
-    bin/k8s_build_push.sh --app
-    bin/k8s_build_push.sh --committees
-    bin/k8s_build_push.sh --db-backup
+    bin/k8s_build_push.sh --app || exit 1
+    bin/k8s_build_push.sh --committees || exit 2
+    bin/k8s_build_push.sh --db-backup || exit 3
+    exit 0
 elif [ "${1}" == "--app" ]; then
-    build_push app hasadna knesset-data-pipelines master .
+    build_push app hasadna knesset-data-pipelines master . || exit 4
+    exit 0
 elif [ "${1}" == "--committees" ]; then
-    build_push committees OriHoch knesset-data-committees-webapp master .
+    build_push committees OriHoch knesset-data-committees-webapp master . || exit 5
+    exit 0
 elif [ "${1}" == "--db-backup" ]; then
-    build_push db-backup hasadna knesset-data-pipelines master devops/db_backup
+    build_push db-backup hasadna knesset-data-pipelines master devops/db_backup || exit 6
+    exit 0
 fi
+
+exit 7

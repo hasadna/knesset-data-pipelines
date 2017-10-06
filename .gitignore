@@ -112,7 +112,7 @@ ENV/
 # they are used by the bin/k8s_connect.sh script
 # you shouldn't source these files directly, instead, run bin/k8s_connect.sh script like this:
 # source bin/k8s_connect.sh
-devops/k8s/.env.*
+devops/k8s/.env.staging
 
 # the Helm charts are generated using bin/templater.sh from the corresponding *.template files
 # this is done in bin/k8s_recreate_templates.sh

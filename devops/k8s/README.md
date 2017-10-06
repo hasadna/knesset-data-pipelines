@@ -325,10 +325,9 @@ If it's in the same project, use it directly, otherwise, download and re-upload 
 
 * you can review and revoke tasks in flower - https://next.oknesset.org/flower/
 * schedule a task to run immediately (you need to do this after revoking a task - to re-run it)
-  * `kubectl exec <app_pod_name> -- /knesset/bin/execute_scheduled_pipeline.sh <PIPELINE_ID>`
+  * `kubectl exec `kubectl get pods | grep app- | cut -d" " -f1 -` bin/execute_scheduled_pipeline.sh <PIPELINE_ID>`
 * update tasks (runs every minute, but you can scheduled to run immediately as well)
-  * `kubectl exec <app_pod_name> -- /knesset/bin/update_pipeline_status.sh`
-
+  * ```kubectl exec `kubectl get pods | grep app- | cut -d" " -f1 -` bin/update_pipeline_status.sh```
 
 ### Exporting all committees data from DB
 
