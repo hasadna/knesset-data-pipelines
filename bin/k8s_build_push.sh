@@ -17,7 +17,12 @@ source bin/k8s_connect.sh > /dev/null
 if [ -f VERSION.txt ]; then
     export VERSION=`cat VERSION.txt`
 elif which git > /dev/null; then
-    export VERSION="`git describe --tags`-`date +%Y-%m-%d-%H-%M`"
+    GIT_VERSION=`git describe --tags`
+    if [ "${GIT_VERSION}" == "" ]; then
+        export VERSION="v0.0.0-`date +%Y-%m-%d-%H-%M`"
+    else
+        export VERSION="`git describe --tags`-`date +%Y-%m-%d-%H-%M`"
+    fi
 else
     export VERSION="v0.0.0-`date +%Y-%m-%d-%H-%M`"
 fi

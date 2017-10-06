@@ -29,7 +29,11 @@ if ! source bin/k8s_connect.sh; then
 fi
 
 IID_FILE="devops/k8s/iidfile-${K8S_ENVIRONMENT}-app"
-OLD_APP_IID=`cat "${IID_FILE}"`
+if [ -f "${IID_FILE}" ]; then
+    OLD_APP_IID=`cat "${IID_FILE}"`
+else
+    OLD_APP_IID=""
+fi
 
 if ! bin/k8s_build_push.sh --app; then
     echo " > Failed to build/push app"
