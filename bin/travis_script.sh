@@ -2,10 +2,8 @@
 
 export AUTODEPLOY_MESSAGE="deployment image update from travis_deploy_script"
 
-if [ "${B64_ENV_FILE}" != "" ]; then
-    echo "${B64_ENV_FILE}" | base64 -d > ".tmp-k8s-env"
-    source ".tmp-k8s-env"
-    mv .tmp-k8s-env "devops/k8s/.env.${K8S_ENVIRONMENT}"
+if [ "${K8S_ENVIRONMENT}" != "" ] && [ -f "devops/k8s/.env.${K8S_ENVIRONMENT}" ]; then
+    source "devops/k8s/.env.${K8S_ENVIRONMENT}"
 fi
 
 if [ "${TRAVIS_PULL_REQUEST}" != "false" ] || [ "${TRAVIS_BRANCH}" != "${CONTINUOUS_DEPLOYMENT_BRANCH}" ]; then
@@ -30,8 +28,12 @@ if [ "${DEPLOYMENT_BOT_GITHUB_TOKEN}" == "" ] || [ "${SERVICE_ACCOUNT_B64_JSON_S
     echo " > (they should be created by provision script and set in travis env)"
     echo " > SERVICE_ACCOUNT_B64_JSON_SECRET_KEY"
     echo " > DEPLOYMENT_BOT_GITHUB_TOKEN"
-    echo " > B64_ENV_FILE"
     exit 0
+fi
+
+if [ ! -f "devops/k8s/.env.${K8S_ENVIRONMENT}" ]; then
+    echo " > missing environment file devops/k8s/.env.${K8S_ENVIRONMENT}"
+    exit 1
 fi
 
 if [ "${TRAVIS_TAG}" != "" ]; then
