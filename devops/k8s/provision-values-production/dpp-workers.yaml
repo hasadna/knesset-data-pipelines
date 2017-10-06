@@ -1,4 +1,4 @@
 app:
-  dppWorkerConcurrency: "1"
+  dppWorkerConcurrency: "3"
   cpuRequests: 0.2
   memoryRequests: "500Mi"
