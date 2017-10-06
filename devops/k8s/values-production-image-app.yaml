@@ -1,6 +1,6 @@
 app:
-  image: "gcr.io/hasadna-oknesset/knesset-data-pipelines-app:v1.0.6-89-ga23e26e"
+  image: "gcr.io/hasadna-oknesset/knesset-data-pipelines-app:v1.0.6-91-gee28d18"
 
 flower:
-  image: "gcr.io/hasadna-oknesset/knesset-data-pipelines-app:v1.0.6-89-ga23e26e"
+  image: "gcr.io/hasadna-oknesset/knesset-data-pipelines-app:v1.0.6-91-gee28d18"
 
