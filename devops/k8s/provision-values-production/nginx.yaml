@@ -9,5 +9,5 @@ nginx:
   htpasswdSecretName: nginx-htpasswd
 flower:
   urlPrefix: flower
-global:
-  rootUrl: http://35.188.115.32
+#global:
+#  rootUrl: http://35.188.115.32
