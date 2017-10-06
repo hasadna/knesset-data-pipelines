@@ -36,6 +36,8 @@ export GIT_CONFIG_EMAIL="${CONTINUOUS_DEPLOYMENT_GIT_EMAIL}"
 
 echo " > install and authenticate with gcloud"  # based on http://thylong.com/ci/2016/deploying-from-travis-to-gce/
 
+export CLOUDSDK_CORE_DISABLE_PROMPTS=1
+
 if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then
     rm -rf $HOME/google-cloud-sdk
     curl https://sdk.cloud.google.com | bash
@@ -45,7 +47,6 @@ source /home/travis/google-cloud-sdk/path.bash.inc
 gcloud version
 gcloud --quiet components update kubectl
 
-export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 export BUILD_LOCAL=1
 
 IID_FILE="devops/k8s/iidfile-${K8S_ENVIRONMENT}-app"
