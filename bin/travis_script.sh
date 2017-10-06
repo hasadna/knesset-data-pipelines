@@ -31,6 +31,12 @@ if [ "${DEPLOYMENT_BOT_GITHUB_TOKEN}" == "" ] || [ "${SERVICE_ACCOUNT_B64_JSON_S
     exit 0
 fi
 
+if [ "${TRAVIS_TAG}" != "" ]; then
+    echo "${TRAVIS_TAG}" > VERSION.txt
+else
+    echo "v0.0.0-`date +%Y-%m-%d-%H-%M`" > VERSION.txt
+fi
+
 export GIT_CONFIG_USER="${CONTINUOUS_DEPLOYMENT_GIT_USER}"
 export GIT_CONFIG_EMAIL="${CONTINUOUS_DEPLOYMENT_GIT_EMAIL}"
 

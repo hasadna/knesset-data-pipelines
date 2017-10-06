@@ -15,6 +15,3 @@ cache:
   directories:
   - "$HOME/.cache"
   - "$HOME/google-cloud-sdk/"
-sudo: required
-services:
-  - docker

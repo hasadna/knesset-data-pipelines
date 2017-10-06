@@ -17,12 +17,7 @@ source bin/k8s_connect.sh > /dev/null
 if [ -f VERSION.txt ]; then
     export VERSION=`cat VERSION.txt`
 elif which git > /dev/null; then
-    GIT_VERSION=`git describe --tags`
-    if [ "${GIT_VERSION}" == "" ]; then
-        export VERSION="v0.0.0-`date +%Y-%m-%d-%H-%M`"
-    else
-        export VERSION="`git describe --tags`-`date +%Y-%m-%d-%H-%M`"
-    fi
+    export VERSION="`git describe --tags`-`date +%Y-%m-%d-%H-%M`"
 else
     export VERSION="v0.0.0-`date +%Y-%m-%d-%H-%M`"
 fi
@@ -71,7 +66,7 @@ build_push() {
     fi
     if [ "${GITHUB_REPO}" == "" ]; then
         echo " > building from local directory ${BUILD_DIR}"
-        docker build -q -t "${DOCKER_TAG}" --iidfile "${IID_FILE}" "${BUILD_DIR}" || exit 1
+        gcloud docker -- build -q -t "${DOCKER_TAG}" --iidfile "${IID_FILE}" "${BUILD_DIR}" || exit 1
     else
         echo " > downloading source code from ${SOURCE_CODE_URL}"
         TEMPDIR=`mktemp -d`
@@ -82,7 +77,7 @@ build_push() {
         popd > /dev/null
         pushd "${TEMPDIR}/${GITHUB_REPO}-master" > /dev/null
         echo " > building directory ${TEMPDIR}/${BUILD_DIR}"
-        docker build -q -t "${DOCKER_TAG}" --iidfile ./iidfile "${BUILD_DIR}" || exit 2
+        gcloud docker -- build -q -t "${DOCKER_TAG}" --iidfile ./iidfile "${BUILD_DIR}" || exit 2
         popd > /dev/null
         cp "${TEMPDIR}/${GITHUB_REPO}-master/iidfile" "${IID_FILE}" > /dev/null
         rm -rf $TEMPDIR > /dev/null
