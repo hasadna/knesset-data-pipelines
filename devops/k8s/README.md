@@ -349,3 +349,17 @@ This export is used by knesset-data-committees-webapp
 kubectl exec -it db-87339143-v3mpl -- bash -c "sudo -u postgres pg_dump -t kns_committee -t kns_jointcommittee -t kns_cmtsitecode -t kns_committeesession -t kns_cmtsessionitem -t kns_documentcommitteesession > /committees_db_dump.sql"
 kubectl cp db-87339143-v3mpl:/committees_db_dump.sql ./committees_db_dump.sql
 ```
+
+### Developing on production
+
+Workers are very CPU intensive, so best to disable them when doing development
+* `bin/k8s_helm_upgrade.sh --set app.dppWorkerConcurrency=0`
+
+General development workflow:
+
+1. Make changes to the code, build from the local directory: `BUILD_LOCAL=1 bin/k8s_build_push.sh --app`
+2. Deploy -  `bin/k8s_helm_upgrade.sh --set app.dppWorkerConcurrency=0 --recreate-pods`
+3. Ssh into a pod - ```kubectl exec -it `kubectl get pods | grep app- | cut -d" " -f1 -` -- bash```
+  * Schedule a pipeline - `bin/execute_scheduled_pipeline.sh <PIPELINE_ID>`
+  * Run a pipeline directly = `dpp run <PIPELINE_ID>`
+4. Go back to 1 / commit to deploy (you should only commit code changes, not image ids)
