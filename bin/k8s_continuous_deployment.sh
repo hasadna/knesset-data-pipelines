@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+if [ "${K8S_ENVIRONMENT}" == "" ]; then
+    echo " > must set K8S_ENVIRONMENT"
+    exit 1
+fi
+
+if [ "${SERVICE_ACCOUNT_B64_JSON_SECRET_KEY}" == "" ]; then
+    echo " > must set SERVICE_ACCOUNT_B64_JSON_SECRET_KEY to contain b64 encoded gcloud service account key"
+    exit 2
+fi
+
+if ! source bin/k8s_connect.sh; then
+    echo " > Failed to connect to environment ${K8S_ENVIRONMENT}"
+    exit 3
+fi
+
+export SERVICE_ACCOUNT_NAME="kdp-${K8S_ENVIRONMENT}-deployment"
+export SERVICE_ACCOUNT_ID="${SERVICE_ACCOUNT_NAME}@${CLOUDSDK_CORE_PROJECT}.iam.gserviceaccount.com"
+
+
+echo "${SERVICE_ACCOUNT_B64_JSON_SECRET_KEY}" | base64 --d > gcloud.json
+if ! gcloud auth activate-service-account "${SERVICE_ACCOUNT_ID}" --key-file gcloud.json; then
+    echo " > Failed to authenticate with service account ${SERVICE_ACCOUNT_ID} using json secret key"
+    rm gcloud.json
+    exit 4
+fi
+rm gcloud.json
+
+if ! gcloud container clusters get-credentials "${CLOUDSDK_CONTAINER_CLUSTER}"; then
+    echo " > Failed to get kubernetes cluster credentials"
+    exit 5
+fi
+
+if ! source bin/k8s_connect.sh; then
+    echo " > Failed to connect to ${K8S_ENVIRONMENT}"
+    exit 6
+fi
+
+OLD_IID=`cat devops/k8s/iidfile-app`
+
+if ! bin/k8s_build_push.sh --app; then
+    echo " > Failed to build/push app"
+    exit 7
+fi
+
+NEW_IID=`cat devops/k8s/iidfile-app`
+
+if [ "${OLD_IID}" != "${NEW_IID}" ]; then
+    echo " > detected changes in app image - ensuring app deployment will be updated"
+    if ! bin/k8s_helm_upgrade.sh --recreate-pods; then
+        echo " > Failed helm upgrade"
+        exit 8
+    fi
+    echo " > Sleeping 5 seconds..."
+    sleep 5
+    if ! kubectl rollout status deployment app; then
+        echo " > Deployment rollout status failed"
+        exit 9
+    fi
+else
+    echo " > no changes detected in app - upgrading helm only"
+    if ! bin/k8s_helm_upgrade.sh; then
+        echo " > Failed helm upgrade"
+        exit 8
+    fi
+fi
+
+echo " > Deployment complete!"
+
+exit 0

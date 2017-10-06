@@ -17,7 +17,7 @@ source bin/k8s_connect.sh
 if [ -f VERSION.txt ]; then
     export VERSION=`cat VERSION.txt`
 elif which git > /dev/null; then
-    export VERSION="`git describe --tags`"
+    export VERSION="`git describe --tags`-`date +%Y-%m-%d-%H-%M`"
 else
     export VERSION="v0.0.0-`date +%Y-%m-%d-%H-%M`"
 fi
@@ -52,9 +52,15 @@ build_push() {
     DOCKER_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/knesset-data-pipelines-${APP_NAME}:${VERSION}"
     IMAGE_VALUES_FILE="devops/k8s/values-${K8S_ENVIRONMENT}-image-${APP_NAME}.yaml"
 
+    if [ -f "devops/k8s/iidfile-${APP_NAME}" ]; then
+        OLD_IID=`cat "devops/k8s/iidfile-${APP_NAME}"`
+    else
+        OLD_IID=""
+    fi
+
     if [ "${GITHUB_REPO}" == "" ]; then
         echo " > building from local directory ${BUILD_DIR}"
-        gcloud docker -- build -t "${DOCKER_TAG}" "${BUILD_DIR}" || exit 1
+        gcloud docker -- build -t "${DOCKER_TAG}" --iidfile "devops/k8s/iidfile-${APP_NAME}" "${BUILD_DIR}" || exit 1
     else
         echo " > downloading source code from ${SOURCE_CODE_URL}"
         TEMPDIR=`mktemp -d`
@@ -65,32 +71,38 @@ build_push() {
         popd
         pushd "${TEMPDIR}/${GITHUB_REPO}-master"
         echo " > building directory ${TEMPDIR}/${BUILD_DIR}"
-        gcloud docker -- build -t "${DOCKER_TAG}" "${BUILD_DIR}" || exit 2
+        gcloud docker -- build -t "${DOCKER_TAG}" --iidfile ./iidfile "${BUILD_DIR}" || exit 2
         popd
+        cp "${TEMPDIR}/${GITHUB_REPO}-master/iidfile" "devops/k8s/iidfile-${APP_NAME}"
         rm -rf $TEMPDIR
     fi
 
-    echo " > pushing tag ${DOCKER_TAG}"
-    gcloud docker -- push "${DOCKER_TAG}" || exit 3
+    NEW_IID=`cat "devops/k8s/iidfile-${APP_NAME}"`
 
-    echo " > generating values file ${IMAGE_VALUES_FILE}"
-    echo " > image: \"${DOCKER_TAG}\""
-    if [ "${APP_NAME}" == "db-backup" ]; then
-        echo "db:" > "${IMAGE_VALUES_FILE}"
-        echo "  dbBackupImage: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
+    if [ "${OLD_IID}" != "${NEW_IID}" ]; then
+        echo " > pushing tag ${DOCKER_TAG}"
+        gcloud docker -- push "${DOCKER_TAG}" || exit 3
+        echo " > generating values file ${IMAGE_VALUES_FILE}"
+        echo " > image: \"${DOCKER_TAG}\""
+        if [ "${APP_NAME}" == "db-backup" ]; then
+            echo "db:" > "${IMAGE_VALUES_FILE}"
+            echo "  dbBackupImage: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
+            echo >> "${IMAGE_VALUES_FILE}"
+            echo "jobs:" >> "${IMAGE_VALUES_FILE}"
+            echo "  restoreDbImage: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
+        else
+            echo "${APP_NAME}:" > "${IMAGE_VALUES_FILE}"
+            echo "  image: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
+        fi
         echo >> "${IMAGE_VALUES_FILE}"
-        echo "jobs:" >> "${IMAGE_VALUES_FILE}"
-        echo "  restoreDbImage: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
+        if [ "${APP_NAME}" == "app" ]; then
+            echo " > setting flower image (uses same build and values file as app)"
+            echo "flower:" >> "${IMAGE_VALUES_FILE}"
+            echo "  image: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
+            echo >> "${IMAGE_VALUES_FILE}"
+        fi
     else
-        echo "${APP_NAME}:" > "${IMAGE_VALUES_FILE}"
-        echo "  image: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
-    fi
-    echo >> "${IMAGE_VALUES_FILE}"
-    if [ "${APP_NAME}" == "app" ]; then
-        echo " > setting flower image (uses same build and values file as app)"
-        echo "flower:" >> "${IMAGE_VALUES_FILE}"
-        echo "  image: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
-        echo >> "${IMAGE_VALUES_FILE}"
+        echo " > iid is unchanged, skipping values file update"
     fi
 }
 
