@@ -1,18 +1,14 @@
 language: python
 python:
   - 3.6
-addons:
-  apt:
-    packages:
-    - antiword
-before_install:
-  - '[ "${TRAVIS_TAG}" == "" ] || echo "${TRAVIS_TAG}" > VERSION.txt'
 install:
-  - pip install tox
+  - true
 script:
-  - bin/test.sh
-  - bin/travis_deploy_script.sh
+  - bin/travis_script.sh
 cache:
   directories:
   - "$HOME/.cache"
   - "$HOME/google-cloud-sdk/"
+sudo: required
+services:
+  - docker

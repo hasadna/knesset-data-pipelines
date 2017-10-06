@@ -1,0 +1,44 @@
+#
+# Default Helm configuration values
+#
+# used for staging environment and as a base for production
+#
+#
+# see devops/k8s/README.md for deployment instructions
+#
+#
+# all subcharts are conditional based on enabled value
+# only subcharts enabled here will be deployed
+# please include the enabled conditional in any new templates
+#
+
+# redis - used by app for celery and pipelines management and possibly for other services as well
+# no dependencies
+redis:
+  enabled: true
+
+# PostgreSQL - used by app and other services (adminer / metabase / grafana)
+db:
+  enabled: true
+
+# the main app - runs the pipelines and serves the pipelines dashboard
+# depends on db and redis (and possibly other services)
+# database name = app
+app:
+  enabled: true
+  dppWorkerConcurrency: "0"
+
+# lightweight DB web ui
+# no dependencies
+adminer:
+  enabled: true
+
+# Lightweight pipelines async tasks management UI
+# same dependencies as the main app
+flower:
+  enabled: true
+
+# global values - shared with all subcharts
+global:
+  # name of the Kubernetes secret containing sensitive environment variable values
+  secretEnvVars: env-vars

@@ -1,7 +1,6 @@
 # Knesset data pipelines
 
 [![Build Status](https://travis-ci.org/hasadna/knesset-data-pipelines.svg?branch=master)](https://travis-ci.org/hasadna/knesset-data-pipelines)
-[![Docker build](https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg)](https://hub.docker.com/r/orihoch/knesset-data-pipelines/)
 
 Knesset data scrapers and data sync
 
@@ -27,7 +26,7 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
   * https://next.oknesset.org/flower/ - celery tasks management
   * https://next.oknesset.org/grafana/ - Web UI for graphing metrics (via InfluxDB)
 * deployment of this environment was done using Kubernetes (K8S) on Google Container Engine (GKE)
-  * [deployment details and devops documentation](https://github.com/hasadna/knesset-data-pipelines/blob/master/devops/K8S.md)
+  * [deployment details and devops documentation](https://github.com/hasadna/knesset-data-pipelines/blob/master/devops/k8s/)
 
 ## Contributing
 
