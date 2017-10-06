@@ -50,7 +50,11 @@ gcloud --quiet components update kubectl
 export BUILD_LOCAL=1
 
 IID_FILE="devops/k8s/iidfile-${K8S_ENVIRONMENT}-app"
-OLD_APP_IID=`cat "${IID_FILE}"`
+if [ -f "${IID_FILE}" ]; then
+    OLD_APP_IID=`cat "${IID_FILE}"`
+else
+    OLD_APP_IID=""
+fi
 
 if ! bin/k8s_continuous_deployment.sh; then
     echo " > Failed continuous deployment"

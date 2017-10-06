@@ -5,10 +5,7 @@ if [ "${SERVICE_ACCOUNT_B64_JSON_SECRET_KEY}" == "" ]; then
     exit 2
 fi
 
-if ! source bin/k8s_connect.sh; then
-    echo " > Failed to connect to environment ${K8S_ENVIRONMENT}"
-    exit 3
-fi
+source "devops/k8s/.env.${K8S_ENVIRONMENT}" > /dev/null
 
 export SERVICE_ACCOUNT_NAME="kdp-${K8S_ENVIRONMENT}-deployment"
 export SERVICE_ACCOUNT_ID="${SERVICE_ACCOUNT_NAME}@${CLOUDSDK_CORE_PROJECT}.iam.gserviceaccount.com"
