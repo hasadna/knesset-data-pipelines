@@ -1,6 +1,6 @@
 app:
-  image: "gcr.io/uumpa123/knesset-data-pipelines-staging-app:v0.0.0-2017-10-06-11-29"
+  image: "gcr.io/uumpa123/knesset-data-pipelines-staging-app:v0.0.0-2017-10-06-11-39"
 
 flower:
-  image: "gcr.io/uumpa123/knesset-data-pipelines-staging-app:v0.0.0-2017-10-06-11-29"
+  image: "gcr.io/uumpa123/knesset-data-pipelines-staging-app:v0.0.0-2017-10-06-11-39"
 
