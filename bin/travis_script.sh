@@ -50,6 +50,7 @@ docker version
 echo " > install gcloud"
 bin/install_gcloud.sh
 gcloud version
+source "${HOME}/google-cloud-sdk/path.bash.inc"
 
 echo " > install helm client"
 bin/install_helm.sh
