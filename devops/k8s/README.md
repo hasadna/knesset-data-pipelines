@@ -9,6 +9,10 @@
 * Fork / Clone the knesset-data-pipelines repository
 * All commands should run from the root of the knesset-data-pipelines project repository, with authenticated gcloud cli
 
+### Install helm client (locally)
+
+* `bin/install_helm.sh`
+
 ### Create the cluster
 
 This will create a standard staging cluster for infrastructure development and testing.
