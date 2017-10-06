@@ -58,6 +58,10 @@ create_service_account() {
     else
         echo " > Service account ${SERVICE_ACCOUNT_ID} already exists" >&2
     fi
+    echo " > Deleting all keys from service account" >&2
+    for KEY in `gcloud iam service-accounts keys list "--iam-account=${SERVICE_ACCOUNT_ID}" 2>/dev/null | tail -n+2 | cut -d" " -f1 -`; do
+        gcloud iam service-accounts keys --quiet delete "${KEY}" "--iam-account=${SERVICE_ACCOUNT_ID}" > /dev/null 2>&1
+    done
     if ! gcloud iam service-accounts keys create "--iam-account=${SERVICE_ACCOUNT_ID}" "${SECRET_TEMPDIR}/key" >&2; then
         echo " > Failed to create account key" >&2
     fi
@@ -88,6 +92,31 @@ travis_set_env() {
         travis login
     fi
     travis env --repo "${TRAVIS_REPO}" --private --org set "${KEY}" "${VALUE}"
+}
+
+env_config_getset() {
+    local CURRENT_VALUE="${1}"
+    local PROMPT="${2}"
+    local VAR_NAME="${3}"
+    if [ "${CURRENT_VALUE}" == "" ]; then
+        read -p "${PROMPT}: "
+        echo "export ${VAR_NAME}=\"${REPLY}\"" >> "devops/k8s/.env.${K8S_ENVIRONMENT}"
+        echo "${REPLY}"
+    else
+        echo "${CURRENT_VALUE}"
+    fi
+}
+
+env_config_set() {
+    local CURRENT_VALUE="${1}"
+    local VAR_NAME="${2}"
+    local VALUE="${3}"
+    if [ "${CURRENT_VALUE}" == "" ]; then
+        echo "export ${VAR_NAME}=\"${VALUE}\"" >> "devops/k8s/.env.${K8S_ENVIRONMENT}"
+        echo "${VALUE}"
+    else
+        echo "${CURRENT_VALUE}"
+    fi
 }
 
 export WHAT="${1}"
@@ -309,18 +338,19 @@ elif [ "${ACTION}-${WHAT}" == "--provision-committees" ]; then
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-continuous-deployment" ]; then
-    if [ "${CONTINUOUS_DEPLOYMENT_REPO}" == "" ]; then
-        read -p "Github repo: " CONTINUOUS_DEPLOYMENT_REPO
-        echo "export CONTINUOUS_DEPLOYMENT_REPO=\"${CONTINUOUS_DEPLOYMENT_REPO}\"" >> "devops/k8s/.env.${K8S_ENVIRONMENT}"
-    fi
+    export CONTINUOUS_DEPLOYMENT_REPO=`env_config_getset "${CONTINUOUS_DEPLOYMENT_REPO}" "Github repo" CONTINUOUS_DEPLOYMENT_REPO`
+    export CONTINUOUS_DEPLOYMENT_GIT_USER=`env_config_getset "${CONTINUOUS_DEPLOYMENT_GIT_USER}" "Deployer bot user" CONTINUOUS_DEPLOYMENT_GIT_USER`
+    export CONTINUOUS_DEPLOYMENT_GIT_EMAIL=`env_config_getset "${CONTINUOUS_DEPLOYMENT_GIT_EMAIL}" "Deployer bot email" CONTINUOUS_DEPLOYMENT_GIT_EMAIL`
+    export CONTINUOUS_DEPLOYMENT_BRANCH=`env_config_set "${CONTINUOUS_DEPLOYMENT_BRANCH}" CONTINUOUS_DEPLOYMENT_BRANCH master`
     export SERVICE_ACCOUNT_NAME="kdp-${K8S_ENVIRONMENT}-deployment"
     export SECRET_TEMPDIR="${SECRET_TEMPDIR:-`mktemp -d`}"
     export SERVICE_ACCOUNT_ID="`create_service_account "${SERVICE_ACCOUNT_NAME}" "${SECRET_TEMPDIR}"`"
     export SECRET_KEYFILE="${SECRET_TEMPDIR}/key"
-    add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/container.clusterAdmin" || true
-    add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/container.developer" || true
-    add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/storage.admin" || true
-    travis_set_env "${CONTINUOUS_DEPLOYMENT_REPO}" "SERVICE_ACCOUNT_B64_JSON_SECRET_KEY" "`cat "${SECRET_TEMPDIR}/key" | base64 -w0`" || true
+    add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/container.clusterAdmin"
+    add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/container.developer"
+    add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/storage.admin"
+    travis_set_env "${CONTINUOUS_DEPLOYMENT_REPO}" "SERVICE_ACCOUNT_B64_JSON_SECRET_KEY" "`cat "${SECRET_TEMPDIR}/key" | base64 -w0`"
+    travis_set_env "${CONTINUOUS_DEPLOYMENT_REPO}" "B64_ENV_FILE" "`cat "devops/k8s/.env.${K8S_ENVIRONMENT}" | base64 -w0`"
     rm -rf "${SECRET_TEMPDIR}"
     travis enable --repo "${CONTINUOUS_DEPLOYMENT_REPO}"
     echo
@@ -334,6 +364,8 @@ elif [ "${ACTION}-${WHAT}" == "--provision-continuous-deployment" ]; then
         echo
         exit 1
     fi
+    travis env --repo "${CONTINUOUS_DEPLOYMENT_REPO}" list
+
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-helm" ]; then

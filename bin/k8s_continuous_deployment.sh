@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-if [ "${K8S_ENVIRONMENT}" == "" ]; then
-    echo " > must set K8S_ENVIRONMENT"
-    exit 1
-fi
-
 if [ "${SERVICE_ACCOUNT_B64_JSON_SECRET_KEY}" == "" ]; then
     echo " > must set SERVICE_ACCOUNT_B64_JSON_SECRET_KEY to contain b64 encoded gcloud service account key"
     exit 2
@@ -17,7 +12,6 @@ fi
 
 export SERVICE_ACCOUNT_NAME="kdp-${K8S_ENVIRONMENT}-deployment"
 export SERVICE_ACCOUNT_ID="${SERVICE_ACCOUNT_NAME}@${CLOUDSDK_CORE_PROJECT}.iam.gserviceaccount.com"
-
 
 echo "${SERVICE_ACCOUNT_B64_JSON_SECRET_KEY}" | base64 --d > gcloud.json
 if ! gcloud auth activate-service-account "${SERVICE_ACCOUNT_ID}" --key-file gcloud.json; then

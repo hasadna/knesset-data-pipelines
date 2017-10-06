@@ -2,13 +2,24 @@
 
 export AUTODEPLOY_MESSAGE="deployment image update from travis_deploy_script"
 
-if [ "${TRAVIS_BRANCH}" != "master" ]; then
-    echo " > skipping deployment - branch is not master"
+if [ "${DEPLOYMENT_BOT_GITHUB_TOKEN}" == "" ] || \
+   [ "${SERVICE_ACCOUNT_B64_JSON_SECRET_KEY}" == "" ] || \
+   [ "${B64_ENV_FILE}" == "" ] \
+; then
+    echo " > following environment variables are required for travis deploy: "
+    echo " > (they should be created by provision script and set in travis env)"
+    echo " > SERVICE_ACCOUNT_B64_JSON_SECRET_KEY"
+    echo " > DEPLOYMENT_BOT_GITHUB_TOKEN"
+    echo " > B64_ENV_FILE"
     exit 0
 fi
 
-if [ "${TRAVIS_REPO_SLUG}" != "hasadna/knesset-data-pipelines" ]; then
-    echo " > Skipping deployment - repo is not hasadna/knesset-data-pipelines"
+echo "${B64_ENV_FILE}" | base64 -d > ".tmp-k8s-env"
+source ".tmp-k8s-env"
+mv .tmp-k8s-env "devops/k8s/.env.${K8S_ENVIRONMENT}"
+
+if [ "${TRAVIS_BRANCH}" != "${CONTINUOUS_DEPLOYMENT_BRANCH}" ]; then
+    echo " > skipping deployment - branch is not ${CONTINUOUS_DEPLOYMENT_BRANCH}"
     exit 0
 fi
 
@@ -22,19 +33,8 @@ if echo "${TRAVIS_COMMIT_MESSAGE}" | grep "${AUTODEPLOY_MESSAGE}" > /dev/null; t
     exit 0
 fi
 
-if [ "${DEPLOYMENT_BOT_GITHUB_TOKEN}" == "" ] || [ "${SERVICE_ACCOUNT_B64_JSON_SECRET_KEY}" == "" ]; then
-    echo " > following environment variables are required for travis deploy: "
-    echo " > (they should be created by provision script)"
-    echo " > SERVICE_ACCOUNT_B64_JSON_SECRET_KEY"
-    echo " > DEPLOYMENT_BOT_GITHUB_TOKEN"
-    exit 0
-fi
-
-# only production environment is supported at the moment
-export K8S_ENVIRONMENT="production"
-
-export GIT_CONFIG_USER="oknesset-deployment-bot"
-export GIT_CONFIG_EMAIL="ori+oknesset-deployment-bot@uumpa.com"
+export GIT_CONFIG_USER="${CONTINUOUS_DEPLOYMENT_GIT_USER}"
+export GIT_CONFIG_EMAIL="${CONTINUOUS_DEPLOYMENT_GIT_EMAIL}"
 
 echo " > install and authenticate with gcloud"  # based on http://thylong.com/ci/2016/deploying-from-travis-to-gce/
 
@@ -53,19 +53,20 @@ export BUILD_LOCAL=1
 IID_FILE="devops/k8s/iidfile-${K8S_ENVIRONMENT}-app"
 OLD_APP_IID=`cat "${IID_FILE}"`
 
-bin/k8s_continuous_deployment.sh || exit 1
-
-NEW_APP_IID=`cat "${IID_FILE}"`
-
-if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
-    echo " > Committing app image changes to GitHub"
-    git config user.email "${GIT_CONFIG_EMAIL}"
-    git config user.name "${GIT_CONFIG_USER}"
-    git diff devops/k8s/values-production-image-app.yaml "${IID_FILE}"
-    git add devops/k8s/values-production-image-app.yaml "${IID_FILE}"
-    git commit -m "${AUTODEPLOY_MESSAGE}"
-    git push "https://${DEPLOYMENT_BOT_GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" "HEAD:${TRAVIS_BRANCH}"
+if ! bin/k8s_continuous_deployment.sh; then
+    echo " > Failed continuous deployment"
+    exit 1
+else
+    NEW_APP_IID=`cat "${IID_FILE}"`
+    if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
+        echo " > Committing app image change to GitHub"
+        git config user.email "${GIT_CONFIG_EMAIL}"
+        git config user.name "${GIT_CONFIG_USER}"
+        git diff devops/k8s/values-${K8S_ENVIRONMENT}-image-app.yaml "${IID_FILE}"
+        git add devops/k8s/values-${K8S_ENVIRONMENT}-image-app.yaml "${IID_FILE}"
+        git commit -m "${AUTODEPLOY_MESSAGE}"
+        git push "https://${DEPLOYMENT_BOT_GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" "HEAD:${TRAVIS_BRANCH}"
+    fi
+    echo " > done"
+    exit 0
 fi
-
-echo " > done"
-exit 0
