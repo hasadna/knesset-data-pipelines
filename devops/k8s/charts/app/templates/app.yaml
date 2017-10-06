@@ -53,6 +53,7 @@ spec:
           mountPath: /knesset/data
           subPath: data
         {{ end }}
+      {{ if not .Values.skipCreateDB }}
       initContainers:
       - name: postgresql-create-db
         image: sameersbn/postgresql:9.6-2
@@ -63,6 +64,7 @@ spec:
         - {name: APP_DB_USER, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "APP_DB_USER"}}}
         - {name: APP_DB_PORT, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "APP_DB_PORT"}}}
         - {name: PGPASSWORD, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "APP_DB_PASS"}}}
+      {{ end }}
       volumes:
       {{ if .Values.global.sharedHostName }}
       - name: host

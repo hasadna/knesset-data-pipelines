@@ -10,6 +10,8 @@
 
 if [ "${K8S_ENVIRONMENT}" == "" ]; then
     export K8S_ENVIRONMENT="staging"
+else
+    export K8S_ENVIRONMENT="${K8S_ENVIRONMENT}"
 fi
 
 if [ ! -f "devops/k8s/.env.${K8S_ENVIRONMENT}" ]; then
