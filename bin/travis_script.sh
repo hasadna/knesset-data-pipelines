@@ -10,6 +10,9 @@ fi
 
 if [ "${TRAVIS_PULL_REQUEST}" != "false" ] || [ "${TRAVIS_BRANCH}" != "${CONTINUOUS_DEPLOYMENT_BRANCH}" ]; then
     echo " > running tests"
+    sudo apt-get update
+    sudo apt-get install -y antiword
+    pip install tox
     if ! bin/test.sh; then
         echo " > Tests failed!"
         exit 1
@@ -39,6 +42,13 @@ fi
 
 export GIT_CONFIG_USER="${CONTINUOUS_DEPLOYMENT_GIT_USER}"
 export GIT_CONFIG_EMAIL="${CONTINUOUS_DEPLOYMENT_GIT_EMAIL}"
+
+echo " > install docker"
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo apt-get update
+sudo apt-get -y install docker-ce
 
 echo " > install and authenticate with gcloud"  # based on http://thylong.com/ci/2016/deploying-from-travis-to-gce/
 
