@@ -50,18 +50,19 @@ gcloud --quiet components update kubectl
 export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 export BUILD_LOCAL=1
 
-OLD_APP_IID=`cat devops/k8s/iidfile-app`
+IID_FILE="devops/k8s/iidfile-${K8S_ENVIRONMENT}-app"
+OLD_APP_IID=`cat "${IID_FILE}"`
 
 bin/k8s_continuous_deployment.sh || exit 1
 
-NEW_APP_IID=`cat devops/k8s/iidfile-app`
+NEW_APP_IID=`cat "${IID_FILE}"`
 
 if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
     echo " > Committing app image changes to GitHub"
     git config user.email "${GIT_CONFIG_EMAIL}"
     git config user.name "${GIT_CONFIG_USER}"
-    git diff devops/k8s/values-production-image-app.yaml devops/k8s/iidfile-app
-    git add devops/k8s/values-production-image-app.yaml devops/k8s/iidfile-app
+    git diff devops/k8s/values-production-image-app.yaml "${IID_FILE}"
+    git add devops/k8s/values-production-image-app.yaml "${IID_FILE}"
     git commit -m "${AUTODEPLOY_MESSAGE}"
     git push "https://${DEPLOYMENT_BOT_GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" "HEAD:${TRAVIS_BRANCH}"
 fi

@@ -4,8 +4,8 @@
 # depending on the changes made - you might need to perform additional actions to complete the deployment
 # see devops/k8s/README.md for more details
 
-source bin/k8s_connect.sh
-source bin/k8s_recreate_templates.sh
+source bin/k8s_connect.sh > /dev/null
+source bin/k8s_recreate_templates.sh > /dev/null
 
 
 ENVIRONMENT_VALUES_FILE_PARAM=`[ -f "devops/k8s/values-${K8S_ENVIRONMENT}.yaml" ] && echo "-fdevops/k8s/values-${K8S_ENVIRONMENT}.yaml"`

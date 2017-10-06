@@ -37,14 +37,15 @@ if ! source bin/k8s_connect.sh; then
     exit 6
 fi
 
-OLD_APP_IID=`cat devops/k8s/iidfile-app`
+IID_FILE="devops/k8s/iidfile-${K8S_ENVIRONMENT}-app"
+OLD_APP_IID=`cat "${IID_FILE}"`
 
 if ! bin/k8s_build_push.sh --app; then
     echo " > Failed to build/push app"
     exit 7
 fi
 
-NEW_APP_IID=`cat devops/k8s/iidfile-app`
+NEW_APP_IID=`cat "${IID_FILE}"`
 
 if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
     echo " > detected changes in app image - ensuring app deployment will be updated"

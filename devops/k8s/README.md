@@ -14,49 +14,41 @@
 This will create a standard staging cluster for infrastructure development and testing.
 
 Running the script will show the deployment details and require to input a billable google project id before creating the cluster.
+* `bin/k8s_provision.sh cluster`
 
-* `bin/k8s_create.sh`
-  * To modify cluster creation or for production environment, read this script and run manually as needed
-
-### Pre-Deployment
-
-This steps should be done before first deployment:
-
-* Build the images and push to the private google docker registry
-  * `bin/k8s_build_push.sh`
-* Initialize helm
-  * `helm init --upgrade`
-* Create the secrets
-  * `bin/k8s_recreate_secrets.sh`
-
-### Deployment
-
+Deploy the knesset-data-pipelines Helm release:
 * `bin/k8s_helm_upgrade.sh`
 
-### Post-Deployment
-
-The helm upgrade script doesn't always restart pods, depending on the changes made.
+## Debugging
 
 Bear in mind that some services might take a while to start, so be patient before panicking that something doesn't work.
 
-If you find that a service or pod doesn't start, or to debug:
+The helm upgrade script doesn't always restart pods, depending on the changes made.
 
-* Connect to the relevant environment and setup kubectl bash autocompletion
-  * `source bin/k8s_connect.sh`
-* Check the pods - all should be RUNNING
+Open the Kubernetes dashboard
+* `bin/k8s_proxy.sh & google-chrome http://localhost:8001/ui`
+
+Force update of a deployment:
+* `bin/k8s_force_update.sh <DEPLOYMENT_NAME>`
+
+Do a hard-reset to ensure everything is deployed (causes significant down-time):
+* `bin/k8s_hard_reset.sh`
+
+Connect to the relevant environment, use kubectl bash autocompletion to debug
+* Check the pods
   * `kubectl get pods`
-  * Drill down to a specific pod
-    * `kubectl describe <TAB><TAB>`
-* Force update of a specific deployment:
-  * `bin/k8s_force_update.sh <DEPLOYMENT_NAME>`
+* Drill down to a specific pod
+  * `kubectl describe <TAB><TAB>`
 * Wait for rollout of a specific deployment
   * `kubectl rollout status deployment <TAB><TAB>`
-* Do a hard-reset to ensure everything is deployed:
-  * `bin/k8s_hard_reset.sh`
+* explore the Kubectl cli
+  * `kubectl <TAB><TAB>`
 
 ## Available cluster internal endpoints
 
-Keep the proxy running the background
+Using the Kubernetes proxy you can access internal services
+
+Run the proxy:
 
 * `bin/k8s_proxy.sh`
 
@@ -72,18 +64,14 @@ With the default minimal environment you should have access to the following end
   * Database: app
 * Flower (Celery management): http://localhost:8001/api/v1/namespaces/default/services/flower/proxy/
 
-You can use the following snippet to open all endpoints in Google Chrome:
+You can access other Kubernetes services, just use the following template:
+* `http://localhost:8001/api/v1/namespaces/default/services/<K8S_SERVICE_NAME>/proxy/`
+
+You can use the following snippet to open all default endpoints in Google Chrome:
 
 * `google-chrome http://localhost:8001/ui http://localhost:8001/api/v1/namespaces/default/services/app/proxy/ http://localhost:8001/api/v1/namespaces/default/services/adminer/proxy/ http://localhost:8001/api/v1/namespaces/default/services/flower/proxy/`
 
-## Enabling additional services / custom configuration
-
-The default staging environment is minimal, to enable additional services:
-
-* Create custom values file
-  * `touch devops/k8s/values-staging.yaml`
-* Append configurations to the file, according to the following sections
-* Follow the deployment and post-deployment procedures above
+## Additional services / custom configuration
 
 ### Restoring from DB backup
 
@@ -103,7 +91,6 @@ gsutil cp -Z dump.sql "gs://${STORAGE_BUCKET_NAME}/dump.sql"
 Provision the db restore resources
 
 ```
-source bin/k8s_connect.sh
 GS_URL="<google storage url with an sql dump>" bin/k8s_provision.sh db-restore
 bin/k8s_helm_upgrade.sh
 ```
@@ -123,7 +110,6 @@ Once restore is complete, you might need to setup the services:
 The default environment doesn't run any workers, this provisions 1 worker:
 
 ```
-source bin/k8s_connect.sh
 bin/k8s_provision.sh dpp-workers
 bin/k8s_helm_upgrade.sh
 ```
@@ -131,7 +117,6 @@ bin/k8s_helm_upgrade.sh
 ### Metabase - user friendly DB UI
 
 ```
-source bin/k8s_connect.sh
 bin/k8s_provision.sh metabase
 bin/k8s_helm_upgrade.sh
 ```
@@ -147,7 +132,6 @@ You can add a database using the same configuration detailed above for Adminer
 ### Visualize pipeline metrics in Grafana (Via InfluxDB)
 
 ```
-source bin/k8s_connect.sh
 bin/k8s_provision.sh grafana
 bin/k8s_helm_upgrade.sh
 ```
@@ -170,7 +154,6 @@ Once deployed, do the initial Grafana setup:
 the shared host path hack allows simple shared directories between pods
 
 ```
-source bin/k8s_connect.sh
 bin/k8s_provision.sh shared-host
 bin/k8s_helm_upgrade.sh
 ```
@@ -180,7 +163,6 @@ bin/k8s_helm_upgrade.sh
 Expose services via paths on a load balancer, supports ssl and http password
 
 ```
-source bin/k8s_connect.sh
 bin/k8s_provision.sh nginx
 bin/k8s_helm_upgrade.sh
 ```
@@ -196,7 +178,6 @@ google-chrome "${NGINX_HOST}/pipelines" "${NGINX_HOST}/adminer" "${NGINX_HOST}/f
 ### Let's encrypt
 
 ```
-source bin/k8s_connect.sh
 bin/k8s_provision.sh letsencrypt
 bin/k8s_helm_upgrade.sh
 ```
@@ -236,7 +217,6 @@ bin/k8s_provision.sh letsencrypt
 ### Committees Webapp
 
 ```
-source bin/k8s_connect.sh
 bin/k8s_provision.sh committees
 bin/k8s_helm_upgrade.sh
 google-chrome "https://${SSL_DOMAIN}/committees"
@@ -245,8 +225,14 @@ google-chrome "https://${SSL_DOMAIN}/committees"
 ### Upload daily DB backups to google cloud storage
 
 ```
-source bin/k8s_connect.sh
 bin/k8s_provision.sh db-backup
+bin/k8s_helm_upgrade.sh
+```
+
+### Continuous Deployment
+
+```
+bin/k8s_provision.sh continuous-deployment
 bin/k8s_helm_upgrade.sh
 ```
 

@@ -12,7 +12,7 @@
 # by default it downloads latest master branch, to build from local copy:
 #    'BUILD_LOCAL=1 bin/k8s_build_push.sh`
 
-source bin/k8s_connect.sh
+source bin/k8s_connect.sh > /dev/null
 
 if [ -f VERSION.txt ]; then
     export VERSION=`cat VERSION.txt`
@@ -23,62 +23,66 @@ else
 fi
 
 build_push() {
-    # build_push <app_name> <github_user> <github_repo> <github_branch_name=master> <build_dir>
-    APP_NAME="${1}"
-    if [ "${BUILD_LOCAL}" == "1" ] && [ "${1}" == "committees" ] && [ ! -f "../knesset-data-committees-webapp/Dockerfile" ]; then
-        echo
-        echo " > WARNING!"
-        echo
-        echo " > cannot build committees webapp locally, will build from remote repo."
-        echo
-        echo " > This repo is expected to be in ../knesset-data-committees-webapp/"
-        echo " > You can run this snippet to clone it:"
-        echo " > git clone git@github.com:OriHoch/knesset-data-committees-webapp.git ../knesset-data-committees-webapp/"
-        echo
-        BUILD_LOCAL=""
+    local APP_NAME="${1}"
+    local GITHUB_USER="${2}"
+    local GITHUB_REPO="${3}"
+    local GITHUB_BRANCH="${4}"
+    local BUILD_DIR="${5}"
+    if [ "${BUILD_LOCAL}" == "1" ]; then
+        if [ "${APP_NAME}" == "committees" ]; then
+            if [ -f "../knesset-data-committees-webapp/Dockerfile" ]; then
+                # set build dir to local copy of the committees webapp
+                local BUILD_DIR="../knesset-data-committees-webapp/"
+                # clearing GitHub details - which will cause to build locally
+                local GITHUB_USER=""
+                local GITHUB_REPO=""
+                local GITHUB_BRANCH=""
+            else
+                echo
+                echo " > WARNING!"
+                echo
+                echo " > cannot build committees webapp locally, will build from remote repo."
+                echo
+                echo " > This repo is expected to be in ../knesset-data-committees-webapp/"
+                echo " > You can run this snippet to clone it:"
+                echo " > git clone git@github.com:OriHoch/knesset-data-committees-webapp.git ../knesset-data-committees-webapp/"
+                echo
+            fi
+        else
+            # clearing GitHub details - which will cause to build locally
+            local GITHUB_USER=""
+            local GITHUB_REPO=""
+            local GITHUB_BRANCH=""
+        fi
     fi
-    if [ "${BUILD_LOCAL}" == "1" ] && [ "${3}" == "knesset-data-pipelines" ]; then
-        GITHUB_USER=""
-        GITHUB_REPO=""
-        BRANCH_NAME=""
-    else
-        GITHUB_USER="${2}"
-        GITHUB_REPO="${3}"
-        BRANCH_NAME="${4}"
-    fi
-    BUILD_DIR="${5}"
-
-    SOURCE_CODE_URL="https://codeload.github.com/${GITHUB_USER}/${GITHUB_REPO}/zip/${BRANCH_NAME}"
-    DOCKER_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/knesset-data-pipelines-${APP_NAME}:${VERSION}"
+    SOURCE_CODE_URL="https://codeload.github.com/${GITHUB_USER}/${GITHUB_REPO}/zip/${GITHUB_BRANCH}"
+    DOCKER_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/knesset-data-pipelines-${K8S_ENVIRONMENT}-${APP_NAME}:${VERSION}"
     IMAGE_VALUES_FILE="devops/k8s/values-${K8S_ENVIRONMENT}-image-${APP_NAME}.yaml"
-
-    if [ -f "devops/k8s/iidfile-${APP_NAME}" ]; then
-        OLD_IID=`cat "devops/k8s/iidfile-${APP_NAME}"`
+    IID_FILE="devops/k8s/iidfile-${K8S_ENVIRONMENT}-${APP_NAME}"
+    if [ -f "${IID_FILE}" ]; then
+        OLD_IID=`cat "${IID_FILE}"`
     else
         OLD_IID=""
     fi
-
     if [ "${GITHUB_REPO}" == "" ]; then
         echo " > building from local directory ${BUILD_DIR}"
-        gcloud docker -- build -t "${DOCKER_TAG}" --iidfile "devops/k8s/iidfile-${APP_NAME}" "${BUILD_DIR}" || exit 1
+        gcloud docker -- build -q -t "${DOCKER_TAG}" --iidfile "${IID_FILE}" "${BUILD_DIR}" || exit 1
     else
         echo " > downloading source code from ${SOURCE_CODE_URL}"
         TEMPDIR=`mktemp -d`
-        pushd $TEMPDIR
-        curl "${SOURCE_CODE_URL}" > source.zip
-        unzip source.zip
-        rm source.zip
-        popd
-        pushd "${TEMPDIR}/${GITHUB_REPO}-master"
+        pushd $TEMPDIR > /dev/null
+        curl -sS "${SOURCE_CODE_URL}" > source.zip
+        unzip -q source.zip
+        rm source.zip > /dev/null
+        popd > /dev/null
+        pushd "${TEMPDIR}/${GITHUB_REPO}-master" > /dev/null
         echo " > building directory ${TEMPDIR}/${BUILD_DIR}"
-        gcloud docker -- build -t "${DOCKER_TAG}" --iidfile ./iidfile "${BUILD_DIR}" || exit 2
-        popd
-        cp "${TEMPDIR}/${GITHUB_REPO}-master/iidfile" "devops/k8s/iidfile-${APP_NAME}"
-        rm -rf $TEMPDIR
+        gcloud docker -- build -q -t "${DOCKER_TAG}" --iidfile ./iidfile "${BUILD_DIR}" || exit 2
+        popd > /dev/null
+        cp "${TEMPDIR}/${GITHUB_REPO}-master/iidfile" "${IID_FILE}" > /dev/null
+        rm -rf $TEMPDIR > /dev/null
     fi
-
-    NEW_IID=`cat "devops/k8s/iidfile-${APP_NAME}"`
-
+    NEW_IID=`cat "${IID_FILE}"`
     if [ "${OLD_IID}" != "${NEW_IID}" ]; then
         echo " > pushing tag ${DOCKER_TAG}"
         gcloud docker -- push "${DOCKER_TAG}" || exit 3

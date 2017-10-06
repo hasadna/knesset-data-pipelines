@@ -2,7 +2,7 @@
 
 # stop all pods in the K8S cluster and start them in correct order, ensuring that environment is fully restarted
 
-source bin/k8s_connect.sh
+source bin/k8s_connect.sh > /dev/null
 
 if [ "${K8S_ENVIRONMENT}" != "staging" ]; then
     echo "hard reset is only supported on staging environment"

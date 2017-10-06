@@ -8,7 +8,6 @@
 # To force re-authentication to google, run the following:
 # source bin/k8s_connect.sh; rm "devops/k8s/.env.${K8S_ENVIRONMENT}"; source bin/k8s_connect.sh
 
-
 if [ "${K8S_ENVIRONMENT}" == "" ]; then
     export K8S_ENVIRONMENT="staging"
 fi
