@@ -50,30 +50,21 @@ gcloud --quiet components update kubectl
 export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 export BUILD_LOCAL=1
 
+OLD_APP_IID=`cat devops/k8s/iidfile-app`
+
 bin/k8s_continuous_deployment.sh || exit 1
 
-echo " > Updating GitHub"
-git config user.email "${GIT_CONFIG_EMAIL}"
-git config user.name "${GIT_CONFIG_USER}"
-git diff devops/k8s/values-production-image-app.yaml
-git add devops/k8s/values-production-image-app.yaml
-git commit -m "${AUTODEPLOY_MESSAGE}"
-git push "https://${DEPLOYMENT_BOT_GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" "HEAD:${TRAVIS_BRANCH}"
+NEW_APP_IID=`cat devops/k8s/iidfile-app`
 
+if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
+    echo " > Committing app image changes to GitHub"
+    git config user.email "${GIT_CONFIG_EMAIL}"
+    git config user.name "${GIT_CONFIG_USER}"
+    git diff devops/k8s/values-production-image-app.yaml devops/k8s/iidfile-app
+    git add devops/k8s/values-production-image-app.yaml devops/k8s/iidfile-app
+    git commit -m "${AUTODEPLOY_MESSAGE}"
+    git push "https://${DEPLOYMENT_BOT_GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" "HEAD:${TRAVIS_BRANCH}"
+fi
 
-#
-#
-#echo " > update pipelines app image and commit to git"
-#
-#pip install pyyaml || pip3 install pyyaml || true
-#bin/k8s_update_deployment_image.py "app" "gcr.io/hasadna-oknesset/knesset-data-pipelines:${TRAVIS_COMMIT}"
-#git config user.email ori+oknesset-deployment-bot@uumpa.com
-#git config user.name oknesset-deployment-bot
-#git add "devops/k8s/app.yaml"
-#git commit -m "deployment image update: app=gcr.io/hasadna-oknesset/knesset-data-pipelines:${TRAVIS_COMMIT}"
-#git push "https://${DEPLOYMENT_BOT_GITHUB_TOKEN}@github.com/hasadna/knesset-data-pipelines.git" HEAD:master
-#
-#
-#echo " > deploy"
-#
-#bin/k8s_deploy.sh
+echo " > done"
+exit 0

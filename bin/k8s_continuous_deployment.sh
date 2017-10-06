@@ -37,16 +37,16 @@ if ! source bin/k8s_connect.sh; then
     exit 6
 fi
 
-OLD_IID=`cat devops/k8s/iidfile-app`
+OLD_APP_IID=`cat devops/k8s/iidfile-app`
 
 if ! bin/k8s_build_push.sh --app; then
     echo " > Failed to build/push app"
     exit 7
 fi
 
-NEW_IID=`cat devops/k8s/iidfile-app`
+NEW_APP_IID=`cat devops/k8s/iidfile-app`
 
-if [ "${OLD_IID}" != "${NEW_IID}" ]; then
+if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
     echo " > detected changes in app image - ensuring app deployment will be updated"
     if ! bin/k8s_helm_upgrade.sh --recreate-pods; then
         echo " > Failed helm upgrade"
