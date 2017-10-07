@@ -40,7 +40,7 @@ spec:
           requests:
             cpu: {{.Values.cpuRequests | default "0.4"}}
             memory: {{.Values.memoryRequests | default "500Mi" | quote}}
-      {{ if not .Values.skipCreateDB }}
+      {{ if not .Values.global.skipInitContainers }}
       initContainers:
       - name: postgresql-create-db
         image: sameersbn/postgresql:9.6-2

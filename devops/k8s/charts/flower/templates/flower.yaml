@@ -38,11 +38,12 @@ spec:
         resources:
           requests:
             cpu: {{.Values.cpuRequests | default "0.01"}}
-        readinessProbe:
-          initialDelaySeconds: 5
-          periodSeconds: 10
-          timeoutSeconds: 10
-          httpGet:
-            path: /
-            port: 5555
+            memory: {{.Values.memoryRequests | default "5Mi" | quote}}
+#        readinessProbe:
+#          initialDelaySeconds: 5
+#          periodSeconds: 10
+#          timeoutSeconds: 10
+#          httpGet:
+#            path: /
+#            port: 5555
 {{ end }}
