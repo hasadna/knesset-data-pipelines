@@ -1,13 +1,9 @@
 from datapackage_pipelines.wrapper import ingest, spew
-import logging, os
+import logging, json
 
-DEFAULT_SAVE_SCHEMA = "../data/aggregation/{table_name}.html"
+DEFAULT_SAVE_SCHEMA = "../data/aggregations/{table_name}.{ext}"
 
 parameters, datapackage, resources = ingest()
-
-def filter_resource(descriptor, data):
-    for row in data:
-        yield row
 
 def _get_schema_table(tablename, fields, primaryKey):
     html = "<h1>{tablename}</h1>".format(tablename=tablename)
@@ -23,15 +19,11 @@ def _get_schema_table(tablename, fields, primaryKey):
 
     return html
 
-def filter_resources(datapackage, resources, parameters):
-    save_schema = DEFAULT_SAVE_SCHEMA.format(table_name=datapackage["name"])
-    if not os.path.exists(os.path.dirname(save_schema)):
-        try:
-            os.makedirs(os.path.dirname(save_schema))
-        except OSError as e:
-            logging.exception(e)
-            raise
+def filter_resource(descriptor, data):
+    for row in data:
+        yield row
 
+def filter_resources(datapackage, resources, parameters):
     tables = []
     for resource_descriptor, resource_data in zip(datapackage["resources"], resources):
         schema = resource_descriptor["schema"]
@@ -39,9 +31,16 @@ def filter_resources(datapackage, resources, parameters):
 
         yield filter_resource(resource_descriptor, resource_data)
 
-    html = """<html><head></head><body>{tables}</body></html>""".format(tables="".join(tables))
-    with open(save_schema, "w") as f:
-        f.write(html)
+    html = """<html><head><meta charset="UTF-8"></head><body>{tables}</body></html>""".format(tables="".join(tables))
+
+    save_schema = parameters.get("save-schema", DEFAULT_SAVE_SCHEMA)
+    if save_schema:
+        save_schema_html = DEFAULT_SAVE_SCHEMA.format(table_name=datapackage["name"], ext="html")
+        save_schema_json = DEFAULT_SAVE_SCHEMA.format(table_name=datapackage["name"], ext="json")
+        with open(save_schema_html, "w") as f:
+            f.write(html)
+        with open(save_schema_json, "w") as f:
+            json.dump(datapackage["resources"], f, indent=2, ensure_ascii=False)
 
 
 spew(datapackage, filter_resources(datapackage, resources, parameters))
