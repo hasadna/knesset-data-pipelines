@@ -110,3 +110,17 @@ You can set some environment variables to modify behaviors, see a refernece at .
 
 * using docker: `bin/dpp.sh`
 * locally (from an activated virtualenv): `dpp`
+
+## Run all pipelines at once
+
+**Warning** this might seriously overload your CPU, use with caution..
+
+```
+docker-compose up -d redis db minio
+source .env.example
+for PIPELINE in `dpp | tail -n+2 | cut -d" " -f2 -`; do
+    dpp run "${PIPELINE}" &
+done
+```
+
+

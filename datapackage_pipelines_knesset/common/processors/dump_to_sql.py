@@ -3,10 +3,11 @@ from tableschema_sql.mappers import descriptor_to_columns_and_constraints
 from sqlalchemy import Table
 import logging, json
 from sqlalchemy.orm import mapper
+from datapackage_pipelines_knesset.common import object_storage
 
 
 DEFAULT_COMMIT_EVERY = 1000
-DEFAULT_SAVE_SCHEMA = "../data/table_schemas/{table_name}.{ext}"
+DEFAULT_SAVE_SCHEMA = "table-schemas/{table_name}.{ext}"
 
 
 class Processor(BaseDumpProcessor):
@@ -103,14 +104,14 @@ from
                                  sql_query=self._get_schema_sql_query())
 
     def _save_schema_json(self, save_schema):
-        filename = save_schema.format(table_name=self._tablename, ext="json")
-        with open(filename, "w") as f:
-            json.dump(self._schema, f, indent=2)
+        object_name = save_schema.format(table_name=self._tablename, ext="json")
+        bucket = self._parameters["schemas-bucket"]
+        object_storage.write(bucket, object_name, json.dumps(self._schema, indent=2))
 
     def _save_schema_html(self, save_schema):
-        filename = save_schema.format(table_name=self._tablename, ext="html")
-        with open(filename, "w") as f:
-            f.write(self._get_schema_html())
+        object_name = save_schema.format(table_name=self._tablename, ext="html")
+        bucket = self._parameters["schemas-bucket"]
+        object_storage.write(bucket, object_name, self._get_schema_html())
 
     def _filter_resource(self, resource_number, resource_data):
         self._tablename = self._parameters["table"]

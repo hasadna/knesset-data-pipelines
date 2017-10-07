@@ -1,7 +1,8 @@
 from datapackage_pipelines_knesset.dataservice.processors.base_processor import BaseDataserviceProcessor
 from knesset_data.dataservice.base import BaseKnessetDataServiceCollectionObject
-import os
+import os, logging
 from datapackage_pipelines_knesset.common.influxdb import send_metric_parameters
+from datapackage_pipelines_knesset.common import utils
 
 
 class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
@@ -19,14 +20,19 @@ class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
 
     def _get_resource(self):
         resources_yielded = 0
-        for dataservice_object in self.dataservice_class.get_all():
-            resources_yielded += 1
-            if os.environ.get("OVERRIDE_DATASERVICE_COLLECTION_LIMIT_ITEMS",""):
-                if int(os.environ.get("OVERRIDE_DATASERVICE_COLLECTION_LIMIT_ITEMS","")) < resources_yielded:
-                    return
-            row = self._filter_dataservice_object(dataservice_object)
-            self._send_metric("filter_row", {}, {"fields": len(row)})
-            yield row
+        with utils.temp_loglevel():
+            logging.info("Loading dataservice resource from service {} method {}".format(self._parameters["service-name"],
+                                                                                         self._parameters["method-name"]))
+            for dataservice_object in self.dataservice_class.get_all():
+                resources_yielded += 1
+                if os.environ.get("OVERRIDE_DATASERVICE_COLLECTION_LIMIT_ITEMS",""):
+                    if int(os.environ.get("OVERRIDE_DATASERVICE_COLLECTION_LIMIT_ITEMS","")) < resources_yielded:
+                        return
+                row = self._filter_dataservice_object(dataservice_object)
+                self._send_metric("filter_row", {}, {"fields": len(row)})
+                yield row
+                if resources_yielded%100 == 0:
+                    logging.info("Loaded {} dataservice objects".format(resources_yielded))
         self._send_metric("filter_resource", {}, {"filtered_rows": resources_yielded})
 
     def _process(self, datapackage, resources):

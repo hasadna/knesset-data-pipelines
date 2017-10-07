@@ -1,7 +1,8 @@
 from datapackage_pipelines_knesset.common.processors.base_processor import BaseProcessor
 from knesset_data.protocols.committee import CommitteeMeetingProtocol
 from knesset_data.protocols.exceptions import AntiwordException
-import os, csv, json, subprocess, logging, shutil
+import os, csv, json, subprocess, logging, shutil, tempfile
+from datapackage_pipelines_knesset.common import object_storage
 
 
 class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
@@ -11,108 +12,88 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
         self._schema["fields"] = [
             {"name": "kns_committee_id", "type": "integer", "description": "primary key from kns_committee table"},
             {"name": "kns_session_id", "type": "integer", "description": "primary key from kns_committeesession table"},
-            {"name": "protocol_url", "type": "string"},
-            {"name": "text_url", "type": "string"},
-            {"name": "parts_url", "type": "string"},]
+            {"name": "protocol_object_name", "type": "string", "description": "storage object name containing the downloaded protocol"},
+            {"name": "protocol_extension", "type": "string", "description": "file extension of the downloaded protocol"},
+            {"name": "text_object_name", "type": "string", "description": "storage object name containing the parsed protocol text"},
+            {"name": "parts_object_name", "type": "string", "description": "storage object name containing the parsed protocol csv"},]
         self._schema["primaryKey"] = ["kns_session_id"]
-        self._all_filenames = []
 
     def _process(self, datapackage, resources):
         return self._process_filter(datapackage, resources)
 
-    def _get_filename(self, relpath):
-        return os.path.join(self._parameters["out-path"], relpath)
-
     def _filter_row(self, meeting_protocol, **kwargs):
-        committee_id = meeting_protocol["kns_committee_id"]
-        meeting_id = meeting_protocol["kns_session_id"]
-        parts_relpath = os.path.join(str(committee_id), "{}.csv".format(meeting_id))
-        text_relpath = os.path.join(str(committee_id), "{}.txt".format(meeting_id))
-        parts_filename = self._get_filename(parts_relpath)
-        text_filename = self._get_filename(text_relpath)
-        protocol_filename = meeting_protocol["protocol_file"].strip()
-        protocol_ext = ".docx" if protocol_filename.endswith(".docx") else protocol_filename[-4:]
-        if not os.path.exists(parts_filename) or os.path.getsize(parts_filename) < 5:
-            self._ensure_parts_path_exists(parts_filename, parts_relpath)
-            if protocol_ext == ".doc":
-                parse_res = self._parse_doc_protocol(committee_id, meeting_id, protocol_filename, parts_filename,
-                                                     text_filename)
-            elif protocol_ext == ".rtf":
-                parse_res = self._parse_rtf_protocol(committee_id, meeting_id, protocol_filename, parts_filename,
-                                                     text_filename)
-            elif protocol_ext == ".docx":
+        bucket = "committees"
+        protocol_object_name = meeting_protocol["protocol_object_name"]
+        protocol_extension = meeting_protocol["protocol_extension"]
+        base_object_name = "protocols/parsed/{}/{}".format(meeting_protocol["kns_committee_id"], meeting_protocol["kns_session_id"])
+        parts_object_name = "{}.csv".format(base_object_name)
+        text_object_name = "{}.txt".format(base_object_name)
+        if not object_storage.exists(bucket, parts_object_name, min_size=5):
+            parse_args = (meeting_protocol["kns_committee_id"], meeting_protocol["kns_session_id"],
+                          bucket, protocol_object_name, parts_object_name, text_object_name)
+            if protocol_extension == "doc":
+                parse_res = self._parse_doc_protocol(*parse_args)
+            elif protocol_extension == "rtf":
+                parse_res = self._parse_rtf_protocol(*parse_args)
+            elif protocol_extension == "docx":
                 parse_res = None
             else:
-                raise Exception("unknown extension: {}".format(protocol_ext))
+                raise Exception("unknown extension: {}".format(protocol_extension))
             if not parse_res:
-                if os.path.exists(text_filename):
-                    os.unlink(text_filename)
-                if os.path.exists(parts_filename):
-                    os.unlink(parts_filename)
-                text_filename = None
-                parts_filename = None
-        if parts_filename:
-            self._all_filenames += [parts_relpath]
-        if text_filename:
-            self._all_filenames += [text_relpath]
-        parsed_url = lambda f: "https://next.oknesset.org/data/committee-meeting-protocols-parsed/{}".format(f)
-        yield {"kns_committee_id": committee_id,
-               "kns_session_id": meeting_id,
-               "protocol_url": meeting_protocol["protocol_url"],
-               "text_url": parsed_url(text_relpath) if text_filename is not None else None,
-               "parts_url": parsed_url(parts_relpath) if parts_filename is not None else None,}
+                # in case parsing failed - we remove all parsed files, to ensure re-parse next time
+                object_storage.delete(bucket, text_object_name)
+                object_storage.delete(bucket, parts_object_name)
+                text_object_name = None
+                parts_object_name = None
+        yield {"kns_committee_id": meeting_protocol["kns_committee_id"],
+               "kns_session_id": meeting_protocol["kns_session_id"],
+               "protocol_object_name": protocol_object_name,
+               "protocol_extension": protocol_extension,
+               "text_object_name": text_object_name,
+               "parts_object_name": parts_object_name}
 
-    def _ensure_parts_path_exists(self, parts_filename, parts_relpath):
-        if parts_relpath not in self._all_filenames:
-            os.makedirs(os.path.dirname(parts_filename), exist_ok=True)
+    def _parse_rtf_protocol(self, committee_id, meeting_id, bucket, protocol_object_name, parts_object_name, text_object_name):
+        # currently with the new API - we don't seem to get rtf files anymore
+        # it looks like files which used to be rtf are actually doc
+        # need to investigate further
+        return False
+        # rtf_extractor = os.environ.get("RTF_EXTRACTOR_BIN")
+        # if rtf_extractor:
+        #     with object_storage.temp_download(protocol_object_name) as protocol_filename:
+        #         with tempfile.NamedTemporaryFile() as text_filename:
+        #             cmd = rtf_extractor + ' ' + protocol_filename + ' ' + text_filename
+        #             try:
+        #                 subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        #                 protocol_text = fs.read(text_filename)
+        #                 with CommitteeMeetingProtocol.get_from_text(protocol_text) as protocol:
+        #                     self._parse_protocol_parts(parts_filename, protocol)
+        #             except subprocess.SubprocessError:
+        #                 logging.exception("committee {} meeting {}: failed to parse rtf file, skipping".format(committee_id,
+        #                                                                                                        meeting_id))
+        #                 return False
+        #             return True
+        # else:
+        #     logging.warning("missing RTF_EXTRACTOR_BIN environment variable, skipping rtf parsing")
+        #     return False
 
-    def _parse_rtf_protocol(self, committee_id, meeting_id, protocol_filename, parts_filename, text_filename):
-        rtf_extractor = os.environ.get("RTF_EXTRACTOR_BIN")
-        if rtf_extractor:
-            cmd = rtf_extractor + ' ' + protocol_filename + ' ' + text_filename
-            try:
-                subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
-                with open(text_filename) as f:
-                    protocol_text = f.read()
-                with CommitteeMeetingProtocol.get_from_text(protocol_text) as protocol:
-                    self._parse_protocol_parts(parts_filename, protocol)
-            except subprocess.SubprocessError:
-                logging.exception("committee {} meeting {}: failed to parse rtf file, skipping".format(committee_id,
-                                                                                                       meeting_id))
-                return False
-            return True
-        else:
-            logging.warning("missing RTF_EXTRACTOR_BIN environment variable, skipping rtf parsing")
-            return False
-
-    def _parse_doc_protocol(self, committee_id, meeting_id, protocol_filename, parts_filename, text_filename):
+    def _parse_doc_protocol(self, committee_id, meeting_id, bucket, protocol_object_name, parts_object_name, text_object_name):
+        logging.info("parsing doc protocol {} --> {}, {}".format(protocol_object_name, parts_object_name, text_object_name))
         try:
-            with CommitteeMeetingProtocol.get_from_filename(protocol_filename) as protocol:
-                with open(text_filename, "w") as f:
-                    f.write(protocol.text)
-                    logging.info("parsed doc to text -> {}".format(text_filename))
-                self._parse_protocol_parts(parts_filename, protocol)
+            with object_storage.temp_download(bucket, protocol_object_name) as protocol_filename:
+                with CommitteeMeetingProtocol.get_from_filename(protocol_filename) as protocol:
+                    object_storage.write(bucket, text_object_name, protocol.text)
+                    self._parse_protocol_parts(bucket, parts_object_name, protocol)
         except (AntiwordException, subprocess.SubprocessError):
-            logging.exception("committee {} meeting {}: failed to parse doc file, skipping".format(committee_id,
-                                                                                                   meeting_id))
+            logging.exception("committee {} meeting {}: failed to parse doc file, skipping".format(committee_id, meeting_id))
             return False
         return True
 
-    def _parse_protocol_parts(self, parts_filename, protocol):
-        with open(parts_filename, "w") as f:
-            csv_writer = csv.writer(f)
+    def _parse_protocol_parts(self, bucket, parts_object_name, protocol):
+        with object_storage.csv_writer(bucket, parts_object_name) as csv_writer:
             csv_writer.writerow(["header", "body"])
             for part in protocol.parts:
                 csv_writer.writerow([part.header, part.body])
-            logging.info("parsed parts file -> {}".format(parts_filename))
-
-    def _process_cleanup(self):
-        filename = self._get_filename("datapackage.json")
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, "w") as f:
-            descriptor = {"name": "_", "path": self._all_filenames}
-            descriptor.update(**self._parameters.get("data-resource-descriptor", {}))
-            json.dump({"name": "_", "resources": [descriptor]}, f)
+            logging.info("parsed parts file -> {}".format(parts_object_name))
 
 if __name__ == '__main__':
     ParseCommitteeMeetingProtocolsProcessor.main()
