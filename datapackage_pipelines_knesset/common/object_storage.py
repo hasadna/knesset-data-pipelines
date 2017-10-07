@@ -6,12 +6,12 @@ from urllib.parse import urlparse
 
 
 def get_minio():
-    if not os.environ.get("DPP_MINIO_CONFIG"):
-        return False, False
+    if not os.environ.get("S3_ENDPOINT_URL") or not os.environ.get("AWS_ACCESS_KEY_ID") or not os.environ.get("AWS_SECRET_ACCESS_KEY"):
+        return False
     else:
-        host = urlparse(os.environ.get("S3_ENDPOINT_URL")).netloc
-        access_key = os.environ.get("AWS_ACCESS_KEY_ID")
-        secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+        host = urlparse(os.environ["S3_ENDPOINT_URL"]).netloc
+        access_key = os.environ["AWS_ACCESS_KEY_ID"]
+        secret_key = os.environ["AWS_SECRET_ACCESS_KEY"]
         return Minio(host, access_key, secret_key, secure=False)
 
 
