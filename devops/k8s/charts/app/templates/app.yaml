@@ -19,17 +19,13 @@ spec:
     metadata:
       labels: {app: {{.Values.name | default "app"}}}
     spec:
-      {{ if .Values.global.sharedHostName }}
-      # we use host path to share data between nginx and app to allow serving the data files
-      # we have to ensure both services use the same node
-      nodeSelector:
-        kubernetes.io/hostname: {{ .Values.global.sharedHostName | quote}}
-      {{ end }}
       containers:
       - env:
         - {name: DPP_DB_ENGINE, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "DPP_DB_ENGINE"}}}
         - {name: DPP_REDIS_HOST, value: "redis"}
-        - {name: DPP_WORKER_CONCURRENCY, value: {{.Values.dppWorkerConcurrency | default "1" | quote}}}
+        - {name: S3_ENDPOINT_URL, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "S3_ENDPOINT_URL"}}}
+        - {name: AWS_ACCESS_KEY_ID, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "AWS_ACCESS_KEY_ID"}}}
+        - {name: AWS_SECRET_ACCESS_KEY, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "AWS_SECRET_ACCESS_KEY"}}}
         - {name: RTF_EXTRACTOR_BIN, value: "/knesset/bin/rtf_extractor.py"}
         {{ if .Values.influxDb }}
         - {name: DPP_INFLUXDB_URL, value: "http://influxdb:8086"}
@@ -43,16 +39,6 @@ spec:
           requests:
             cpu: {{.Values.cpuRequests | default "0.4"}}
             memory: {{.Values.memoryRequests | default "500Mi" | quote}}
-        volumeMounts:
-        {{ if .Values.global.sharedHostName }}
-        - name: host
-          mountPath: /knesset/data
-          subPath: {{.Values.global.sharedHostAppDataSubPath | default "app-data" | quote}}
-        {{ else }}
-        - name: knesset-data-pipelines-app
-          mountPath: /knesset/data
-          subPath: data
-        {{ end }}
       {{ if not .Values.skipCreateDB }}
       initContainers:
       - name: postgresql-create-db
@@ -64,16 +50,5 @@ spec:
         - {name: APP_DB_USER, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "APP_DB_USER"}}}
         - {name: APP_DB_PORT, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "APP_DB_PORT"}}}
         - {name: PGPASSWORD, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "APP_DB_PASS"}}}
-      {{ end }}
-      volumes:
-      {{ if .Values.global.sharedHostName }}
-      - name: host
-        hostPath:
-          path: {{.Values.global.sharedHostPath | default "/var/shared-host-path" | quote}}
-      {{ else }}
-      - name: knesset-data-pipelines-app
-        gcePersistentDisk:
-          pdName: {{.Values.gcePersistentDiskName | quote}}
-          fsType: ext4
       {{ end }}
 {{ end }}
