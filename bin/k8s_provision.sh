@@ -138,6 +138,9 @@ if [ "${WHAT}" == "db" ]; then
 elif [ "${WHAT}" == "app" ]; then
     handle_disk_provisioning "${ACTION}" "${DISK_SIZE:-5GB}" "app" && exit 0
 
+elif [ "${WHAT}" == "minio" ]; then
+    handle_disk_provisioning "${ACTION}" "${DISK_SIZE:-5GB}" "minio" && exit 0
+
 elif [ "${WHAT}" == "cluster" ]; then
     if [ "${ACTION}" == "--provision" ]; then
         if [ -f "devops/k8s/.env.${K8S_ENVIRONMENT}" ]; then
@@ -175,6 +178,11 @@ elif [ "${WHAT}" == "cluster" ]; then
         echo " > Creating persistent disks"
         bin/k8s_provision.sh db
         bin/k8s_provision.sh app
+        if [ "${K8S_ENVIRONMENT}" == "production" ]; then
+            DISK_SIZE=50GB bin/k8s_provision.sh minio
+        else
+            bin/k8s_provision.sh minio
+        fi
         echo " > sleeping 10 seconds to let cluster initialize some more.."
         bin/k8s_provision.sh helm
         bin/k8s_provision.sh secrets
@@ -290,10 +298,6 @@ elif [ "${ACTION}-${WHAT}" == "--provision-nginx" ]; then
     export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/nginx.yaml"
     echo "nginx:" > $VALUES_FILE
     echo "  enabled: true" >> $VALUES_FILE
-    echo "  enableData: true" >> $VALUES_FILE
-    echo "  enablePipelines: true" >> $VALUES_FILE
-    echo "  enableFlower: true" >> $VALUES_FILE
-    echo "  enableAdminer: true" >> $VALUES_FILE
     echo " > creating htpasswd for user 'superadmin'"
     export USERNAME=superadmin
     export TEMPDIR=`mktemp -d`
@@ -382,6 +386,21 @@ elif [ "${ACTION}-${WHAT}" == "--provision-secrets" ]; then
     done
     exit 0
 
+elif [ "${ACTION}-${WHAT}" == "--provision-minio-ssl" ]; then
+    if [ ! -f "devops/k8s/provision-values-${K8S_ENVIRONMENT}/letsencrypt.yaml" ]; then
+        echo " > must provision let's encrypt first"
+        exit 1
+    fi
+    NGINX_IP=`kubectl get service -o json | jq -r '.items[].status.loadBalancer.ingress[0].ip' | grep -v null`
+    echo " > Please setup a domain name to point to the following IP:"
+    echo " > ${NGINX_IP}"
+    echo " > once done, enter the domain name below and <ENTER>"
+    read -p "Domain name: " MINIO_DOMAIN
+    kubectl exec -it `kubectl get pod -l app=letsencrypt -o json | jq -r '.items[0].metadata.name'` /issue_cert.sh "${MINIO_DOMAIN}"
+    export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/minio-ssl.yaml"
+    echo "nginx:" > $VALUES_FILE
+    echo "  minioSslDomain: \"${MINIO_DOMAIN}\"" >> $VALUES_FILE
+    exit 0
 fi
 
 echo " > ERROR! couldn't handle ${WHAT} ${ACTION}"

@@ -18,6 +18,7 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
     * [Knesset Dataservice Processors Metrics](https://next.oknesset.org/grafana/dashboard/db/knesset-dataservice-pipelines)
 * internal admin interfaces - password required
   * https://next.oknesset.org/metabase/ - user friendly DB queries and dashboards
+  * https://minio.oknesset.org/ - object storage
   * https://next.oknesset.org/adminer/ - for admin DB access
     * in adminer UI login screen, you should choose:
       * System: PostgreSQL

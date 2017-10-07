@@ -30,7 +30,20 @@ data:
         include /etc/nginx/conf.d/services.inc;
     }
     {{ end }}
-
+    {{ if .Values.minioSslDomain }}
+    server {
+        listen 443 ssl http2;
+        server_name {{.Values.minioSslDomain}};
+        include /etc/nginx/conf.d/ssl.inc;
+        ssl_certificate /etc/letsencrypt/live/{{.Values.minioSslDomain}}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/{{.Values.minioSslDomain}}/privkey.pem;
+        ssl_trusted_certificate /etc/letsencrypt/live/{{.Values.minioSslDomain}}/chain.pem;
+        include /etc/nginx/conf.d/letsencrypt.inc;
+        location / {
+          proxy_pass http://minio:9000/;
+        }
+    }
+    {{ end }}
 
   letsencrypt.inc: |
     {{ if .Values.global.sharedHostName }}
