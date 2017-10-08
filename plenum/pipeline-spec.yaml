@@ -1,3 +1,5 @@
+### kns dataservice tables
+
 kns_plenumsession:
   description: >
     <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
@@ -53,3 +55,123 @@ kns_plenumsession:
       parameters:
         resource: kns_plenumsession
         table: kns_plenumsession
+
+KNS_plmsessionitem:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_plmsessionitem
+        service-name: api
+        method-name: "KNS_PlmSessionItem"
+        fields:
+          plmPlenumSessionID:
+            source: "{name}"
+            type: integer
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          ItemID:
+            source: "{name}"
+            type: integer
+            description: קוד הפריט ששובץ לישיבת המליאה
+          PlenumSessionID:
+            source: "{name}"
+            type: integer
+            description: קוד ישיבת המליאה
+          ItemTypeID:
+            source: "{name}"
+            type: integer
+            description: קוד סוג הפריט (ראו בטבלת סוגי פריטים)
+          ItemTypeDesc:
+            source: "{name}"
+            type: string
+            description: תיאור סוג הפריט
+          Ordinal:
+            source: "{name}"
+            type: integer
+            description: מספר סידורי של הפריט בישיבה
+          Name:
+            source: "{name}"
+            type: string
+            description: שם הפריט בישיבה
+          StatusID:
+            source: "{name}"
+            type: integer
+            description: קוד סטטוס (ראו בטבלת הסטטוסים)
+          IsDiscussion:
+            source: "{name}"
+            type: integer
+            description: האם זהו דיון המשך בפריט זה?
+          LastUpdatedDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_plmsessionitem
+        table: kns_plmsessionitem
+
+kns_documentplenumsession:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_documentplenumsession
+        service-name: api
+        method-name: "KNS_DocumentPlenumSession"
+        fields:
+          DocumentPlenumSessionID:
+            source: "{name}"
+            type: integer
+            description: קוד המסמך
+            primaryKey: true
+          PlenumSessionID:
+            source: "{name}"
+            type: integer
+            description: קוד ישיבת המליאה
+          GroupTypeID:
+            source: "{name}"
+            type: integer
+            description: קוד סוג המסמך
+          GroupTypeDesc:
+            source: "{name}"
+            type: string
+            description: תיאור סוג המסמך
+          ApplicationID:
+            source: "{name}"
+            type: integer
+            description: קוד פורמט המסמך
+          ApplicationDesc:
+            source: "{name}"
+            type: string
+            description: תיאור פורמט המסמך (Word, PDF, TIFF)
+          FilePath:
+            source: "{name}"
+            type: string
+            description: הנתיב אל המסמך
+          LastUpdatedDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_documentplenumsession
+        table: kns_documentplenumsession
