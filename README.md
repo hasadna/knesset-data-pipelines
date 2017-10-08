@@ -18,6 +18,7 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
     * [Knesset Dataservice Processors Metrics](https://next.oknesset.org/grafana/dashboard/db/knesset-dataservice-pipelines)
 * internal admin interfaces - password required
   * https://next.oknesset.org/metabase/ - user friendly DB queries and dashboards
+  * https://minio.oknesset.org/ - object storage
   * https://next.oknesset.org/adminer/ - for admin DB access
     * in adminer UI login screen, you should choose:
       * System: PostgreSQL
@@ -110,3 +111,17 @@ You can set some environment variables to modify behaviors, see a refernece at .
 
 * using docker: `bin/dpp.sh`
 * locally (from an activated virtualenv): `dpp`
+
+## Run all pipelines at once
+
+**Warning** this might seriously overload your CPU, use with caution..
+
+```
+docker-compose up -d redis db minio
+source .env.example
+for PIPELINE in `dpp | tail -n+2 | cut -d" " -f2 -`; do
+    dpp run "${PIPELINE}" &
+done
+```
+
+

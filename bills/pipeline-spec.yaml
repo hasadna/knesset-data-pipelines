@@ -126,6 +126,7 @@ kns_bill:
       parameters:
         resource: kns_bill
         table: kns_bill
+        schemas-bucket: bills
 
 kns_billname:
   description: >
@@ -178,6 +179,7 @@ kns_billname:
       parameters:
         resource: kns_billname
         table: kns_billname
+        schemas-bucket: bills
 
 kns_billinitiator:
   description: >
@@ -227,6 +229,7 @@ kns_billinitiator:
       parameters:
         resource: kns_billinitiator
         table: kns_billinitiator
+        schemas-bucket: bills
 
 kns_billhistoryinitiator:
   description: >
@@ -286,6 +289,7 @@ kns_billhistoryinitiator:
       parameters:
         resource: kns_billhistoryinitiator
         table: kns_billhistoryinitiator
+        schemas-bucket: bills
 
 kns_billsplit:
   description: >
@@ -334,6 +338,7 @@ kns_billsplit:
       parameters:
         resource: kns_billsplit
         table: kns_billsplit
+        schemas-bucket: bills
 
 kns_billunion:
   description: >
@@ -373,6 +378,7 @@ kns_billunion:
       parameters:
         resource: kns_billunion
         table: kns_billunion
+        schemas-bucket: bills
 
 all:
   description: >
@@ -389,35 +395,37 @@ all:
         description: Knesset bills data from Knesset dataservice API
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_bill.json
+        schema-bucket: bills
         resource-name: kns_bill
         table: kns_bill
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_billname.json
+        schema-bucket: bills
         resource-name: kns_billname
         table: kns_billname
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_billinitiator.json
+        schema-bucket: bills
         resource-name: kns_billinitiator
         table: kns_billinitiator
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_billhistoryinitiator.json
+        schema-bucket: bills
         resource-name: kns_billhistoryinitiator
         table: kns_billhistoryinitiator
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_billsplit.json
+        schema-bucket: bills
         resource-name: kns_billsplit
         table: kns_billsplit
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_billunion.json
+        schema-bucket: bills
         resource-name: kns_billunion
         table: kns_billunion
-    - run: dump.to_zip
+    - run: aws.dump.to_s3
       parameters:
-        out-file: ../data/bills.zip
-
+        bucket: bills
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_html
+      parameters:
+        bucket: bills

@@ -51,16 +51,16 @@ if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
     fi
     echo " > Sleeping 10 seconds..."
     sleep 10
-    if ! kubectl rollout status deployment app; then
+    if ! kubectl rollout status deployment app-workers; then
         echo " > Deployment rollout status failed"
         exit 9
     fi
     echo " > deploying normally"
-    if ! bin/k8s_helm_upgrade.sh --recreate-pods; then
+    if ! bin/k8s_helm_upgrade.sh --recreate-pods --wait; then
         echo " > Failed helm upgrade"
         exit 10
     fi
-    if ! kubectl rollout status deployment app; then
+    if ! kubectl rollout status deployment app-workers; then
         echo " > Deployment rollout status failed"
         exit 11
     fi

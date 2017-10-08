@@ -33,13 +33,13 @@ spec:
         volumeMounts:
         - name: knesset-data-pipelines-influxdb
           mountPath: /var/lib/influxdb
-        readinessProbe:
-          initialDelaySeconds: 1
-          periodSeconds: 1
-          timeoutSeconds: 1
-          httpGet:
-            path: /ping
-            port: 8086
+#        readinessProbe:
+#          initialDelaySeconds: 1
+#          periodSeconds: 1
+#          timeoutSeconds: 1
+#          httpGet:
+#            path: /ping
+#            port: 8086
       volumes:
       - name: knesset-data-pipelines-influxdb
         {{ if .Values.gcePersistentDiskName }}

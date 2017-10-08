@@ -8,7 +8,8 @@ fi
 
 if [ "${TRAVIS_PULL_REQUEST}" != "false" ] || \
    [ "${TRAVIS_BRANCH}" != "${CONTINUOUS_DEPLOYMENT_BRANCH}" ] || \
-   echo "${TRAVIS_COMMIT_MESSAGE}" | grep "${AUTODEPLOY_MESSAGE}" > /dev/null; \
+   echo "${TRAVIS_COMMIT_MESSAGE}" | grep "${AUTODEPLOY_MESSAGE}" > /dev/null || \
+   echo "${TRAVIS_COMMIT_MESSAGE}" | grep -- "--no-deploy" > /dev/null ; \
 then
     echo " > running tests"
     sudo apt-get update

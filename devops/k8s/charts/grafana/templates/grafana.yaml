@@ -31,9 +31,11 @@ spec:
         - name: GF_SERVER_ROOT_URL
           value: "http://localhost:8001/api/v1/namespaces/default/services/grafana/proxy/"
         {{ end }}
-#        - {name: GF_AUTH_ANONYMOUS_ENABLED, value: "true"}
-#        - {name: GF_AUTH_ANONYMOUS_ORG_NAME, value: main}
-#        - {name: GF_AUTH_ANONYMOUS_ORG_ROLE, value: anonymous}
+        {{ if .Values.anonymousEnabled }}
+        - {name: GF_AUTH_ANONYMOUS_ENABLED, value: "true"}
+        - {name: GF_AUTH_ANONYMOUS_ORG_NAME, value: main}
+        - {name: GF_AUTH_ANONYMOUS_ORG_ROLE, value: anonymous}
+        {{ end }}
         - {name: GF_DATABASE_TYPE, value: "postgres"}
         - {name: GF_DATABASE_HOST, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "GRAFANA_DATABASE_HOST_PORT"}}}
         - {name: GF_DATABASE_NAME, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "GRAFANA_DATABASE_NAME"}}}
@@ -46,6 +48,7 @@ spec:
           requests:
             cpu: {{.Values.cpuRequests | default "0.05"}}
             memory: {{.Values.memoryRequests | default "50Mi"}}
+      {{ if not .Values.global.skipInitContainers }}
       initContainers:
       - name: create-db
         image: sameersbn/postgresql:9.6-2
@@ -56,4 +59,5 @@ spec:
         - {name: DB_USER, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "GRAFANA_DATABASE_USER"}}}
         - {name: DB_PORT, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "GRAFANA_DATABASE_PORT"}}}
         - {name: PGPASSWORD, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "GRAFANA_DATABASE_PASSWORD"}}}
+      {{ end }}
 {{ end }}

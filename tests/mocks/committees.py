@@ -1,6 +1,5 @@
 from datapackage_pipelines_knesset.committees.processors.download_committee_meeting_protocols import DownloadCommitteeMeetingProtocolsProcessor
 from datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_protocols import ParseCommitteeMeetingProtocolsProcessor
-from datapackage_pipelines_knesset.committees.processors.committee_meeting_protocols_update_db import CommitteeMeetingProtocolsUpdateDbProcessor
 import os
 from datapackage_pipelines_knesset.common.db import get_session
 
@@ -43,8 +42,4 @@ class MockDownloadCommitteeMeetingProtocols(DownloadCommitteeMeetingProtocolsPro
 
 
 class MockParseCommitteeMeetingProtocols(ParseCommitteeMeetingProtocolsProcessor):
-    pass
-
-
-class MockCommitteeMeetingProtocolsUpdateDb(CommitteeMeetingProtocolsUpdateDbProcessor):
     pass

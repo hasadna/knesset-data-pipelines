@@ -58,9 +58,6 @@ spec:
         - name: host
           mountPath: /usr/share/nginx/html
           subPath: {{.Values.global.sharedHostNginxHtmlSubPath | default "nginx-html" | quote}}
-        - name: host
-          mountPath: /knesset-data
-          subPath: {{.Values.global.sharedHostAppDataSubPath | default "app-data" | quote}}
         {{ end }}
       volumes:
       - name: nginx-conf-d

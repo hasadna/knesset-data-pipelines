@@ -363,3 +363,18 @@ General development workflow:
   * Schedule a pipeline - `bin/execute_scheduled_pipeline.sh <PIPELINE_ID>`
   * Run a pipeline directly = `dpp run <PIPELINE_ID>`
 4. Go back to 1 / commit to deploy (you should only commit code changes, not image ids)
+
+### Metrics
+
+The default cluster sends metrics to Stackdriver
+
+Log-in and activate your account there and you should see all cluster metrics there
+
+https://console.cloud.google.com/monitoring?project=hasadna-oknesset
+
+Suggested steps:
+
+* Create a dashboard with Google Compute and Google Container resource metrics (CPU / memory etc..)
+* Create an alerting policy based on current values (e.g. alert when CPU above X)
+* Access stack driver logging - you should be able to see logs from all pods
+  * create alerting policies based on strings in the logs

@@ -21,6 +21,9 @@ redis:
 db:
   enabled: true
 
+minio:
+  enabled: true
+
 # the main app - runs the pipelines and serves the pipelines dashboard
 # depends on db and redis (and possibly other services)
 # database name = app
@@ -42,3 +45,10 @@ flower:
 global:
   # name of the Kubernetes secret containing sensitive environment variable values
   secretEnvVars: env-vars
+
+nginx:
+  enableData: true
+  enablePipelines: true
+  enableFlower: true
+  enableAdminer: true
+  enableMinio: true
