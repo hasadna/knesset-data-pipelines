@@ -1,0 +1,48 @@
+{{ if .Values.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Values.name | default "minio"}}
+spec:
+  selector:
+    app: {{.Values.name | default "minio"}}
+  ports:
+  - port: 9000
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{.Values.name | default "minio"}}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  template:
+    metadata:
+      labels:
+        app: {{.Values.name | default "minio"}}
+    spec:
+      containers:
+      - name: {{.Values.name | default "minio"}}
+        image: {{.Values.image | default "minio/minio"}}
+        args:
+        - server
+        - /data
+        env:
+        - {name: MINIO_ACCESS_KEY, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "MINIO_ACCESS_KEY"}}}
+        - {name: MINIO_SECRET_KEY, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "MINIO_SECRET_KEY"}}}
+        ports:
+        - containerPort: 9000
+        resources:
+          requests:
+            cpu: {{.Values.cpuRequests | default "0.15"}}
+            memory: {{.Values.memoryRequests | default "100Mi" | quote}}
+        volumeMounts:
+        - name: knesset-data-pipelines-minio
+          mountPath: /data
+          subPath: data
+      volumes:
+      - name: knesset-data-pipelines-minio
+        gcePersistentDisk:
+          pdName: {{.Values.gcePersistentDiskName | quote}}
+          fsType: ext4
+{{ end }}

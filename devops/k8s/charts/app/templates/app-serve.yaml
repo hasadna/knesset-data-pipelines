@@ -1,0 +1,42 @@
+{{ if .Values.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Values.name | default "app"}}-serve
+spec:
+  ports:
+  - port: 5000
+  selector:
+    app: {{.Values.name | default "app"}}-serve
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{.Values.name | default "app"}}-serve
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{.Values.name | default "app"}}-serve
+    spec:
+      containers:
+      - name: {{.Values.name | default "app" | quote}}
+        image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
+        args: ["serve"]
+        ports:
+        - containerPort: 5000
+        env:
+{{ include "app-common-env" . | indent 8}}
+        resources:
+          requests:
+            cpu: {{.Values.serveCpuRequests | default "0.05"}}
+            memory: {{.Values.serveMemoryRequests | default "10Mi" | quote}}
+        readinessProbe:
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 5
+          httpGet:
+            path: /
+            port: 5000
+{{ end }}

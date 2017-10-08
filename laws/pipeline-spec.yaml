@@ -81,6 +81,7 @@ kns_law:
       parameters:
         resource: kns_law
         table: kns_law
+        schemas-bucket: laws
 
 kns_law_binding:
   description: >
@@ -157,6 +158,7 @@ kns_law_binding:
       parameters:
         resource: kns_law_binding
         table: kns_law_binding
+        schemas-bucket: laws
 
 kns_document_law:
   description: >
@@ -213,6 +215,7 @@ kns_document_law:
       parameters:
         resource: kns_document_law
         table: kns_document_law
+        schemas-bucket: laws
 
 kns_israel_law:
   description: >
@@ -300,14 +303,13 @@ kns_israel_law:
             source: "{name}"
             type: datetime
             description: תאריך עדכון אחרון
-
-
     - run: ..datapackage_pipelines_knesset.common.processors.throttle
       parameters: {"rows-per-page": 50}
     - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
       parameters:
         resource: kns_israel_law
         table: kns_israel_law
+        schemas-bucket: laws
 
 kns_israel_law_name:
   description: >
@@ -356,3 +358,49 @@ kns_israel_law_name:
       parameters:
         resource: kns_israel_law_name
         table: kns_israel_law_name
+        schemas-bucket: laws
+
+all:
+  description: >
+    <p>runs daily, aggregates data from all relevant DB tables to a datapackage zip file</p>
+    <ul>
+      <li>zip file should be available at <a href="https://next.oknesset.org/data/">data/</a></li>
+    </ul>
+  schedule:
+    crontab: "4 0 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: knesset_data_laws
+        description: Knesset laws data from Knesset dataservice API
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: laws
+        resource-name: kns_israel_law_name
+        table: kns_israel_law_name
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: laws
+        resource-name: kns_law
+        table: kns_law
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: laws
+        resource-name: kns_law_binding
+        table: kns_law_binding
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: laws
+        resource-name: kns_document_law
+        table: kns_document_law
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: laws
+        resource-name: kns_israel_law
+        table: kns_israel_law
+    - run: aws.dump.to_s3
+      parameters:
+        bucket: laws
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_html
+      parameters:
+        bucket: laws

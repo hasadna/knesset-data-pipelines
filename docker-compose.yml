@@ -14,6 +14,21 @@ services:
     volumes:
       - .data-docker/postgresql:/var/lib/postgresql
 
+  # object storage
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+    command:
+      - server
+      - /data
+    environment:
+    # hard-coded access keys for easy debugging
+      - "MINIO_ACCESS_KEY=HJW6280KHBS2Y105STGG"
+      - "MINIO_SECRET_KEY=rsAuRptRwTTuSocsdBCRHIToldPkPefpb2Vl/ybG"
+    volumes:
+      - .data-docker/minio:/data
+
   app:
     build: .
     image: knesset-data/pipelines

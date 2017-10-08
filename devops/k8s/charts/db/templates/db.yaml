@@ -21,22 +21,21 @@ spec:
       labels:
         app: {{.Values.name | default "db" | quote}}
     spec:
-      {{ if .Values.nodeSelectorHostname }}
-      nodeSelector:
-        kubernetes.io/hostname: {{.Values.nodeSelectorHostname | quote}}
-      {{ end }}
       containers:
       - name: {{.Values.name | default "db" | quote}}
         image: {{.Values.image | default "sameersbn/postgresql:9.6-2" | quote}}
         env: [{name: "PG_PASSWORD", valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "PG_PASSWORD"}}}]
         ports: [{containerPort: 5432}]
         volumeMounts: [{name: "knesset-data-pipelines-db", mountPath: "/var/lib/postgresql"}]
-        resources: {requests: {cpu: {{.Values.cpuRequests | default "0.2"}}, memory: {{.Values.memoryRequests | default "150Mi" | quote}}}}
-        readinessProbe:
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 1
-          exec: {command: ["psql", "-h", "127.0.0.1", "-U", "postgres", "-d", "postgres", "-c", "select 1"]}
+        resources:
+          requests:
+            cpu: {{.Values.cpuRequests | default "0.2"}}
+            memory: {{.Values.memoryRequests | default "150Mi" | quote}}
+#        readinessProbe:
+#          initialDelaySeconds: 5
+#          periodSeconds: 5
+#          timeoutSeconds: 1
+#          exec: {command: ["psql", "-h", "127.0.0.1", "-U", "postgres", "-d", "postgres", "-c", "select 1"]}
       {{ if .Values.backupUploadServiceAccountKeySecret }}
       # creates a daily DB backup and uploads to google storage
       - name: {{.Values.name | default "db"}}-backup

@@ -1,0 +1,2 @@
+minio:
+  gcePersistentDiskName: "knesset-data-pipelines-production-minio"

@@ -9,14 +9,11 @@ SUPPORTED_EXTENSIONS = ["doc", "rtf", "docx"]
 class Processor(AddResourceBaseProcessor):
 
     def _get_schema(self, resource_descriptor):
-        # can be extended to provide a hard-coded schema
-        # or to modify the schema from the input resource descriptor
         return resource_descriptor.get("schema", {
             "fields": [
-                {"name": "url", "type": "string"},
+                {"name": "url", "type": "string", "description": "url to download protocol from"},
                 {"name": "kns_committee_id", "type": "integer", "description": "primary key from kns_committee table"},
-                {"name": "kns_session_id", "type": "integer",
-                 "description": "primary key from kns_committeesession table"}
+                {"name": "kns_session_id", "type": "integer", "description": "primary key from kns_committeesession table"}
             ],
             "primaryKey": ["kns_session_id"]
         })
@@ -31,8 +28,7 @@ class Processor(AddResourceBaseProcessor):
             .query(committee_table, committeesession_table, documentcommitteesession_table)\
             .filter(committeesession_table.c.CommitteeID==committee_table.c.CommitteeID)\
             .filter(committeesession_table.c.CommitteeSessionID==documentcommitteesession_table.c.CommitteeSessionID)\
-            .filter(or_(*(documentcommitteesession_table.c.FilePath.like("%.{}".format(e))
-                          for e in SUPPORTED_EXTENSIONS)))\
+            .filter(or_(*(documentcommitteesession_table.c.FilePath.like("%.{}".format(e)) for e in SUPPORTED_EXTENSIONS)))\
         .all():
             row = db_row._asdict()
             if str(row["GroupTypeID"]) == "23":

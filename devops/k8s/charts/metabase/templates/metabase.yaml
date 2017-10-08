@@ -39,13 +39,14 @@ spec:
           requests:
             cpu: {{.Values.cpuRequests | default "0.1"}}
             memory: {{.Values.memoryRequests | default "800Mi" | quote}}
-        readinessProbe:
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 5
-          httpGet:
-            path: /
-            port: 3000
+#        readinessProbe:
+#          initialDelaySeconds: 10
+#          periodSeconds: 10
+#          timeoutSeconds: 5
+#          httpGet:
+#            path: /
+#            port: 3000
+      {{ if not .Values.global.skipInitContainers }}
       initContainers:
       - name: metabase-create-db
         image: sameersbn/postgresql:9.6-2
@@ -56,4 +57,5 @@ spec:
         - {name: "MB_DB_USER", valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "METABASE_DB_USER"}}}
         - {name: "PGPASSWORD", valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "METABASE_DB_PASS"}}}
         - {name: "MB_DB_HOST", valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "METABASE_DB_HOST"}}}
+      {{ end }}
 {{ end }}
