@@ -66,7 +66,7 @@ build_push() {
     fi
     if [ "${GITHUB_REPO}" == "" ]; then
         echo " > building from local directory ${BUILD_DIR}"
-        gcloud docker -- build -q -t "${DOCKER_TAG}" --iidfile "${IID_FILE}" "${BUILD_DIR}" || exit 1
+        gcloud docker -- build `[ "${DEBUG}" != "1" ] && echo "-q"` -t "${DOCKER_TAG}" --iidfile "${IID_FILE}" "${BUILD_DIR}" || exit 1
     else
         echo " > downloading source code from ${SOURCE_CODE_URL}"
         TEMPDIR=`mktemp -d`

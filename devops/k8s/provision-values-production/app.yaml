@@ -1,2 +1,0 @@
-app:
-  gcePersistentDiskName: "knesset-data-pipelines-production-app"

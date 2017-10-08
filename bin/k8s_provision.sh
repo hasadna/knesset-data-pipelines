@@ -254,12 +254,11 @@ elif [ "${WHAT}" == "db-restore" ] || [ "${WHAT}" == "db-backup" ]; then
 elif [ "${ACTION}-${WHAT}" == "--provision-dpp-workers" ]; then
     # TODO: ensure there are enough compute resources for these workers and assign dpp to appropriate node
     export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/dpp-workers.yaml"
-    CPU_REQUESTS=`expr "${DPP_WORKERS:-1}" '*' 0.2`
-    MEMORY_REQUESTS="500Mi"
     echo "app:" > $VALUES_FILE
-    echo "  dppWorkerConcurrency: \"${DPP_WORKERS:-1}\"" >> $VALUES_FILE
-    echo "  cpuRequests: ${CPU_REQUESTS}" >> $VALUES_FILE
-    echo "  memoryRequests: \"${MEMORY_REQUESTS}\"" >> $VALUES_FILE
+    echo "  dppWorkerConcurrency: 1" >> $VALUES_FILE
+    echo "  dppWorkerReplicas: 3" >> $VALUES_FILE
+    echo "  cpuRequests: 0.20" >> $VALUES_FILE
+    echo "  memoryRequests: \"150Mi\"" >> $VALUES_FILE
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-metabase" ]; then
