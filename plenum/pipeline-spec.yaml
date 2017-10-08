@@ -1,0 +1,55 @@
+kns_plenumsession:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_plenumsession
+        service-name: api
+        method-name: "KNS_PlenumSession"
+        fields:
+          PlenumSessionID:
+            source: "{name}"
+            type: integer
+            description: קוד ישיבת המליאה
+            primaryKey: true
+          Number:
+            source: "{name}"
+            type: integer
+            description: מספר ישיבת המליאה
+          KnessetNum:
+            source: "{name}"
+            type: integer
+            description: מספר הכנסת
+          Name:
+            source: "{name}"
+            type: string
+            description: שם הישיבה
+          StartDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך התחלה
+          FinishDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך סיום
+          IsSpecialMeeting:
+            source: "{name}"
+            type: boolean
+            description: האם הישיבה הוגדרה כישיבה מיוחדת (למשל ישיבת זיכרון)
+          LastUpdatedDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_plenumsession
+        table: kns_plenumsession
