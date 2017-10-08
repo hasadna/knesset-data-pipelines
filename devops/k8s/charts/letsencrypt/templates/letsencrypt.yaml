@@ -1,0 +1,45 @@
+{{ if .Values.enabled }}
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{.Values.name | default "letsencrypt" | quote}}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{.Values.name | default "letsencrypt" | quote}}
+    spec:
+      {{ if .Values.global.sharedHostName }}
+      # we use host path to share data between nginx and let's encrypt
+      # so we have to ensure both services use the same node
+      # see the relevant section regarding SLL in devops/k8s/README.md for more details about the setup
+      nodeSelector:
+        kubernetes.io/hostname: {{ .Values.global.sharedHostName | quote}}
+      {{ end }}
+      containers:
+      - name: {{.Values.name | default "letsencrypt" | quote}}
+        image: {{.Values.image | default "orihoch/datapackage-pipelines-plus-plus-letsencrypt:v0.0.1" | quote}}
+        resources:
+          requests:
+            cpu: {{.Values.cpuRequests | default "0.01"}}
+            memory: {{.Values.memoryRequests | default "10Mi" | quote}}
+    {{ if .Values.global.sharedHostName }}
+        volumeMounts:
+        - name: host
+          mountPath: /var/log/letsencrypt
+          subPath: {{.Values.global.sharedHostLetsencryptLogSubPath | default "letsencrypt-log" | quote}}
+        - name: host
+          mountPath: /etc/letsencrypt
+          subPath: {{.Values.global.sharedHostLetsencryptEtcSubPath | default "letsencrypt-etc" | quote}}
+        - name: host
+          mountPath: /nginx-html
+          subPath: {{.Values.global.sharedHostNginxHtmlSubPath | default "nginx-html" | quote}}
+      volumes:
+      - name: host
+        hostPath:
+          path: {{.Values.global.sharedHostPath | default "/var/shared-host-path" | quote}}
+    {{ end }}
+{{ end }}

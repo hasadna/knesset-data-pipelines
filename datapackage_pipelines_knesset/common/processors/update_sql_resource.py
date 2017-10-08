@@ -5,6 +5,7 @@ from sqlalchemy import *
 from tableschema_sql import Storage
 import tableschema
 from tableschema_sql.storage import mappers
+from datapackage_pipelines_knesset.common import object_storage
 
 
 class UpdateSqlResource(BaseProcessor):
@@ -88,8 +89,7 @@ class UpdateSqlResource(BaseProcessor):
         self._id_field_name = self._parameters.get("id-field-name", self._table_schema["primaryKey"][0])
         self.save_schema = self._parameters.get("save-schema", "../data/schemas/{}.json".format(self.table_name))
         if self.save_schema:
-            with open(self.save_schema, "w") as f:
-                json.dump(self._table_schema, f, indent=2, ensure_ascii=False)
+            fs.json_dump(self.save_schema, self._table_schema, indent=2, ensure_ascii=False)
         self.db_meta = MetaData(bind=self.db_session.connection())
         self.db_meta.reflect()
         self.db_table = self.db_meta.tables.get(self.table_name)

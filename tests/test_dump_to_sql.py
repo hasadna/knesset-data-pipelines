@@ -2,6 +2,7 @@ from datapackage_pipelines_knesset.common.processors.dump_to_sql import Processo
 from .common import get_pipeline_processor_parameters, get_pipeline_spec_pipeline_names
 from .mocks.dataservice import MockAddDataserviceCollectionResourceProcessor
 import os, json
+from datapackage_pipelines_knesset.common import object_storage
 
 
 class MockDumpToSqlProcessor(DumpToSqlProcessor):
@@ -33,11 +34,10 @@ def assert_dump_to_sql_table_schema(pipeline_spec_name, pipeline_name):
             os.unlink(filename)
     processor.save_schemas()
     for ext, filename in filenames.items():
-        with open(filename) as f:
-            if ext == "json":
-                assert "fields" in json.load(f)
-            else:
-                assert f.read(6) == "<html>"
+        if ext == "json":
+            assert "fields" in fs.json_load(filename)
+        else:
+            assert f.read(6) == "<html>"
 
 def test_dump_to_sql_table_schemas():
     for pipeline_spec_name in ["bills", "committees", "laws"]:

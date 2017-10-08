@@ -1,7 +1,6 @@
 # Knesset data pipelines
 
 [![Build Status](https://travis-ci.org/hasadna/knesset-data-pipelines.svg?branch=master)](https://travis-ci.org/hasadna/knesset-data-pipelines)
-[![Docker build](https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg)](https://hub.docker.com/r/orihoch/knesset-data-pipelines/)
 
 Knesset data scrapers and data sync
 
@@ -19,6 +18,7 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
     * [Knesset Dataservice Processors Metrics](https://next.oknesset.org/grafana/dashboard/db/knesset-dataservice-pipelines)
 * internal admin interfaces - password required
   * https://next.oknesset.org/metabase/ - user friendly DB queries and dashboards
+  * https://minio.oknesset.org/ - object storage
   * https://next.oknesset.org/adminer/ - for admin DB access
     * in adminer UI login screen, you should choose:
       * System: PostgreSQL
@@ -27,7 +27,7 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
   * https://next.oknesset.org/flower/ - celery tasks management
   * https://next.oknesset.org/grafana/ - Web UI for graphing metrics (via InfluxDB)
 * deployment of this environment was done using Kubernetes (K8S) on Google Container Engine (GKE)
-  * [deployment details and devops documentation](https://github.com/hasadna/knesset-data-pipelines/blob/master/devops/K8S.md)
+  * [deployment details and devops documentation](https://github.com/hasadna/knesset-data-pipelines/blob/master/devops/k8s/)
 
 ## Contributing
 
@@ -111,3 +111,17 @@ You can set some environment variables to modify behaviors, see a refernece at .
 
 * using docker: `bin/dpp.sh`
 * locally (from an activated virtualenv): `dpp`
+
+## Run all pipelines at once
+
+**Warning** this might seriously overload your CPU, use with caution..
+
+```
+docker-compose up -d redis db minio
+source .env.example
+for PIPELINE in `dpp | tail -n+2 | cut -d" " -f2 -`; do
+    dpp run "${PIPELINE}" &
+done
+```
+
+

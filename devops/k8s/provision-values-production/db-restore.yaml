@@ -1,0 +1,7 @@
+jobs:
+  restoreDbJobName: db-restore-17-10-05-15-55
+  restoreDbGsUrl: gs://kdp-production-db-backups/17-10-05-09-12.sql
+  restoreDbServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
+  restoreDbProjectId: hasadna-oknesset
+  restoreDbZone: us-central1-a
+  restoreDbServiceAccountKeySecret: db-backup-upload-google-key

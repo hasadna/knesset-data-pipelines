@@ -95,6 +95,7 @@ kns_committee:
       parameters:
         resource: kns_committee
         table: kns_committee
+        schemas-bucket: committees
 
 kns_jointcommittee:
   description: >
@@ -135,6 +136,7 @@ kns_jointcommittee:
       parameters:
         resource: kns_jointcommittee
         table: kns_jointcommittee
+        schemas-bucket: committees
 
 kns_cmtsitecode:
   description: >
@@ -171,6 +173,7 @@ kns_cmtsitecode:
       parameters:
         resource: kns_cmtsitecode
         table: kns_cmtsitecode
+        schemas-bucket: committees
 
 kns_committeesession:
   description: >
@@ -247,6 +250,7 @@ kns_committeesession:
       parameters:
         resource: kns_committeesession
         table: kns_committeesession
+        schemas-bucket: committees
 
 kns_cmtsessionitem:
   description: >
@@ -303,6 +307,7 @@ kns_cmtsessionitem:
       parameters:
         resource: kns_cmtsessionitem
         table: kns_cmtsessionitem
+        schemas-bucket: committees
 
 kns_documentcommitteesession:
   description: >
@@ -359,6 +364,7 @@ kns_documentcommitteesession:
       parameters:
         resource: kns_documentcommitteesession
         table: kns_documentcommitteesession
+        schemas-bucket: committees
 
 
 ### parse protocols
@@ -377,28 +383,27 @@ committee-meeting-protocols:
       parameters:
         resource: kns_documentcommitteesession
     # downloads the source protocol files for meetings which weren't downloaded before
-    # saves the files in a (non tabular) datapackage in out-path
+    # saves the files in object storage
     # all meetings with url are yielded for parse processor
     - run: ..datapackage_pipelines_knesset.committees.processors.download_committee_meeting_protocols
       parameters:
         input-resource: kns_documentcommitteesession
         output-resource: committee-meeting-protocols
-        out-path: ../data/committee-meeting-protocols
         data-resource-descriptor:
           name: committee-meeting-protocols
-    # parses the downloaded protocols into text and parts files which will be saved in out-path
+    # parses the downloaded protocols into text and parts files which will be saved in object storage
     # will re-parse meetings which have missing or empty files
     - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_protocols
       parameters:
         input-resource: committee-meeting-protocols
         output-resource: committee-meeting-protocols-parsed
-        out-path: ../data/committee-meeting-protocols-parsed
         data-resource-descriptor:
           name: committee-meeting-protocols-parsed
     - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
       parameters:
         resource: committee-meeting-protocols-parsed
         table: committee_meeting_protocols_parsed
+        schemas-bucket: committees
         # lower commit batches - because protocol parsing takes some time
         commit-every: 50
     - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_attendees
@@ -455,39 +460,42 @@ all:
         description: Knesset committees and committee meetings data from Knesset dataservice API
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_committee.json
+        schema-bucket: committees
         resource-name: kns_committee
         table: kns_committee
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_jointcommittee.json
+        schema-bucket: committees
         resource-name: kns_jointcommittee
         table: kns_jointcommittee
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_cmtsitecode.json
+        schema-bucket: committees
         resource-name: kns_cmtsitecode
         table: kns_cmtsitecode
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_committeesession.json
+        schema-bucket: committees
         resource-name: kns_committeesession
         table: kns_committeesession
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_cmtsessionitem.json
+        schema-bucket: committees
         resource-name: kns_cmtsessionitem
         table: kns_cmtsessionitem
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/kns_documentcommitteesession.json
+        schema-bucket: committees
         resource-name: kns_documentcommitteesession
         table: kns_documentcommitteesession
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema: ../data/table_schemas/committee_meeting_protocols_parsed.json
+        schema-bucket: committees
         resource-name: committee_meeting_protocols_parsed
         table: committee_meeting_protocols_parsed
-    - run: dump.to_zip
+    - run: aws.dump.to_s3
       parameters:
-        out-file: ../data/committees.zip
+        bucket: committees
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_html
+      parameters:
+        bucket: committees

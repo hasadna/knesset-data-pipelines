@@ -1,0 +1,6 @@
+letsencrypt:
+  enabled: true
+nginx:
+  sslDomain: next.oknesset.org
+global:
+  rootUrl: https://next.oknesset.org

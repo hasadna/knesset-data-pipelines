@@ -107,3 +107,14 @@ ENV/
 /docker-compose-deployment-combined.yml
 /docker-compose-deployment.yml
 /docker-compose.override.yml
+
+# these env files are used to configure the google and kubernetes authentication and env vars
+# they are used by the bin/k8s_connect.sh script
+# you shouldn't source these files directly, instead, run bin/k8s_connect.sh script like this:
+# source bin/k8s_connect.sh
+
+# the Helm charts are generated using bin/templater.sh from the corresponding *.template files
+# this is done in bin/k8s_recreate_templates.sh
+devops/k8s/Chart.yaml
+devops/k8s/charts/*/Chart.yaml
+devops/k8s/secrets.env.production
