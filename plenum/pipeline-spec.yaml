@@ -178,3 +178,38 @@ kns_documentplenumsession:
         resource: kns_documentplenumsession
         table: kns_documentplenumsession
         schemas-bucket: plenum
+
+all:
+  description: >
+    <p>runs daily, aggregates data from all relevant DB tables to a datapackage zip file</p>
+    <ul>
+      <li>zip file should be available at <a href="https://next.oknesset.org/data/">data/</a></li>
+    </ul>
+  schedule:
+    crontab: "4 0 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: knesset_data_plenum
+        description: Knesset plenum meetings data from Knesset dataservice API
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: plenum
+        resource-name: kns_plenumsession
+        table: kns_plenumsession
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: plenum
+        resource-name: kns_plmsessionitem
+        table: kns_plmsessionitem
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: plenum
+        resource-name: kns_documentplenumsession
+        table: kns_documentplenumsession
+    - run: aws.dump.to_s3
+      parameters:
+        bucket: plenum
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_html
+      parameters:
+        bucket: plenum
