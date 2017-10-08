@@ -1,0 +1,76 @@
+{{ if .Values.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Values.name | default "nginx" | quote}}
+spec:
+  ports:
+  - port: 80
+    name: "80"
+  {{ if .Values.sslDomain }}
+  - port: 443
+    name: "443"
+  {{ end }}
+  selector: {app: {{.Values.name | default "nginx" | quote}}}
+  type: LoadBalancer
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata: {name: {{.Values.name | default "nginx" | quote}}}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels: {app: {{.Values.name | default "nginx" | quote}}}
+    spec:
+      {{ if .Values.global.sharedHostName }}
+      # we use host path to share data between nginx and let's encrypt
+      # so we have to ensure both services use the same node
+      # see the relevant section regarding SLL in devops/k8s/README.md for more details about the setup
+      nodeSelector:
+        kubernetes.io/hostname: {{ .Values.global.sharedHostName | quote}}
+      {{ end }}
+      containers:
+      - image: {{.Values.image | default "nginx:alpine" | quote}}
+        name: {{.Values.name | default "nginx" | quote}}
+        ports:
+        - {containerPort: 80}
+        {{ if .Values.sslDomain }}
+        - {containerPort: 443}
+        {{ end }}
+        resources:
+          requests:
+            cpu: {{.Values.cpuRequests | default "0.01"}}
+            memory: {{.Values.memoryRequests | default "10Mi"}}
+        volumeMounts:
+        - name: nginx-conf-d
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
+        {{ if .Values.htpasswdSecretName }}
+        - name: nginx-htpasswd
+          mountPath: /etc/nginx/htpasswd
+          readOnly: true
+        {{ end }}
+        {{ if .Values.global.sharedHostName }}
+        - name: host
+          mountPath: /etc/letsencrypt
+          subPath: {{.Values.global.sharedHostLetsencryptEtcSubPath | default "letsencrypt-etc" | quote}}
+        - name: host
+          mountPath: /usr/share/nginx/html
+          subPath: {{.Values.global.sharedHostNginxHtmlSubPath | default "nginx-html" | quote}}
+        {{ end }}
+      volumes:
+      - name: nginx-conf-d
+        configMap:
+          name: {{.Values.configMapName | default "nginx-conf-d" | quote}}
+      {{ if .Values.htpasswdSecretName }}
+      - name: nginx-htpasswd
+        secret:
+          secretName: {{ .Values.htpasswdSecretName }}
+      {{ end }}
+      {{ if .Values.global.sharedHostName }}
+      - name: host
+        hostPath:
+          path: {{.Values.global.sharedHostPath | default "/var/shared-host-path" | quote}}
+      {{ end }}
+{{ end }}

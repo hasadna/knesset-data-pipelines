@@ -1,6 +1,6 @@
 import os, yaml
 from copy import deepcopy
-from jsontableschema.field import Field
+from tableschema.field import Field
 from .mocks.dataservice import MockAddDataserviceCollectionResourceProcessor
 from itertools import chain
 
@@ -11,6 +11,17 @@ def get_pipeline_processor_parameters(pipeline_spec, pipeline_name, processor_ma
         for step in pipeline_spec[pipeline_name]["pipeline"]:
             if processor_matcher(step):
                 return step["parameters"]
+
+def get_pipeline_spec_pipeline_names(pipeline_spec, processor_matcher):
+    pipeline_names = []
+    with open(os.path.join(os.path.dirname(__file__), '..', pipeline_spec, 'pipeline-spec.yaml')) as f:
+        pipeline_spec = yaml.load(f)
+        for pipeline_name, pipeline in pipeline_spec.items():
+            for step in pipeline["pipeline"]:
+                if processor_matcher(step):
+                    if pipeline_name not in pipeline_names:
+                        pipeline_names.append(pipeline_name)
+    return pipeline_names
 
 def get_pipeline_processor_parameters_schema(pipeline_spec, pipeline_name, processor_matcher):
     parameters = get_pipeline_processor_parameters(pipeline_spec, pipeline_name, processor_matcher)

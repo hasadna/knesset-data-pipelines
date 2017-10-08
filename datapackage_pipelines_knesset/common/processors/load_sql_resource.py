@@ -2,23 +2,18 @@ from datapackage_pipelines_knesset.common.processors.base_processor import BaseP
 import json, logging
 from datapackage_pipelines_knesset.common.db import get_session
 from sqlalchemy import *
-from datapackage_pipelines_knesset.common.utils import parse_import_func_parameter
-
+from datapackage_pipelines_knesset.common import object_storage
 
 class LoadSqlResource(BaseProcessor):
 
     def __init__(self, parameters=None, datapackage=None, resources=None):
         super(LoadSqlResource, self).__init__(parameters, datapackage, resources)
-        if self._parameters.get("schema"):
-            self._schema = parse_import_func_parameter(self._parameters["schema"])
-            if isinstance(self._schema, str):
-                with open(self._schema) as f:
-                    self._schema = json.load(f)
-        else:
-            with open(self._parameters["datapackage"]) as f:
-                for resource in json.load(f)["resources"]:
-                    if resource["name"] == self._parameters["resource-name"]:
-                        self._schema = resource["schema"]
+        bucket = self._parameters["schema-bucket"]
+        object_name = "table-schemas/{}.json".format(self._parameters["resource-name"])
+        try:
+            self._schema = json.loads(object_storage.read(bucket, object_name))
+        except object_storage.NoSuchKey:
+            raise Exception("missing schema {}".format(object_name))
 
     @property
     def db_session(self):

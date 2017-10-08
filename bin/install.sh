@@ -4,7 +4,7 @@
 
 set -e
 
-mkdir -p data/table_schemas data/aggregations
+mkdir -p data/table_schemas
 
 pip install -r requirements.txt
 which antiword > /dev/null || sudo apt-get install antiword

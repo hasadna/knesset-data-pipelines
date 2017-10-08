@@ -2,9 +2,10 @@ from datapackage_pipelines_knesset.common.processors.base_processor import BaseP
 import json, logging
 from datapackage_pipelines_knesset.common.db import get_session
 from sqlalchemy import *
-from jsontableschema_sql import Storage
-import jsontableschema
-from jsontableschema_sql.storage import mappers
+from tableschema_sql import Storage
+import tableschema
+from tableschema_sql.storage import mappers
+from datapackage_pipelines_knesset.common import object_storage
 
 
 class UpdateSqlResource(BaseProcessor):
@@ -60,7 +61,7 @@ class UpdateSqlResource(BaseProcessor):
         id = int(row.pop(self._id_field_name)) if self._id_field_name in row else None
         values = self._get_values(row)
         if self.db_table is None:
-            jsontableschema.validate(self._table_schema)
+            tableschema.validate(self._table_schema)
             prefix, bucket = "", self.table_name
             index_fields = []
             autoincrement = None
@@ -88,8 +89,7 @@ class UpdateSqlResource(BaseProcessor):
         self._id_field_name = self._parameters.get("id-field-name", self._table_schema["primaryKey"][0])
         self.save_schema = self._parameters.get("save-schema", "../data/schemas/{}.json".format(self.table_name))
         if self.save_schema:
-            with open(self.save_schema, "w") as f:
-                json.dump(self._table_schema, f, indent=2, ensure_ascii=False)
+            fs.json_dump(self.save_schema, self._table_schema, indent=2, ensure_ascii=False)
         self.db_meta = MetaData(bind=self.db_session.connection())
         self.db_meta.reflect()
         self.db_table = self.db_meta.tables.get(self.table_name)

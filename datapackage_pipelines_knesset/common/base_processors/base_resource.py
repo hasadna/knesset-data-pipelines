@@ -1,4 +1,5 @@
 from datapackage_pipelines_knesset.common.base_processors.base import BaseProcessor
+from datapackage_pipelines.utilities.resources import PROP_STREAMING
 
 
 class BaseResourceProcessor(BaseProcessor):
@@ -56,7 +57,8 @@ class BaseResourceProcessor(BaseProcessor):
         self._schema = self._get_schema(resource_descriptor)
         resource_descriptor =  dict(resource_descriptor, **{"name": self._get_output_resource_name(),
                                                             "path": self._get_output_resource_path(),
-                                                            "schema": self._schema})
+                                                            "schema": self._schema,
+                                                            PROP_STREAMING: True})
         self._resource_descriptor = resource_descriptor
         return resource_descriptor
 

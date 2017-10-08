@@ -1,13 +1,13 @@
 from datapackage_pipelines.wrapper import ingest, spew
+from datapackage_pipelines_knesset.common import object_storage
 import logging, json
 
-DEFAULT_SAVE_SCHEMA = "../data/aggregations/{table_name}.{ext}"
+DEFAULT_SAVE_SCHEMA = "aggregations/{table_name}.{ext}"
 
 parameters, datapackage, resources = ingest()
 
 def _get_schema_table(tablename, fields, primaryKey):
     html = "<h1>{tablename}</h1>".format(tablename=tablename)
-
     html += "<table border=5 cellpadding=5 cellspacing=2><tr><th>name</th><th>type</th><th>description</th></tr>"
     for field in fields:
         html += "<tr><td>{name}</td><td>{type}</td><td dir=rtl align=right>{description}</td></tr>".format(
@@ -18,6 +18,7 @@ def _get_schema_table(tablename, fields, primaryKey):
     html += "</table>"
 
     return html
+
 
 def filter_resource(descriptor, data):
     for row in data:
@@ -37,10 +38,8 @@ def filter_resources(datapackage, resources, parameters):
     if save_schema:
         save_schema_html = DEFAULT_SAVE_SCHEMA.format(table_name=datapackage["name"], ext="html")
         save_schema_json = DEFAULT_SAVE_SCHEMA.format(table_name=datapackage["name"], ext="json")
-        with open(save_schema_html, "w") as f:
-            f.write(html)
-        with open(save_schema_json, "w") as f:
-            json.dump(datapackage["resources"], f, indent=2, ensure_ascii=False)
 
+        object_storage.write(parameters["bucket"], save_schema_html, html)
+        object_storage.write(parameters["bucket"], save_schema_json, json.dumps(datapackage["resources"], indent=2, ensure_ascii=False))
 
 spew(datapackage, filter_resources(datapackage, resources, parameters))

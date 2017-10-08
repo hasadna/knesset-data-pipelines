@@ -1,0 +1,9 @@
+app:
+  influxDb: dpp
+influxdb:
+  enabled: true
+  gcePersistentDiskName: "knesset-data-pipelines-production-influxdb"
+grafana:
+  enabled: true
+nginx:
+  enableGrafana: true
