@@ -1,5 +1,6 @@
 from datapackage_pipelines_knesset.common.base_processors.add_resource import AddResourceBaseProcessor
 from sqlalchemy import or_
+import logging
 
 
 # only loads documents which end with these extensions

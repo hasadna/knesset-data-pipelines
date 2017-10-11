@@ -1,7 +1,6 @@
 from datapackage_pipelines_knesset.common.base_processors.base import BaseProcessor
 from datapackage_pipelines.utilities.resources import PROP_STREAMING
 
-
 class BaseResourceProcessor(BaseProcessor):
     """Base class for processing a single resource"""
 

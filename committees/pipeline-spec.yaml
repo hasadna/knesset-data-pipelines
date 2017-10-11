@@ -406,6 +406,20 @@ committee-meeting-protocols:
         schemas-bucket: committees
         # lower commit batches - because protocol parsing takes some time
         commit-every: 50
+    - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_attendees
+      parameters:
+        input-resource: committee-meeting-protocols-parsed
+        output-resource: committee-meeting-attendees
+    - run: dump.to_sql
+      parameters:
+        tables:
+          committee_meeting_attendees:
+            resource-name: committee-meeting-attendees
+            mode: insert
+
+# create datapackage
+
+
 
 all:
   description: >

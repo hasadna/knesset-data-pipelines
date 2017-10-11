@@ -71,7 +71,7 @@ class Processor(BaseDumpProcessor):
 
     def _get_schema_fields_html(self):
         html = "<table border=5 cellpadding=5 cellspacing=2><tr><th>name</th><th>type</th><th>description</th></tr>"
-        primaryKey = self._schema["primaryKey"]
+        primaryKey = self._schema["primaryKey"] if "primaryKey" in self._schema.keys() else ""
         for field in self._schema["fields"]:
             html += "<tr><td>{name}</td><td>{type}</td><td dir=rtl align=right>{description}</td></tr>".format(
                 name=("{}" if field["name"] not in primaryKey else "<strong>{}</strong> (primaryKey)").format(field["name"]),
