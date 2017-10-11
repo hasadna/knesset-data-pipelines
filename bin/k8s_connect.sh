@@ -29,7 +29,7 @@ if [ ! -f "devops/k8s/.env.${K8S_ENVIRONMENT}" ]; then
     if ! gcloud container clusters get-credentials $CLOUDSDK_CONTAINER_CLUSTER; then
         echo " > Failed to authenticate with google or find the cluster"
         echo " > To create a cluster, run bin/k8s_create.sh"
-        echo " > To modify google / cluster connection configuration - create the env file manually using devops/k8s/.env.example"
+        echo " > To modify google / cluster connection configuration - create the env file manually using devops/k8s/.env.dist"
         rm devops/k8s/.env.${K8S_ENVIRONMENT}
     else
         echo "kubectl config use-context \"gke_${CLOUDSDK_CORE_PROJECT}_${CLOUDSDK_COMPUTE_ZONE}_${CLOUDSDK_CONTAINER_CLUSTER}\"" >> "devops/k8s/.env.${K8S_ENVIRONMENT}"

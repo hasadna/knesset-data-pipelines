@@ -4,11 +4,12 @@
 .cache
 .ipynb_checkpoints
 .tox
-data
-tests
+data/
+.data/
+tests/
 .dpp.db
 .env
-.env.example
+.env.dist
 .travis.yml
 *.md
 tox.ini
