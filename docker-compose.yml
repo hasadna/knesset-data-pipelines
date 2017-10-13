@@ -1,47 +1,45 @@
-version: "2"
+version: "3"
 
 services:
-  data:
-    image: tianon/true
-    volumes:
-      - ./:/knesset
-      
+
+  redis:
+    image: redis:alpine
+
   db:
-    build: docker/postgresql
-    volumes_from:
-      - data
+    image: sameersbn/postgresql:9.6-2
     ports:
       - "15432:5432"
     environment:
-      - PG_PASSWORD
+      - "PG_PASSWORD=123456"
+    volumes:
+      - .data-docker/postgresql:/var/lib/postgresql
 
-  redis:
-    build: docker/redis
-
+  # object storage
   minio:
-    build: docker/minio
+    image: minio/minio
     ports:
       - "9000:9000"
-    volumes_from:
-      - data
     command:
       - server
       - /data
     environment:
-      - MINIO_ACCESS_KEY
-      - MINIO_SECRET_KEY
+    # hard-coded access keys for easy debugging
+      - "MINIO_ACCESS_KEY=HJW6280KHBS2Y105STGG"
+      - "MINIO_SECRET_KEY=rsAuRptRwTTuSocsdBCRHIToldPkPefpb2Vl/ybG"
+    volumes:
+      - .data-docker/minio:/data
 
   app:
-    build: docker/knesset
+    build: .
     image: knesset-data/pipelines
-    volumes_from:
-      - data
     depends_on:
       - db
       - redis
     ports:
       - "5000:5000"
     environment:
-      - DPP_REDIS_HOST
-      - DPP_DB_ENGINE
-      - DPP_WORKER_CONCURRENCY
+      - "DPP_REDIS_HOST=redis"
+      - "DPP_DB_ENGINE=postgresql://postgres:123456@db:5432/postgres"
+      - "DPP_WORKER_CONCURRENCY=1"
+    volumes:
+      - .data-docker:/knesset/data
