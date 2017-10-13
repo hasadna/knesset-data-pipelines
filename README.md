@@ -107,16 +107,6 @@ Once you are inside a Python 3.6 virtualenv, you can run the following:
 
 You can set some environment variables to modify behaviors, see a refernece at .env.example
 
-## Twelve factor app
-Credentials are stored in .env file which is excluded from version control,
-because we have to keep connection details in secret.
-
-## PostgreSQL
-
-Use `psql "sslmode=require host=db port=15432 dbname=postgres" -- postgres` to connect, the password is specified in .env file
-
-You can add extra security layer with client certificate to connect (procedures are commented out in Dockerfile)
-
 ## Running the dpp cli
 
 * using docker: `bin/dpp.sh`
