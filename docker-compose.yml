@@ -41,5 +41,8 @@ services:
       - "DPP_REDIS_HOST=redis"
       - "DPP_DB_ENGINE=postgresql://postgres:123456@db:5432/postgres"
       - "DPP_WORKER_CONCURRENCY=1"
+      - "S3_ENDPOINT_URL=http://localhost:9000"
+      - "AWS_ACCESS_KEY_ID=HJW6280KHBS2Y105STGG"
+      - "AWS_SECRET_ACCESS_KEY=rsAuRptRwTTuSocsdBCRHIToldPkPefpb2Vl/ybG"
     volumes:
       - .data-docker:/knesset/data
