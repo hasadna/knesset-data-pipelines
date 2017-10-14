@@ -120,7 +120,11 @@ env_config_set() {
 }
 
 export WHAT="${1}"
-export ACTION="${2:---provision}"
+if [ "${2}" == "--list" ] || [ "${2}" == "--delete" ]; then
+    export ACTION="${2}"
+else
+    export ACTION="--provision"
+fi
 
 if [ "${WHAT}${ACTION}" != "cluster--provision" ]; then
     source bin/k8s_connect.sh > /dev/null
@@ -399,6 +403,15 @@ elif [ "${ACTION}-${WHAT}" == "--provision-minio-ssl" ]; then
     export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/minio-ssl.yaml"
     echo "nginx:" > $VALUES_FILE
     echo "  minioSslDomain: \"${MINIO_DOMAIN}\"" >> $VALUES_FILE
+    exit 0
+
+elif [ "${ACTION}-${WHAT}" == "--provision-cluster-nodes" ]; then
+    if [ "${2}" == "" ]; then
+        echo "usage: bin/k8s_provision.sh cluster-nodes <NUM_OF_NODES>"
+        exit 1
+    fi
+    echo " > Provisioning ${2} additional nodes"
+    gcloud container clusters resize "${CLOUDSDK_CONTAINER_CLUSTER}" "--size=${2}"
     exit 0
 fi
 
