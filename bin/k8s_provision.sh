@@ -410,7 +410,7 @@ elif [ "${ACTION}-${WHAT}" == "--provision-cluster-nodes" ]; then
         echo "usage: bin/k8s_provision.sh cluster-nodes <NUM_OF_NODES>"
         exit 1
     fi
-    echo " > Provisioning ${2} additional nodes"
+    echo " > Setting cluster size to ${2} nodes"
     gcloud container clusters resize "${CLOUDSDK_CONTAINER_CLUSTER}" "--size=${2}"
     exit 0
 fi
