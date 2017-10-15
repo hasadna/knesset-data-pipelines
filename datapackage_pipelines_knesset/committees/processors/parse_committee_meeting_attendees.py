@@ -1,7 +1,7 @@
 from datapackage_pipelines_knesset.common.processors.base_processor import BaseProcessor
 from knesset_data.protocols.committee import CommitteeMeetingProtocol
 from datapackage_pipelines_knesset.common import object_storage
-import logging
+
 
 
 class ParseCommitteeMeetingAttendeesProcessor(BaseProcessor):
