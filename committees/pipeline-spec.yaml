@@ -410,11 +410,18 @@ committee-meeting-protocols:
       parameters:
         input-resource: committee-meeting-protocols-parsed
         output-resource: committee-meeting-attendees
+    - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_speakers
+      parameters:
+        input-resource: committee-meeting-protocols-parsed
+        output-resource: committee-meeting-speakers
     - run: dump.to_sql
       parameters:
         tables:
           committee_meeting_attendees:
             resource-name: committee-meeting-attendees
+            mode: insert
+          committee_meeting_speakers:
+            resource-name: committee-meeting-speakers
             mode: insert
 
 # create datapackage
