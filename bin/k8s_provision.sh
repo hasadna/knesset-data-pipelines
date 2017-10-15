@@ -286,15 +286,27 @@ elif [ "${ACTION}-${WHAT}" == "--provision-metabase" ]; then
 elif [ "${ACTION}-${WHAT}" == "--provision-grafana" ]; then
     create_disk "${DISK_SIZE:-5GB}" "influxdb"
     set_values '{
-        "app":
+        "app": {
             "influxDb": "dpp"
-        "influxdb":
+        },
+        "influxdb": {
+            "enabled": true,
+            "gcePersistentDiskName": "knesset-data-pipelines-'$K8S_ENVIRONMENT'-influxdb",
+        },
+        "grafana": {
             "enabled": true
-            "gcePersistentDiskName": "knesset-data-pipelines-'$K8S_ENVIRONMENT'-influxdb"
-        "grafana":
-            "enabled": true
-        "nginx":
+        },
+        "nginx": {
             "enableGrafana": true
+        }
+    }'
+    exit 0
+
+elif [ "${ACTION}-${WHAT}" == "--provision-grafana-anonymous" ]; then
+    set_values '{
+        "grafana": {
+            "anonymousEnabled": true
+        }
     }'
     exit 0
 

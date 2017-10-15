@@ -1,46 +1,47 @@
-committees:
-  enabled: true
-letsencrypt:
-  enabled: true
-nginx:
-  enabled: true
-  enableCommittees: true
-  enableGrafana: true
-  enableMetabase: true
-  minioSslDomain: "minio.oknesset.org"
-  htpasswdSecretName: nginx-htpasswd
-  sslDomain: next.oknesset.org
-db:
-  gcePersistentDiskName: "knesset-data-pipelines-production-db"
-  backupUploadProjectId: hasadna-oknesset
-  backupUploadZone: us-central1-a
-  backupUploadServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
-  backupUploadServiceAccountKeySecret: db-backup-upload-google-key
-  backupUploadBucketName: kdp-production-db-backups
-jobs:
-  restoreDbJobName: db-restore-17-10-05-15-55
-  restoreDbGsUrl: gs://kdp-production-db-backups/17-10-05-09-12.sql
-  restoreDbServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
-  restoreDbProjectId: hasadna-oknesset
-  restoreDbZone: us-central1-a
-  restoreDbServiceAccountKeySecret: db-backup-upload-google-key
-global:
-  skipInitContainers: true
-  rootUrl: https://next.oknesset.org
 app:
+  cpuRequests: 0.4
   dppWorkerConcurrency: 2
   dppWorkerReplicas: 1
-  cpuRequests: 0.4
-  memoryRequests: "500Mi"
   influxDb: dpp
+  memoryRequests: 500Mi
+committees:
+  enabled: true
+db:
+  backupUploadBucketName: kdp-production-db-backups
+  backupUploadProjectId: hasadna-oknesset
+  backupUploadServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
+  backupUploadServiceAccountKeySecret: db-backup-upload-google-key
+  backupUploadZone: us-central1-a
+  gcePersistentDiskName: knesset-data-pipelines-production-db
+flower:
+  urlPrefix: flower
+global:
+  rootUrl: https://next.oknesset.org
+  skipInitContainers: true
+grafana:
+  anonymousEnabled: true
+  enabled: true
 influxdb:
   enabled: true
-  gcePersistentDiskName: "knesset-data-pipelines-production-influxdb"
-grafana:
+  gcePersistentDiskName: knesset-data-pipelines-production-influxdb
+jobs:
+  restoreDbGsUrl: gs://kdp-production-db-backups/17-10-05-09-12.sql
+  restoreDbJobName: db-restore-17-10-05-15-55
+  restoreDbProjectId: hasadna-oknesset
+  restoreDbServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
+  restoreDbServiceAccountKeySecret: db-backup-upload-google-key
+  restoreDbZone: us-central1-a
+letsencrypt:
   enabled: true
 metabase:
   enabled: true
 minio:
-  gcePersistentDiskName: "knesset-data-pipelines-production-minio"
-flower:
-  urlPrefix: flower
+  gcePersistentDiskName: knesset-data-pipelines-production-minio
+nginx:
+  enableCommittees: true
+  enableGrafana: true
+  enableMetabase: true
+  enabled: true
+  htpasswdSecretName: nginx-htpasswd
+  minioSslDomain: minio.oknesset.org
+  sslDomain: next.oknesset.org
