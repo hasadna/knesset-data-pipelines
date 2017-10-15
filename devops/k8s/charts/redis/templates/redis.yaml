@@ -21,6 +21,7 @@ spec:
       labels:
         app: {{.Values.name | default "redis"}}
     spec:
+{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - name: {{.Values.name | default "redis"}}
         image: {{.Values.image | default "redis:alpine"}}
@@ -28,8 +29,8 @@ spec:
         - containerPort: 6379
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.05"}}
-            memory: {{.Values.memoryRequests | default "50Mi" | quote}}
+            cpu: {{.Values.cpuRequests | default "0.001"}}
+            memory: {{.Values.memoryRequests | default "20Mi" | quote}}
         readinessProbe:
           initialDelaySeconds: 1
           periodSeconds: 1

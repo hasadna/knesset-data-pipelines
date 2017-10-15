@@ -21,6 +21,7 @@ spec:
       labels:
         app: {{.Values.name | default "db" | quote}}
     spec:
+{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - name: {{.Values.name | default "db" | quote}}
         image: {{.Values.image | default "sameersbn/postgresql:9.6-2" | quote}}
@@ -29,7 +30,7 @@ spec:
         volumeMounts: [{name: "knesset-data-pipelines-db", mountPath: "/var/lib/postgresql"}]
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.2"}}
+            cpu: {{.Values.cpuRequests | default "0.005"}}
             memory: {{.Values.memoryRequests | default "150Mi" | quote}}
 #        readinessProbe:
 #          initialDelaySeconds: 5
@@ -50,7 +51,7 @@ spec:
         - {name: "CLOUDSDK_CORE_PROJECT", value: {{.Values.backupUploadProjectId | quote}}}
         - {name: "CLOUDSDK_COMPUTE_ZONE", value: {{.Values.backupUploadZone | quote}}}
         - {name: "STORAGE_BUCKET_NAME", value: {{.Values.backupUploadBucketName | quote}}}
-        resources: {requests: {cpu: 0.01, memory: "1Mi"}}
+        resources: {requests: {cpu: 0.001, memory: "1Mi"}}
         volumeMounts: [{name: "upload-secret", mountPath: "/upload-secret"}]
       {{ end }}
       volumes:

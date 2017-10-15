@@ -20,6 +20,7 @@ spec:
       labels:
         app: {{.Values.name | default "adminer"}}
     spec:
+{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - image: {{.Values.image | default "adminer:4.3.1-standalone"}}
         name: {{.Values.name | default "adminer"}}
@@ -27,7 +28,7 @@ spec:
         - containerPort: 8080
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.01"}}
+            cpu: {{.Values.cpuRequests | default "0.004"}}
         readinessProbe:
           initialDelaySeconds: 5
           periodSeconds: 10

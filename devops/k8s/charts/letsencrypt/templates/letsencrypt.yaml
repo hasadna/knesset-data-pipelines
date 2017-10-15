@@ -12,34 +12,58 @@ spec:
       labels:
         app: {{.Values.name | default "letsencrypt" | quote}}
     spec:
-      {{ if .Values.global.sharedHostName }}
-      # we use host path to share data between nginx and let's encrypt
-      # so we have to ensure both services use the same node
-      # see the relevant section regarding SLL in devops/k8s/README.md for more details about the setup
-      nodeSelector:
-        kubernetes.io/hostname: {{ .Values.global.sharedHostName | quote}}
-      {{ end }}
+{{ include "app-workers-anti-affinity" . | indent 6}}
+{{ include "shared-host-affinity" . | indent 8}}
       containers:
       - name: {{.Values.name | default "letsencrypt" | quote}}
         image: {{.Values.image | default "orihoch/datapackage-pipelines-plus-plus-letsencrypt:v0.0.1" | quote}}
+        env:
+        - {name: MINIO_ACCESS_KEY, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "MINIO_ACCESS_KEY"}}}
+        - {name: MINIO_SECRET_KEY, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "MINIO_SECRET_KEY"}}}
+        command:
+        - "bash"
+        - "-c"
+        - >
+          apt-get update && apt-get install wget &&
+          wget https://dl.minio.io/client/mc/release/linux-amd64/mc &&
+          chmod +x mc &&
+          ./mc config host add minio http://minio:9000 "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}" &&
+          (! ./mc ls minio/letsencrypt-backup || (
+            ./mc mirror --force --insecure minio/letsencrypt-backup /etc/letsencrypt
+          )) &&
+          /entrypoint.sh
         resources:
           requests:
             cpu: {{.Values.cpuRequests | default "0.01"}}
             memory: {{.Values.memoryRequests | default "10Mi" | quote}}
-    {{ if .Values.global.sharedHostName }}
         volumeMounts:
         - name: host
           mountPath: /var/log/letsencrypt
-          subPath: {{.Values.global.sharedHostLetsencryptLogSubPath | default "letsencrypt-log" | quote}}
+          subPath: "letsencrypt-log"
         - name: host
           mountPath: /etc/letsencrypt
-          subPath: {{.Values.global.sharedHostLetsencryptEtcSubPath | default "letsencrypt-etc" | quote}}
+          subPath: "letsencrypt-etc"
         - name: host
           mountPath: /nginx-html
-          subPath: {{.Values.global.sharedHostNginxHtmlSubPath | default "nginx-html" | quote}}
+          subPath: "nginx-html"
+      - name: letsencrypt-backup
+        image: minio/mc
+        command:
+        - "sh"
+        - "-c"
+        - >
+          mc config host add minio http://minio:9000 "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}" &&
+          mc mb -p minio/letsencrypt-backup &&
+          mc mirror --force --insecure --watch /etc/letsencrypt minio/letsencrypt-backup
+        env:
+        - {name: MINIO_ACCESS_KEY, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "MINIO_ACCESS_KEY"}}}
+        - {name: MINIO_SECRET_KEY, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "MINIO_SECRET_KEY"}}}
+        volumeMounts:
+        - name: host
+          mountPath: /etc/letsencrypt
+          subPath: "letsencrypt-etc"
       volumes:
       - name: host
         hostPath:
-          path: {{.Values.global.sharedHostPath | default "/var/shared-host-path" | quote}}
-    {{ end }}
+          path: "/var/shared-host-path"
 {{ end }}

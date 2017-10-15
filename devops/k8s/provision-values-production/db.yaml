@@ -1,2 +1,0 @@
-db:
-  gcePersistentDiskName: "knesset-data-pipelines-production-db"

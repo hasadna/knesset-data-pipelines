@@ -46,12 +46,10 @@ data:
     {{ end }}
 
   letsencrypt.inc: |
-    {{ if .Values.global.sharedHostName }}
     # let's encrypt authentication challenge
     location /.well-known/ {
         alias /usr/share/nginx/html/.well-known/;
     }
-    {{ end }}
 
   services.inc: |
     {{ if .Values.enablePipelines }}include /etc/nginx/conf.d/pipelines.inc;{{ end }}
@@ -100,29 +98,6 @@ data:
         proxy_pass http://grafana:3000;
         proxy_set_header Host $host;
     }
-
-#  TODO: need to provide public endpoint for files based on minio
-#  data.inc: |
-#    {{ if .Values.global.sharedHostName }}
-#    # pipelines data in html format - for humans
-#    location /data {
-#        autoindex on;
-#        autoindex_exact_size off;
-#        autoindex_format html;
-#        autoindex_localtime on;
-#        alias /knesset-data/;
-#        charset utf-8;
-#    }
-#    # pipelines data in json format - for scraping
-#    location /data-json {
-#        autoindex on;
-#        autoindex_exact_size on;
-#        autoindex_format json;
-#        autoindex_localtime off;
-#        alias /knesset-data/;
-#        charset utf-8;
-#    }
-#    {{ end }}
 
   committees.inc: |
     location /committees/ {

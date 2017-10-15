@@ -20,6 +20,7 @@ spec:
       labels:
         app: {{.Values.name | default "app"}}-serve
     spec:
+{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - name: {{.Values.name | default "app" | quote}}
         image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}

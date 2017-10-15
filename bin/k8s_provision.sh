@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
-# provision resources required by the cluster and create values files under devops/k8s/provision-values-${K8S_ENVIRONMENT}/
-
 if [ "${1}" == "" ]; then
     echo "usage: bin/k8s_provision.sh <WHAT> [--list|--delete]"
     exit 1
 fi
+
+set_values() {
+    bin/update_yaml.py "${1}" "devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml"
+}
 
 create_disk() {
     local DISK_SIZE="${1}"
@@ -18,9 +20,8 @@ provision_disk() {
     local DISK_SIZE="${1}"
     local APP="${2}"
     create_disk "${DISK_SIZE}" "${APP}"
-    echo " > Updating persistent disk name in values file devops/k8s/provision-values-${K8S_ENVIRONMENT}/${APP}.yaml"
-    echo "${APP}:" > "devops/k8s/provision-values-${K8S_ENVIRONMENT}/${APP}.yaml"
-    echo "  gcePersistentDiskName: \"knesset-data-pipelines-${K8S_ENVIRONMENT}-${APP}\"" >> "devops/k8s/provision-values-${K8S_ENVIRONMENT}/${APP}.yaml"
+    echo " > Updating persistent disk name in values file"
+    set_values '{"'$APP'": {"gcePersistentDiskName": "knesset-data-pipelines-'$K8S_ENVIRONMENT'-'$APP'"}}'
     exit 0
 }
 
@@ -29,6 +30,7 @@ delete_disk() {
     echo " > Deleting persistent disk knesset-data-pipelines-${K8S_ENVIRONMENT}-${APP}"
     gcloud compute disks delete "knesset-data-pipelines-${K8S_ENVIRONMENT}-${APP}"
     rm "devops/k8s/provision-values-${K8S_ENVIRONMENT}/${APP}.yaml"
+    set_values '{"'$APP'": {"gcePersistentDiskName": null}}'
     exit 0
 }
 
@@ -132,8 +134,6 @@ elif [ "${K8S_ENVIRONMENT}" == "" ]; then
     export K8S_ENVIRONMENT="staging"
 fi
 
-mkdir -p "devops/k8s/provision-values-${K8S_ENVIRONMENT}/"
-
 echo " > Provisioning ${WHAT} resources for ${K8S_ENVIRONMENT} environment"
 
 if [ "${WHAT}" == "db" ]; then
@@ -223,7 +223,6 @@ elif [ "${WHAT}" == "db-restore" ] || [ "${WHAT}" == "db-backup" ]; then
     export SERVICE_ACCOUNT_NAME="kdp-${K8S_ENVIRONMENT}-db-backups"
     export STORAGE_BUCKET_NAME="kdp-${K8S_ENVIRONMENT}-db-backups"
     export SECRET_NAME=db-backup-upload-google-key
-    export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/${WHAT}.yaml"
     if [ "${ACTION}" == "--provision" ]; then
         if [ "${WHAT}" == "db-restore" ] && [ "${GS_URL}" == "" ]; then
             echo " > must set GS_URL environment variable to restore"
@@ -234,20 +233,26 @@ elif [ "${WHAT}" == "db-restore" ] || [ "${WHAT}" == "db-backup" ]; then
         kubectl create secret generic "${SECRET_NAME}" --from-file "${SECRET_KEY_FILE}"
         rm -rf "${SECRET_TEMPDIR}"
         if [ "${WHAT}" == "db-restore" ]; then
-            echo "jobs:" > $VALUES_FILE
-            echo "  restoreDbJobName: db-restore-`date +%y-%m-%d-%H-%M`" >> $VALUES_FILE
-            echo "  restoreDbGsUrl: ${GS_URL}" >> $VALUES_FILE
-            echo "  restoreDbServiceAccountId: ${SERVICE_ACCOUNT_ID}" >> $VALUES_FILE
-            echo "  restoreDbProjectId: ${CLOUDSDK_CORE_PROJECT}" >> $VALUES_FILE
-            echo "  restoreDbZone: ${CLOUDSDK_COMPUTE_ZONE}" >> $VALUES_FILE
-            echo "  restoreDbServiceAccountKeySecret: ${SECRET_NAME}" >> $VALUES_FILE
+            set_values '{
+                "jobs": {
+                    "restoreDbJobName": "db-restore-'`date +%y-%m-%d-%H-%M`'",
+                    "restoreDbGsUrl": "'$GS_URL'",
+                    "restoreDbServiceAccountId": "'$SERVICE_ACCOUNT_ID'",
+                    "restoreDbProjectId": "'$CLOUDSDK_CORE_PROJECT'",
+                    "restoreDbZone": "'$CLOUDSDK_COMPUTE_ZONE'",
+                    "restoreDbServiceAccountKeySecret": "'$SECRET_NAME'"
+                }
+            }'
         else
-            echo "db:" > $VALUES_FILE
-            echo "  backupUploadProjectId: ${CLOUDSDK_CORE_PROJECT}" >> $VALUES_FILE
-            echo "  backupUploadZone: us-central1-a" >> $VALUES_FILE
-            echo "  backupUploadServiceAccountId: ${SERVICE_ACCOUNT_ID}" >> $VALUES_FILE
-            echo "  backupUploadServiceAccountKeySecret: ${SECRET_NAME}" >> $VALUES_FILE
-            echo "  backupUploadBucketName: ${STORAGE_BUCKET_NAME}" >> $VALUES_FILE
+            set_values '{
+                "db": {
+                    "backupUploadProjectId": "'$CLOUDSDK_CORE_PROJECT'",
+                    "backupUploadZone": "us-central1-a",
+                    "backupUploadServiceAccountId": "'$SERVICE_ACCOUNT_ID'",
+                    "backupUploadServiceAccountKeySecret": "'$SECRET_NAME'",
+                    "backupUploadBucketName": "'$STORAGE_BUCKET_NAME'"
+                }
+            }'
         fi
         exit 0
     elif [ "${ACTION}" == "--delete" ]; then
@@ -257,50 +262,50 @@ elif [ "${WHAT}" == "db-restore" ] || [ "${WHAT}" == "db-backup" ]; then
 
 elif [ "${ACTION}-${WHAT}" == "--provision-dpp-workers" ]; then
     # TODO: ensure there are enough compute resources for these workers and assign dpp to appropriate node
-    export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/dpp-workers.yaml"
-    echo "app:" > $VALUES_FILE
-    echo "  dppWorkerConcurrency: 1" >> $VALUES_FILE
-    echo "  dppWorkerReplicas: 3" >> $VALUES_FILE
-    echo "  cpuRequests: 0.20" >> $VALUES_FILE
-    echo "  memoryRequests: \"150Mi\"" >> $VALUES_FILE
+    set_values '{
+        "app": {
+            "dppWorkerConcurrency": 1,
+            "dppWorkerReplicas": 3,
+            "cpuRequests": 0.20,
+            "memoryRequests": "150Mi"
+        }
+    }'
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-metabase" ]; then
-    export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/metabase.yaml"
-    echo "metabase:" > $VALUES_FILE
-    echo "  enabled: true" >> $VALUES_FILE
-    echo "nginx:" >> $VALUES_FILE
-    echo "  enableMetabase: true" >> $VALUES_FILE
+    set_values '{
+        "metabase": {
+            "enabled": true
+        }
+        "nginx": {
+            "enableMetabase": true
+        }
+    }'
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-grafana" ]; then
-    export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/grafana.yaml"
     create_disk "${DISK_SIZE:-5GB}" "influxdb"
-    echo "app:" > $VALUES_FILE
-    echo "  influxDb: dpp" >> $VALUES_FILE
-    echo "influxdb:" >> $VALUES_FILE
-    echo "  enabled: true" >> $VALUES_FILE
-    echo "  gcePersistentDiskName: \"knesset-data-pipelines-${K8S_ENVIRONMENT}-influxdb\"" >> $VALUES_FILE
-    echo "grafana:" >> $VALUES_FILE
-    echo "  enabled: true" >> $VALUES_FILE
-    echo "nginx:" >> $VALUES_FILE
-    echo "  enableGrafana: true" >> $VALUES_FILE
+    set_values '{
+        "app":
+            "influxDb": "dpp"
+        "influxdb":
+            "enabled": true
+            "gcePersistentDiskName": "knesset-data-pipelines-'$K8S_ENVIRONMENT'-influxdb"
+        "grafana":
+            "enabled": true
+        "nginx":
+            "enableGrafana": true
+    }'
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-shared-host" ]; then
-    export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/shared-host.yaml"
-    export SHARED_HOST_NAME=`kubectl get pod -l app=app -o json | jq -r '.items[0].spec.nodeName'`
-    echo " > using "${SHARED_HOST_NAME}" as the shared host"
-    gcloud compute ssh "${SHARED_HOST_NAME}" \
-        --command "sudo mkdir -p /var/shared-host-path/{nginx-html,letsencrypt-etc,letsencrypt-log,app-data} && sudo chown -R root:root /var/shared-host-path"
-    echo "global:" > $VALUES_FILE
-    echo "  sharedHostName: ${SHARED_HOST_NAME}" >> $VALUES_FILE
+    echo " > Ensuring all nodes support host path"
+    for NODE in `kubectl get nodes | grep gke | cut -d" " -f1 -`; do
+        gcloud compute ssh "${NODE}" --command "sudo mkdir -p /var/shared-host-path/{nginx-html,letsencrypt-etc,letsencrypt-log} && sudo chown -R root:root /var/shared-host-path"
+    done
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-nginx" ]; then
-    export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/nginx.yaml"
-    echo "nginx:" > $VALUES_FILE
-    echo "  enabled: true" >> $VALUES_FILE
     echo " > creating htpasswd for user 'superadmin'"
     export USERNAME=superadmin
     export TEMPDIR=`mktemp -d`
@@ -309,9 +314,15 @@ elif [ "${ACTION}-${WHAT}" == "--provision-nginx" ]; then
     kubectl delete secret nginx-htpasswd
     kubectl create secret generic nginx-htpasswd --from-file "${TEMPDIR}/"
     rm -rf $TEMPDIR
-    echo "  htpasswdSecretName: nginx-htpasswd" >> $VALUES_FILE
-    echo "flower:" >> $VALUES_FILE
-    echo "  urlPrefix: flower" >> $VALUES_FILE
+    set_values '{
+        "nginx": {
+            "enabled": true,
+            "htpasswdSecretName": "nginx-htpasswd"
+        }
+        "flower:" {
+            "urlPrefix": "flower"
+        }
+    }'
     echo " > upgrading helm, and waiting for nginx service to get the load balancer iP"
     bin/k8s_helm_upgrade.sh
     while [ `kubectl get service nginx -o json  | jq -r '.status.loadBalancer.ingress[0].ip'` == "null" ]; do
@@ -319,29 +330,46 @@ elif [ "${ACTION}-${WHAT}" == "--provision-nginx" ]; then
     done
     export NGINX_HOST_IP=`kubectl get service nginx -o json  | jq -r '.status.loadBalancer.ingress[0].ip'`
     echo " > NGINX_HOST_IP=${NGINX_HOST_IP}"
-    echo "global:" >> $VALUES_FILE
-    echo "  rootUrl: http://${NGINX_HOST_IP}" >> $VALUES_FILE
+    set_values '{
+        "global": {
+            "rootUrl": "http://'$NGINX_HOST_IP'"
+        }
+    }'
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-letsencrypt" ]; then
-    export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/letsencrypt.yaml"
-    echo "letsencrypt:" > $VALUES_FILE
-    echo "  enabled: true" >> $VALUES_FILE
-    echo " > Provisions to use SSL_DOMAIN ${SSL_DOMAIN}"
-    if [ "${SSL_DOMAIN}" != "" ]; then
-        echo "nginx:" >> $VALUES_FILE
-        echo "  sslDomain: ${SSL_DOMAIN}" >> $VALUES_FILE
-        echo "global:" >> $VALUES_FILE
-        echo "  rootUrl: https://${SSL_DOMAIN}" >> $VALUES_FILE
-    fi
+    set_values '{
+        "letsencrypt": {
+            "enabled": true
+        }
+    }'
+    exit 0
+
+elif [ "${ACTION}-${WHAT}" == "--provision-ssl-domain" ]; then
+    NGINX_IP=`kubectl get service -o json | jq -r '.items[].status.loadBalancer.ingress[0].ip' | grep -v null`
+    echo " > Please setup a domain name to point to the following IP:"
+    echo " > ${NGINX_IP}"
+    echo " > once done, enter the domain name below and <ENTER>"
+    read -p "Domain name: " SSL_DOMAIN
+    kubectl exec -it `kubectl get pod -l app=letsencrypt -o json | jq -r '.items[0].metadata.name'` /issue_cert.sh "${SSL_DOMAIN}"
+    set_values '{
+        "nginx": {
+            "sslDomain": "'$SSL_DOMAIN'",
+        "global": {
+            "rootUrl": "https://'$SSL_DOMAIN'"
+        }
+    }'
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-committees" ]; then
-    export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/committees.yaml"
-    echo "committees:" > $VALUES_FILE
-    echo "  enabled: true" >> $VALUES_FILE
-    echo "nginx:" >> $VALUES_FILE
-    echo "  enableCommittees: true" >> $VALUES_FILE
+    set_values '{
+        "committees": {
+            "enabled": true
+        },
+        "nginx": {
+            "enableCommittees": true
+        }
+    }'
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-continuous-deployment" ]; then
@@ -390,19 +418,17 @@ elif [ "${ACTION}-${WHAT}" == "--provision-secrets" ]; then
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-minio-ssl" ]; then
-    if [ ! -f "devops/k8s/provision-values-${K8S_ENVIRONMENT}/letsencrypt.yaml" ]; then
-        echo " > must provision let's encrypt first"
-        exit 1
-    fi
     NGINX_IP=`kubectl get service -o json | jq -r '.items[].status.loadBalancer.ingress[0].ip' | grep -v null`
     echo " > Please setup a domain name to point to the following IP:"
     echo " > ${NGINX_IP}"
     echo " > once done, enter the domain name below and <ENTER>"
     read -p "Domain name: " MINIO_DOMAIN
     kubectl exec -it `kubectl get pod -l app=letsencrypt -o json | jq -r '.items[0].metadata.name'` /issue_cert.sh "${MINIO_DOMAIN}"
-    export VALUES_FILE="devops/k8s/provision-values-${K8S_ENVIRONMENT}/minio-ssl.yaml"
-    echo "nginx:" > $VALUES_FILE
-    echo "  minioSslDomain: \"${MINIO_DOMAIN}\"" >> $VALUES_FILE
+    set_values '{
+        "nginx": {
+            "minioSslDomain": "'$MINIO_DOMAIN'"
+        }
+    }'
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-cluster-nodes" ]; then
@@ -410,9 +436,34 @@ elif [ "${ACTION}-${WHAT}" == "--provision-cluster-nodes" ]; then
         echo "usage: bin/k8s_provision.sh cluster-nodes <NUM_OF_NODES>"
         exit 1
     fi
-    echo " > Setting cluster size to ${2} nodes"
-    gcloud container clusters resize "${CLOUDSDK_CONTAINER_CLUSTER}" "--size=${2}"
+    echo " > Temporarily reomve app"
+    kubectl delete deployment app-workers
+    bin/k8s_helm_upgrade.sh --set app.enabled=false --set nginx.enablePipelines=false
+    SIZE=`expr $2 - 1`
+    echo " > Setting cluster size to ${SIZE} (1 less then requested size)"
+    gcloud container clusters resize "${CLOUDSDK_CONTAINER_CLUSTER}" "--size=${SIZE}"
+    echo " > Done"
+    echo
+    echo " > When cluster is stable, run: bin/k8s_provision.sh cluster-nodes-workers ${2}"
+    echo
     exit 0
+
+elif [ "${ACTION}-${WHAT}" == "--provision-cluster-nodes-workers" ]; then
+    if [ "${2}" == "" ]; then
+        echo "usage: bin/k8s_provision.sh cluster-nodes-workers <TOTAL_NUM_OF_NODES>"
+        exit 1
+    fi
+    echo " > Setting cluster size to ${2}"
+    gcloud container clusters resize "${CLOUDSDK_CONTAINER_CLUSTER}" "--size=${2}"
+    echo " > Done"
+    bin/k8s_helm_upgrade.sh
+    kubectl delete deployment app-management app-serve
+    echo
+    echo " > Now you should wait for app-workers pod to start"
+    echo " > Then, run a full upgrade to re-enable app management and serve"
+    echo " > bin/k8s_helm_upgrade.sh"
+    exit 0
+
 fi
 
 echo " > ERROR! couldn't handle ${WHAT} ${ACTION}"

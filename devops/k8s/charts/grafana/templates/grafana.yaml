@@ -21,6 +21,7 @@ spec:
       labels:
         app: {{.Values.name | default "grafana" | quote}}
     spec:
+{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - image: {{.Values.image | default "grafana/grafana" | quote}}
         env:

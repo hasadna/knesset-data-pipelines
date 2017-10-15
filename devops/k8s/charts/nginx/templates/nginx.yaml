@@ -23,13 +23,7 @@ spec:
     metadata:
       labels: {app: {{.Values.name | default "nginx" | quote}}}
     spec:
-      {{ if .Values.global.sharedHostName }}
-      # we use host path to share data between nginx and let's encrypt
-      # so we have to ensure both services use the same node
-      # see the relevant section regarding SLL in devops/k8s/README.md for more details about the setup
-      nodeSelector:
-        kubernetes.io/hostname: {{ .Values.global.sharedHostName | quote}}
-      {{ end }}
+{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - image: {{.Values.image | default "nginx:alpine" | quote}}
         name: {{.Values.name | default "nginx" | quote}}
@@ -40,7 +34,7 @@ spec:
         {{ end }}
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.01"}}
+            cpu: {{.Values.cpuRequests | default "0.005"}}
             memory: {{.Values.memoryRequests | default "10Mi"}}
         volumeMounts:
         - name: nginx-conf-d
@@ -51,14 +45,12 @@ spec:
           mountPath: /etc/nginx/htpasswd
           readOnly: true
         {{ end }}
-        {{ if .Values.global.sharedHostName }}
         - name: host
           mountPath: /etc/letsencrypt
-          subPath: {{.Values.global.sharedHostLetsencryptEtcSubPath | default "letsencrypt-etc" | quote}}
+          subPath: "letsencrypt-etc"
         - name: host
           mountPath: /usr/share/nginx/html
-          subPath: {{.Values.global.sharedHostNginxHtmlSubPath | default "nginx-html" | quote}}
-        {{ end }}
+          subPath: "nginx-html"
       volumes:
       - name: nginx-conf-d
         configMap:
@@ -68,9 +60,7 @@ spec:
         secret:
           secretName: {{ .Values.htpasswdSecretName }}
       {{ end }}
-      {{ if .Values.global.sharedHostName }}
       - name: host
         hostPath:
-          path: {{.Values.global.sharedHostPath | default "/var/shared-host-path" | quote}}
-      {{ end }}
+          path: "/var/shared-host-path"
 {{ end }}

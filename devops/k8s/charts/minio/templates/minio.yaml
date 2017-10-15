@@ -21,6 +21,7 @@ spec:
       labels:
         app: {{.Values.name | default "minio"}}
     spec:
+{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - name: {{.Values.name | default "minio"}}
         image: {{.Values.image | default "minio/minio"}}
