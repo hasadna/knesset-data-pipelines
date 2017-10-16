@@ -5,7 +5,7 @@
 
 # usage examples:
 #    'bin/k8s_build_push.sh' - build all images
-#    'bin/k8s_build_push.sh --app' - build app image (alos used for flower)
+#    'bin/k8s_build_push.sh --app' - build app image
 #    'bin/k8s_build_push.sh --committees' - build committees webapp image
 #    'bin/k8s_build_push.sh --db-backup' - build db-backup image
 #
@@ -99,12 +99,6 @@ build_push() {
             echo "  image: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
         fi
         echo >> "${IMAGE_VALUES_FILE}"
-        if [ "${APP_NAME}" == "app" ]; then
-            echo " > setting flower image (uses same build and values file as app)"
-            echo "flower:" >> "${IMAGE_VALUES_FILE}"
-            echo "  image: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
-            echo >> "${IMAGE_VALUES_FILE}"
-        fi
     else
         echo " > iid is unchanged, skipping values file update"
     fi
@@ -113,7 +107,8 @@ build_push() {
 if [ "${1}" == "" ]; then
     bin/k8s_build_push.sh --app || exit 1
     bin/k8s_build_push.sh --committees || exit 2
-    bin/k8s_build_push.sh --db-backup || exit 3
+    # db backup image rarely changes
+    # bin/k8s_build_push.sh --db-backup || exit 3
     exit 0
 elif [ "${1}" == "--app" ]; then
     build_push app hasadna knesset-data-pipelines master . || exit 4
