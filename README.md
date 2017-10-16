@@ -36,7 +36,7 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
 
 Looking to contribute? check out the [Help Wanted Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) or the [Noob Friendly Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22noob+friendly%22) for some ideas.
 
-## Running the full pipelines environment using docker
+### Running the full pipelines environment using docker
 
 #### A note for windows users:
 Using windows with our docker environment is not currently recomended or supported. The build process seems to fail on numerous issues.
@@ -63,8 +63,8 @@ This will provide:
 * Pipelines dashboard: http://localhost:5000/
 * PostgreSQL server, pre-populated with data: postgresql://postgres:123456@localhost:15432/postgres
 * Minio object storage: http://localhost:9000/
-  * Access Key = `HJW6280KHBS2Y105STGG`
-  * Secret = `rsAuRptRwTTuSocsdBCRHIToldPkPefpb2Vl/ybG`
+  * Access Key = `admin`
+  * Secret = `12345678`
 * Adminer - DB Web UI: http://localhost:18080/
   * Database Type = PostgreSQL
   * Host = db
@@ -76,7 +76,7 @@ This will provide:
 After every change in the code you should run `sudo bin/build.sh && sudo bin/start.sh`
 
 
-## Installing the project locally and running tests
+### Installing the project locally and running tests
 
 You should have an activated python 3.6 virtualenv, following procedure will work on Ubuntu 17.04:
 ```
@@ -102,12 +102,12 @@ Once you are inside a Python 3.6 virtualenv, you can run the following:
 
 You can set some environment variables to modify behaviors, see a refernece at .env.example
 
-## Running the dpp cli
+### Running the dpp cli
 
 * using docker: `bin/dpp.sh`
 * locally (from an activated virtualenv): `dpp`
 
-## Run all pipelines at once
+### Run all pipelines at once
 
 **Warning** this might seriously overload your CPU, use with caution..
 
@@ -119,4 +119,21 @@ for PIPELINE in `dpp | tail -n+2 | cut -d" " -f2 -`; do
 done
 ```
 
+### Debugging committee meeting protocols
+
+You should have the committee and session id of a meeting that you want to investigate
+
+In this example the session id is `284231` and committee id is `196`
+
+* Ensure an empty DB
+  * `sudo rm -rf .data-docker/postgresql`
+* Start the docker compose environment
+  * `bin/start.sh`
+* Wait ~20 seconds to ensure environment started properly
+* Parse the protocols of the specific meeting / session id
+  * `OVERRIDE_COMMITTEE_MEETING_IDS=284231 bin/dpp.sh run ./committees/committee-meeting-protocols`
+* Check the parsed files in minio
+  * minio default username=`admin`, password=`12345678`
+  * original downloaded .doc: `284231.doc` - http://localhost:9000/minio/committees/protocols/original/196/
+  * parsed files: `284231.txt` / `284231.csv` - http://localhost:9000/minio/committees/protocols/parsed/196/
 

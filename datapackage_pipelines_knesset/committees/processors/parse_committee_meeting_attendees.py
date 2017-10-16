@@ -25,8 +25,7 @@ class ParseCommitteeMeetingAttendeesProcessor(BaseProcessor):
 
     def extract_attendees_from_txt_file(self,file_object_path,committee_id,meeting_id):
 
-        text = object_storage.read("committees",file_object_path)
-
+        text = object_storage.read("committees",file_object_path).decode()
 
         with CommitteeMeetingProtocol.get_from_text(text) as protocol:
             attendees = protocol.attendees

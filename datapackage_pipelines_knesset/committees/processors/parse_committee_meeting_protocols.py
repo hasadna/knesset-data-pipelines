@@ -3,6 +3,7 @@ from knesset_data.protocols.committee import CommitteeMeetingProtocol
 from knesset_data.protocols.exceptions import AntiwordException
 import os, csv, json, subprocess, logging, shutil, tempfile
 from datapackage_pipelines_knesset.common import object_storage
+import xml.etree.ElementTree
 
 
 class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
@@ -78,14 +79,18 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
 
     def _parse_doc_protocol(self, committee_id, meeting_id, bucket, protocol_object_name, parts_object_name, text_object_name):
         logging.info("parsing doc protocol {} --> {}, {}".format(protocol_object_name, parts_object_name, text_object_name))
-        try:
-            with object_storage.temp_download(bucket, protocol_object_name) as protocol_filename:
+        with object_storage.temp_download(bucket, protocol_object_name) as protocol_filename:
+            try:
                 with CommitteeMeetingProtocol.get_from_filename(protocol_filename) as protocol:
                     object_storage.write(bucket, text_object_name, protocol.text)
                     self._parse_protocol_parts(bucket, parts_object_name, protocol)
-        except (AntiwordException, subprocess.SubprocessError):
-            logging.exception("committee {} meeting {}: failed to parse doc file, skipping".format(committee_id, meeting_id))
-            return False
+            except (
+                    AntiwordException,  # see https://github.com/hasadna/knesset-data-pipelines/issues/15
+                    subprocess.SubprocessError,
+                    xml.etree.ElementTree.ParseError  # see https://github.com/hasadna/knesset-data-pipelines/issues/32
+            ):
+                logging.exception("committee {} meeting {}: failed to parse doc file, skipping".format(committee_id, meeting_id))
+                return False
         return True
 
     def _parse_protocol_parts(self, bucket, parts_object_name, protocol):
