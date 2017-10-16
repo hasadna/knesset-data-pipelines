@@ -6,13 +6,18 @@ services:
     image: redis:alpine
 
   db:
-    image: sameersbn/postgresql:9.6-2
+    image: orihoch/knesset-data-pipelines-bootstrap-db:v0.0.1-17-10-15
     ports:
       - "15432:5432"
     environment:
       - "PG_PASSWORD=123456"
     volumes:
       - .data-docker/postgresql:/var/lib/postgresql
+
+  adminer:
+    image: adminer:4.3.1-standalone
+    ports:
+    - "18080:8080"
 
   # object storage
   minio:
@@ -40,7 +45,7 @@ services:
     environment:
       - "DPP_REDIS_HOST=redis"
       - "DPP_DB_ENGINE=postgresql://postgres:123456@db:5432/postgres"
-      - "DPP_WORKER_CONCURRENCY=1"
+      - "DPP_WORKER_CONCURRENCY=0"
       - "S3_ENDPOINT_URL=http://minio:9000"
       - "AWS_ACCESS_KEY_ID=HJW6280KHBS2Y105STGG"
       - "AWS_SECRET_ACCESS_KEY=rsAuRptRwTTuSocsdBCRHIToldPkPefpb2Vl/ybG"

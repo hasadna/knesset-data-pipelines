@@ -9,7 +9,10 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
 ## Available Endpoints
 * public endpoints:
   * https://next.oknesset.org/pipelines/ - pipelines dashboard
-  * https://next.oknesset.org/data/ - data files, also available in [json format](https://next.oknesset.org/data-json/)
+  <!--
+    TODO: enable data endpoing (files are available, but we lost the indexing ability when we moved to minio)
+   * https://next.oknesset.org/data/ - data files, also available in [json format](https://next.oknesset.org/data-json/)
+  -->
   * Metabase dashboards for quick friendly visualizations of the data in DB:
     * [ועדות](http://next.oknesset.org/metabase/public/dashboard/57604bd2-73f3-4fbc-943f-53bf45287641)
     * [חקיקה](http://next.oknesset.org/metabase/public/dashboard/edf65569-8ca3-41cb-a917-39951c80b9bc)
@@ -35,8 +38,9 @@ Looking to contribute? check out the [Help Wanted Issues](https://github.com/has
 
 ## Running the full pipelines environment using docker
 
-#### A note for windows users: 
-Using windows with docker is not currently recomended or supported. The build process seems to fail on numerous issues.
+#### A note for windows users:
+Using windows with our docker environment is not currently recomended or supported. The build process seems to fail on numerous issues.
+We suggest that windows users either dual-boot to Linux, or run Linux in virtualbox. Best supported version is Ubuntu 17.04
 If you wish to use windows, do so at your own risk, and please update this README file with instructions if you succeed.
 
 #### Instructions for running on Ubuntu (other distros and mac should follow a similar process):
@@ -57,29 +61,20 @@ If you wish to use windows, do so at your own risk, and please update this READM
 This will provide:
 
 * Pipelines dashboard: http://localhost:5000/
-* PostgreSQL server: postgresql://postgres:123456@localhost:15432/postgres
-* Data files under: .data-docker/
-
-After every change in the code you should run `sudo bin/build.sh && sudo bin/start.sh`
-
-## Using Adminer to view the data
-
-Adminer is a simple Web UI which allows to make queries against the DB.
-
-To start the adminer service as part of the local docker compose environment:
-
-* (If you haven't do so already) Copy `docker-compose.override.example.yml` to `docker-compose.override.yml`
-* Edit `docker-compose.override.yml`
-  * Uncomment the adminer section
-* Start the services
-  * `bin/start.sh`
-* adminer is available at: http://localhost:18080
+* PostgreSQL server, pre-populated with data: postgresql://postgres:123456@localhost:15432/postgres
+* Minio object storage: http://localhost:9000/
+  * Access Key = `HJW6280KHBS2Y105STGG`
+  * Secret = `rsAuRptRwTTuSocsdBCRHIToldPkPefpb2Vl/ybG`
+* Adminer - DB Web UI: http://localhost:18080/
   * Database Type = PostgreSQL
   * Host = db
-  * Port = 5431
+  * Port = 5432
   * Database = postgres
   * User = postgres
   * Password = 123456
+
+After every change in the code you should run `sudo bin/build.sh && sudo bin/start.sh`
+
 
 ## Installing the project locally and running tests
 
