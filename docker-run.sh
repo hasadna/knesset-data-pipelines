@@ -19,8 +19,15 @@ if [ "${1}" == "" ]; then
     fi
     dpp serve
 elif [ "${1}" == "workers" ]; then
-    # runs workers according to DPP_WORKER_CONCURRENCY
-    "${PIPELINES_BIN_PATH}/celery_run.sh" worker -l INFO -n "workers@%h" "--concurrency=${DPP_WORKER_CONCURRENCY}" -Q datapackage-pipelines
+    if [ "${DPP_WORKER_CONCURRENCY}" == "0" ]; then
+        # this is used for idle worker - which allows to run jobs manually on it using ssh
+        while true; do
+            sleep 86400
+        done
+    else
+        # runs workers according to DPP_WORKER_CONCURRENCY
+        "${PIPELINES_BIN_PATH}/celery_run.sh" worker -l INFO -n "workers@%h" "--concurrency=${DPP_WORKER_CONCURRENCY}" -Q datapackage-pipelines
+    fi
 elif [ "${1}" == "management" ]; then
     # runs management processes - must only run once
     dpp init
