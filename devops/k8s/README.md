@@ -378,3 +378,11 @@ Suggested steps:
 * Create an alerting policy based on current values (e.g. alert when CPU above X)
 * Access stack driver logging - you should be able to see logs from all pods
   * create alerting policies based on strings in the logs
+
+### Securely managing the minio server in the cluster
+
+You can use the following snippet to run management commands from the mc host itself
+
+this example sets committees bucket to be public:
+
+`kubectl exec -it minio-1863685920-ddz2g -- sh -c 'curl https://dl.minio.io/client/mc/release/linux-amd64/mc > mc && chmod +x ./mc && ./mc config host add minio http://localhost:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY && ./mc policy public minio/committees'`

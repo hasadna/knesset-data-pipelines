@@ -27,3 +27,25 @@ def get_reflect_metadata(bind=None):
     metadata = MetaData(bind=bind)
     metadata.reflect()
     return metadata
+
+
+class ExistingRows(object):
+
+    def __init__(self, table_name, primary_key=None):
+        self.table_name = table_name
+        self.primary_key = primary_key
+        self.all_keys = None
+
+    def contains(self, key):
+        key = int(key)
+        if self.all_keys is None:
+            session = get_session()
+            metadata = MetaData(bind=session.get_bind())
+            metadata.reflect()
+            table = metadata.tables.get(self.table_name)
+            if table is None:
+                self.all_keys = []
+            else:
+                id_column = getattr(table.c, self.primary_key)
+                self.all_keys = set([int(row[0]) for row in session.query(id_column).all()])
+        return key in self.all_keys

@@ -16,6 +16,7 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
         ]
         self._schema["primaryKey"] = ["kns_session_id"]
         self._all_object_names = []
+        self.s3 = object_storage.get_s3()
 
     def _process(self, datapackage, resources):
         return self._process_filter(datapackage, resources)
@@ -35,7 +36,7 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
             else:
                 raise
         if res.status_code == 200:
-            object_storage.write(bucket, object_name, res.content)
+            object_storage.write(self.s3, bucket, object_name, res.content, public_bucket=True)
             return True
         else:
             return False
@@ -63,7 +64,7 @@ class DownloadCommitteeMeetingProtocolsProcessor(BaseProcessor):
                                                            protocol_extension)
         override_meeting_ids = os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
         if not override_meeting_ids or str(meeting["kns_session_id"]) in override_meeting_ids.split(","):
-            if not object_storage.exists(bucket, object_name):
+            if not object_storage.exists(self.s3, bucket, object_name):
                 override_meeting_ids = os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
                 if not override_meeting_ids or str(meeting["kns_session_id"]) in override_meeting_ids.split(","):
                     num_retries = self._parameters.get("num-retries", 5)
