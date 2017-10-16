@@ -21,7 +21,6 @@ spec:
       labels:
         app: {{.Values.name | default "db" | quote}}
     spec:
-{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - name: {{.Values.name | default "db" | quote}}
         image: {{.Values.image | default "sameersbn/postgresql:9.6-2" | quote}}

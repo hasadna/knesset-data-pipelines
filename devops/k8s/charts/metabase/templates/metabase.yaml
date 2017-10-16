@@ -23,7 +23,6 @@ spec:
       labels:
         app: {{.Values.name | default "metabase" | quote}}
     spec:
-{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - env:
         - {name: "MB_DB_TYPE", value: "postgres"}

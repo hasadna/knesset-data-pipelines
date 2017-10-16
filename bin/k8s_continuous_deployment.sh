@@ -44,25 +44,15 @@ NEW_APP_IID=`cat "${IID_FILE}"`
 
 if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
     echo " > detected changes in app image - ensuring app deployment will be updated"
-    echo " > deploying app with 0 workers"
-    if ! bin/k8s_helm_upgrade.sh --recreate-pods --set app.dppWorkerConcurrency=0; then
+    if ! bin/k8s_helm_upgrade.sh --recreate-pods; then
         echo " > Failed helm upgrade"
         exit 8
     fi
     echo " > Sleeping 10 seconds..."
     sleep 10
-    if ! kubectl rollout status deployment app-workers; then
+    if ! kubectl rollout status deployment app-idle-worker; then
         echo " > Deployment rollout status failed"
         exit 9
-    fi
-    echo " > deploying normally"
-    if ! bin/k8s_helm_upgrade.sh --recreate-pods --wait; then
-        echo " > Failed helm upgrade"
-        exit 10
-    fi
-    if ! kubectl rollout status deployment app-workers; then
-        echo " > Deployment rollout status failed"
-        exit 11
     fi
 else
     echo " > no changes detected in app - upgrading helm only"

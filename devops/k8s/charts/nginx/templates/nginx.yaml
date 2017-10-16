@@ -23,7 +23,6 @@ spec:
     metadata:
       labels: {app: {{.Values.name | default "nginx" | quote}}}
     spec:
-{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - image: {{.Values.image | default "nginx:alpine" | quote}}
         name: {{.Values.name | default "nginx" | quote}}

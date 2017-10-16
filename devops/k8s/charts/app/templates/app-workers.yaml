@@ -1,4 +1,4 @@
-{{ if .Values.enabled }}
+{{ if .Values.workersEnabled }}
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
@@ -16,6 +16,7 @@ spec:
         image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
         args: ["workers"]
         env:
+        - {name: DPP_WORKER_CONCURRENCY, value: {{.Values.dppWorkerConcurrency | default "1" | quote}}}
 {{ include "app-common-env" . | indent 8}}
         resources:
           requests:
