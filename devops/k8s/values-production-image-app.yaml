@@ -1,2 +1,2 @@
 app:
-  image: "gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-16-11-42"
+  image: "gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-16-14-13"
