@@ -5,6 +5,7 @@ app:
   autoscalerInterval: '60'
   autoscalerPipelinesUrl: http://app-serve:5000
   autoscalerRepo: hasadna/knesset-data-pipelines
+  autoscalerValuesFile: devops/k8s/values-production-provision.yaml
   cpuRequests: 0.7
   dppWorkerConcurrency: 4
   dppWorkerReplicas: 2

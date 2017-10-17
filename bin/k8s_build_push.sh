@@ -94,6 +94,9 @@ build_push() {
             echo >> "${IMAGE_VALUES_FILE}"
             echo "jobs:" >> "${IMAGE_VALUES_FILE}"
             echo "  restoreDbImage: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
+        elif [ "${APP_NAME}" == "app-autoscaler" ]; then
+            echo "app:" > "${IMAGE_VALUES_FILE}"
+            echo "  autoscalerImage: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
         else
             echo "${APP_NAME}:" > "${IMAGE_VALUES_FILE}"
             echo "  image: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
@@ -107,8 +110,8 @@ build_push() {
 if [ "${1}" == "" ]; then
     bin/k8s_build_push.sh --app || exit 1
     bin/k8s_build_push.sh --committees || exit 2
-    # db backup image rarely changes
-    # bin/k8s_build_push.sh --db-backup || exit 3
+    bin/k8s_build_push.sh --db-backup || exit 3
+    bin/k8s_build_push.sh --app-autoscaler || exit 4
     exit 0
 elif [ "${1}" == "--app" ]; then
     build_push app hasadna knesset-data-pipelines master . || exit 4
@@ -118,6 +121,9 @@ elif [ "${1}" == "--committees" ]; then
     exit 0
 elif [ "${1}" == "--db-backup" ]; then
     build_push db-backup hasadna knesset-data-pipelines master devops/db_backup || exit 6
+    exit 0
+elif [ "${1}" == "--app-autoscaler" ]; then
+    build_push app-autoscaler hasadna knesset-data-pipelines master devops/app_autoscaler || exit 7
     exit 0
 fi
 

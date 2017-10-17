@@ -507,6 +507,41 @@ elif [ "${ACTION}-${WHAT}" == "--provision-cluster-nodes" ]; then
     echo " > Done"
     exit 0
 
+elif [ "${ACTION}-${WHAT}" == "--provision-app-autoscaler" ]; then
+    if [ ! -f "devops/k8s/secrets.env.${K8S_ENVIRONMENT}" ]; then
+        echo " > You must have access to the secrets file for your environment"
+        exit 1
+    fi
+    export AUTOSCALER_REPO=`env_config_getset "${CONTINUOUS_DEPLOYMENT_REPO}" "Github repo" CONTINUOUS_DEPLOYMENT_REPO`
+    export AUTOSCALER_GIT_USER=`env_config_getset "${AUTOSCALER_GIT_USER}" "Autoscaler bot user" AUTOSCALER_GIT_USER`
+    export AUTOSCALER_GIT_EMAIL=`env_config_getset "${AUTOSCALER_GIT_EMAIL}" "Autoscaler bot email" AUTOSCALER_GIT_EMAIL`
+    export AUTOSCALER_BRANCH=`env_config_set "${AUTOSCALER_BRANCH}" AUTOSCALER_BRANCH master`
+    if ! cat "devops/k8s/secrets.env.${K8S_ENVIRONMENT}" | grep AUTOSCALER_GITHUB_TOKEN; then
+        echo
+        echo " > according to GitHub policies - we are not allowed to automate creation of machine users"
+        echo
+        echo " > See the relevant section in devops/k8s/README.md regarding continuous deployment"
+        echo
+        echo " > You should get a token, and input it here"
+        read -p "Autoscaler Token: " AUTOSCALER_TOKEN
+        echo " > Updating secretes"
+        echo >> devops/k8s/secrets.env.production
+        echo "AUTOSCALER_GITHUB_TOKEN=${AUTOSCALER_TOKEN}" >> devops/k8s/secrets.env.production
+        bin/k8s_provision.sh secrets
+    fi
+    set_values '{
+        "app": {
+            "enableAutoscaler": true,
+            "autoscalerInterval": "60",
+            "autoscalerPipelinesUrl": "http://app-serve:5000",
+            "autoscalerRepo": "'$AUTOSCALER_REPO'",
+            "autoscalerGitUser": "'$AUTOSCALER_GIT_USER'",
+            "autoscalerGitEmail": "'$AUTOSCALER_GIT_EMAIL'",
+            "autoscalerBranch": "'$AUTOSCALER_BRANCH'"
+        }
+    }'
+    exit 0
+
 fi
 
 echo " > ERROR! couldn't handle ${WHAT} ${ACTION}"

@@ -246,7 +246,7 @@ Please proceed according to the instructions [here](https://developer.github.com
 
 You need to get a personal access token for this machine user, with public_repo access permission
 
-Add this machine user as collaborator with write access to your project"
+Add this machine user as collaborator with write access to your project
 
 You can add a collaborator from the api:"
 * `curl -u YourGithubUserName https://api.github.com/repos/${CONTINUOUS_DEPLOYMENT_REPO}/collaborators/MACHINE_USER_NAME -X PUT"`
