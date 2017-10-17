@@ -532,7 +532,7 @@ elif [ "${ACTION}-${WHAT}" == "--provision-app-autoscaler" ]; then
     set_values '{
         "app": {
             "enableAutoscaler": true,
-            "autoscalerInterval": "60",
+            "autoscalerInterval": "300",
             "autoscalerPipelinesUrl": "http://app-serve:5000",
             "autoscalerRepo": "'$AUTOSCALER_REPO'",
             "autoscalerGitUser": "'$AUTOSCALER_GIT_USER'",

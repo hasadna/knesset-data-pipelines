@@ -67,6 +67,20 @@ if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
     fi
 fi
 
+if [ `bin/read_yaml.py devops/k8s/values-production-provision.yaml app enableAutoscaler` == "True" ]; then
+    if [ `bin/read_yaml.py devops/k8s/values-production-provision.yaml app enableWorkers` == "True" ]; then
+        if [ `kubectl get nodes | grep gke- | grep dpp-workers | wc -l` == "0" ]; then
+            echo " > workers are enabled, but no worker nodes found, provisioning dpp-workers"
+            bin/k8s_provision.sh dpp-workers
+            sleep 15
+        fi
+    elif [ `kubectl get nodes | grep gke- | grep dpp-workers | wc -l` != "0" ]; then
+        echo " > workers are disabled, but worker nodes found, deleting dpp-worker nodes"
+        bin/k8s_provision.sh dpp-workers --delete
+        sleep 15
+    fi
+fi
+
 echo " > Deployment complete!"
 
 exit 0

@@ -2,7 +2,7 @@ app:
   autoscalerBranch: master
   autoscalerGitEmail: knesset-data-production-autoscaler@next.oknesset.org
   autoscalerGitUser: oknesset-deployment-bot
-  autoscalerInterval: '60'
+  autoscalerInterval: '300'
   autoscalerPipelinesUrl: http://app-serve:5000
   autoscalerRepo: hasadna/knesset-data-pipelines
   autoscalerValuesFile: devops/k8s/values-production-provision.yaml
