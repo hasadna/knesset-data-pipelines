@@ -48,9 +48,24 @@ if ! bin/k8s_helm_upgrade.sh; then
     exit 12
 fi
 
-#if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
-#    echo " > detected changes in app image - ensuring app deployment will be updated"
-#fi
+if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
+    echo " > upgrading idle worker pod"
+    echo " > deleting old pod"
+    kubectl scale --replicas=0 deployment/app-idle-worker
+    while [ `kubectl get pods | grep app-idle-worker- | tee /dev/stderr | grep " Running " | wc -l` != "0" ]; do
+        echo "."
+        sleep 5
+    done
+    echo " > creating new pod"
+    kubectl scale --current-replicas=0 --replicas=1 deployment/app-idle-worker
+    while [ `kubectl get pods | grep app-idle-worker- | tee /dev/stderr | grep " Running " | wc -l` == "0" ]; do
+        echo "."
+        sleep 5
+    done
+    if [ `kubectl get pods | tee /dev/stderr | grep app-workers- | wc -l` != "0" ]; then
+        echo " > WARNING! there are some active worker pods which won't be upgraded"
+    fi
+fi
 
 echo " > Deployment complete!"
 

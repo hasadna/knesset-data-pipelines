@@ -1,10 +1,10 @@
 app:
-  cpuRequests: 0.9
+  cpuRequests: 0.7
   dppWorkerConcurrency: 4
   dppWorkerReplicas: 2
-  enableWorkers: true
+  enableWorkers: false
   influxDb: dpp
-  memoryRequests: 2000Mi
+  memoryRequests: 1800Mi
 committees:
   enabled: true
 db:

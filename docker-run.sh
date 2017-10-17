@@ -19,6 +19,8 @@ if [ "${1}" == "" ]; then
         PIDS+="${!} "
     fi
     dpp serve &
+    PIDS+="${!} "
+    "${PIPELINES_BIN_PATH}"/start_dpp_metrics.sh &
     PIDS+="${!}"
 
 elif [ "${1}" == "workers" ]; then
@@ -47,6 +49,10 @@ elif [ "${1}" == "serve" ]; then
 
 elif [ "${1}" == "flower" ]; then
     exec "${PIPELINES_BIN_PATH}/celery_run.sh" flower --url_prefix=flower &
+    PIDS+="${!}"
+
+elif [ "${1}" == "metrics" ]; then
+    "${PIPELINES_BIN_PATH}"/start_dpp_metrics.sh &
     PIDS+="${!}"
 
 else
