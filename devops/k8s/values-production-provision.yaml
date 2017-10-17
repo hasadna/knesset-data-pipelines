@@ -1,7 +1,14 @@
 app:
+  autoscalerBranch: master
+  autoscalerGitEmail: knesset-data-production-autoscaler@next.oknesset.org
+  autoscalerGitUser: oknesset-deployment-bot
+  autoscalerInterval: '60'
+  autoscalerPipelinesUrl: http://app-serve:5000
+  autoscalerRepo: hasadna/knesset-data-pipelines
   cpuRequests: 0.7
   dppWorkerConcurrency: 4
   dppWorkerReplicas: 2
+  enableAutoscaler: true
   enableWorkers: false
   influxDb: dpp
   memoryRequests: 1800Mi
