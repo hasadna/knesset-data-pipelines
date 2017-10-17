@@ -57,6 +57,8 @@ echo " > install helm client"
 bin/install_helm.sh
 helm version --client
 
+pip install pyyaml
+
 export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 export BUILD_LOCAL=1
 
