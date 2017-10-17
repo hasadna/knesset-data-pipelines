@@ -9,7 +9,7 @@ app:
   dppWorkerConcurrency: 4
   dppWorkerReplicas: 2
   enableAutoscaler: true
-  enableWorkers: true
+  enableWorkers: false
   influxDb: dpp
   memoryRequests: 1800Mi
 committees:
