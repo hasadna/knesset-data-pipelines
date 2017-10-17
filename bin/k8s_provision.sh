@@ -450,6 +450,8 @@ elif [ "${ACTION}-${WHAT}" == "--provision-continuous-deployment" ]; then
     add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/container.clusterAdmin"
     add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/container.developer"
     add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/storage.admin"
+    add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/compute.instanceAdmin"
+    add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/iam.serviceAccountUser"
     travis_set_env "${CONTINUOUS_DEPLOYMENT_REPO}" "SERVICE_ACCOUNT_B64_JSON_SECRET_KEY" "`cat "${SECRET_TEMPDIR}/key" | base64 -w0`"
     travis_set_env "${CONTINUOUS_DEPLOYMENT_REPO}" "K8S_ENVIRONMENT" "${K8S_ENVIRONMENT}"
     rm -rf "${SECRET_TEMPDIR}"
