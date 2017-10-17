@@ -19,8 +19,8 @@ spec:
 {{ include "app-common-env" . | indent 8}}
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.001"}}
-            memory: {{.Values.memoryRequests | default "100Mi" | quote}}
+            cpu: 0.001
+            memory: "100Mi"
       {{ if not .Values.global.skipInitContainers }}
       initContainers:
       - name: postgresql-create-db

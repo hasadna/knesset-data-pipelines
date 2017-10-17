@@ -30,8 +30,8 @@ spec:
 {{ include "app-common-env" . | indent 8}}
         resources:
           requests:
-            cpu: {{.Values.serveCpuRequests | default "0.05"}}
-            memory: {{.Values.serveMemoryRequests | default "10Mi" | quote}}
+            cpu: 0.05
+            memory: "100Mi"
         readinessProbe:
           initialDelaySeconds: 5
           periodSeconds: 5
