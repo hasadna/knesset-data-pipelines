@@ -49,10 +49,10 @@ else
     fi
 fi
 
-if [ "${K8S_UPGRADE_IDLE_WORKER}" ]; then
+if [ "${K8S_UPGRADE_IDLE_WORKER}" == "1" ]; then
     echo " > scaling down worker pods"
     kubectl scale --replicas=0 deployment/app-idle-worker
-    DPP_WORKERS_NODES=`kubectl get nodes | grep -- -dpp-workers- | cut -d" " -f1 -`
+    DPP_WORKERS_NODES=`kubectl get nodes | tee /dev/stderr | grep -- -dpp-workers- | cut -d" " -f1 -`
     if [ "${DPP_WORKER_NODES}" != "" ]; then
         echo " > draining dpp-workers nodes"
         kubectl scale --replicas=0 deployment/app-workers
@@ -60,14 +60,6 @@ if [ "${K8S_UPGRADE_IDLE_WORKER}" ]; then
             kubectl drain "${NODE}" --force --ignore-daemonsets
         done
     fi
-    while [ `kubectl get pods | grep app-idle-worker- | grep " Running " | wc -l` != "0" ]; do
-        echo "."
-        sleep 5
-    done
-    while [ `kubectl get pods | grep app-workers- | grep " Running " | wc -l` != "0" ]; do
-        echo "."
-        sleep 5
-    done
 fi
 
 echo " > upgrading helm"
@@ -79,10 +71,10 @@ fi
 if [ "${K8S_UPGRADE_IDLE_WORKER}" == "1" ]; then
     echo " > scaling idle worker back up"
     kubectl scale --replicas=1 deployment/app-idle-worker
-    DPP_WORKERS_NODES=`kubectl get nodes | grep -- -dpp-workers- | cut -d" " -f1 -`
+    DPP_WORKERS_NODES=`kubectl get nodes | tee /dev/stderr | grep -- -dpp-workers- | cut -d" " -f1 -`
     if [ "${DPP_WORKER_NODES}" != "" ] &&\
        [ `bin/read_yaml.py devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml app enableWorkers` == "True" ]
-   then
+    then
         echo " > uncordoning dpp-workers nodes"
         kubectl scale --replicas=2 deployment/app-workers
         for NODE in `kubectl get nodes | grep -- -dpp-workers- | cut -d" " -f1 -`; do
