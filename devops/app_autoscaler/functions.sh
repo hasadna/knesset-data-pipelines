@@ -1,24 +1,4 @@
 
-get_num_dirty_pipelines() {
-    if ! curl "${DPP_PIPELINES_URL}/api/raw/status" > /dpp-status.json 2> /dev/null; then
-        exit 1
-    fi
-    if ! cat /dpp-status.json | jq '.[].dirty' > /dpp-status-dirty.json; then
-        exit 2
-    fi
-    cat /dpp-status-dirty.json | grep true | wc -l
-}
-
-get_num_failed_pipelines() {
-    if ! curl "${DPP_PIPELINES_URL}/api/raw/status" > /dpp-status.json 2> /dev/null; then
-        exit 1
-    fi
-    if ! cat /dpp-status.json | jq '.[].state' > /dpp-status-state.json; then
-        exit 2
-    fi
-    cat /dpp-status-state.json | grep '"FAILED"' | wc -l
-}
-
 is_scaled_up() {
     if [ `/read_yaml.py "/repo/${DPP_PROVISION_VALUES_FILE}" app enableWorkers` == "True" ]; then
         echo "1"

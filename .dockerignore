@@ -14,7 +14,7 @@ tests
 tox.ini
 docker-compose*
 .data-docker
-devops/
+devops
 .rtf_to_txt
 .dockerignore
 .gitignore

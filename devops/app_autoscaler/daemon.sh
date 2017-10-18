@@ -22,9 +22,19 @@ sleep 5
 
 while true; do
     sleep "${DPP_AUTOSCALER_INTERVAL}"
-    NUM_DIRTY=`get_num_dirty_pipelines`
-    NUM_FAILED=`get_num_failed_pipelines`
-    if [ "${NUM_DIRTY}" == "" ] || [ "${NUM_FAILED}" == "" ]; then
+    if ! curl "${DPP_PIPELINES_URL}/api/raw/status" > /dpp-status.json 2> /dev/null; then
+        exit 1
+    fi
+    if ! cat /dpp-status.json | jq '.[].dirty' > /dpp-status-dirty.json; then
+        exit 2
+    fi
+    if ! cat /dpp-status.json | jq '.[].state' > /dpp-status-state.json; then
+        exit 3
+    fi
+    NUM_DIRTY=`cat /dpp-status-dirty.json | grep true | wc -l`
+    NUM_FAILED=`cat /dpp-status-state.json | grep '"FAILED"' | wc -l`
+    NUM_RUNNING=`cat /dpp-status-state.json | grep '"RUNNING"' | wc -l`
+    if [ "${NUM_DIRTY}" == "" ] || [ "${NUM_FAILED}" == "" ] || [ "${NUM_RUNNING}" == "" ]; then
         exit 4
     fi
     update_repo > /dev/null
@@ -33,7 +43,7 @@ while true; do
         exit 5
     fi
     HOUR=`date +%H`
-    echo "NUM_DIRTY=${NUM_DIRTY}, NUM_FAILED=${NUM_FAILED}, SCALED_UP=${SCALED_UP}, HOUR=${HOUR}"
+    echo "SCALED_UP=${SCALED_UP}, HOUR=${HOUR}, NUM_DIRTY=${NUM_DIRTY}, NUM_FAILED=${NUM_FAILED}, NUM_RUNNING=${NUM_RUNNING}"
     if [ "${SCALED_UP}" == "0" ]; then
         if [ "${NUM_DIRTY}" -gt "${NUM_FAILED}" ]; then
             date
@@ -44,13 +54,13 @@ while true; do
             echo " > scheduled scale up at midnight"
             scale up
         fi
-    elif [ "${SCALED_UP}" == "1" ]; then
-        if [ "${NUM_DIRTY}" -le "${NUM_FAILED}" ]; then
-            if [ "${HOUR}" != "00" ] && [ "${HOUR}" != "01" ] && [ "${HOUR}" != "02" ]; then
-                date
-                echo " > no more dirty tasks and not between scale up hours - scaling down"
-                scale down
-            fi
-        fi
+    elif [ "${SCALED_UP}" == "1" ] &&\
+         [ "${NUM_DIRTY}" -le "${NUM_FAILED}" ] &&\
+         [ "${NUM_RUNNING}" -eq "0" ] &&\
+         [ "${HOUR}" != "00" ] && [ "${HOUR}" != "01" ] && [ "${HOUR}" != "02" ]
+    then
+        date
+        echo " > scaling down"
+        scale down
     fi
 done
