@@ -41,9 +41,7 @@ data:
         include /etc/nginx/conf.d/letsencrypt.inc;
         location / {
           proxy_pass http://minio:9000/;
-          location ~* \.(html|json)$ {
-            proxy_hide_header Content-Type;
-          }
+          proxy_hide_header Content-Type;
         }
     }
     {{ end }}
