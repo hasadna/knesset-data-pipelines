@@ -28,19 +28,26 @@ if ! source bin/k8s_connect.sh; then
     exit 6
 fi
 
-IID_FILE="devops/k8s/iidfile-${K8S_ENVIRONMENT}-app"
-if [ -f "${IID_FILE}" ]; then
-    OLD_APP_IID=`cat "${IID_FILE}"`
+if [ "${K8S_CD_AUTOSCALER}" == "1" ]; then
+    echo " > autoscaler initialized action - skipping app build/push"
 else
-    OLD_APP_IID=""
+    echo " > building and pushing app image"
+    IID_FILE="devops/k8s/iidfile-${K8S_ENVIRONMENT}-app"
+    if [ -f "${IID_FILE}" ]; then
+        OLD_APP_IID=`cat "${IID_FILE}"`
+    else
+        OLD_APP_IID=""
+    fi
+    if ! bin/k8s_build_push.sh --app; then
+        echo " > Failed to build/push app"
+        exit 7
+    fi
+    NEW_APP_IID=`cat "${IID_FILE}"`
+    if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
+        echo " > changed detected in app iid file, forcing upgrade of idle worker pod"
+        K8S_UPGRADE_IDLE_WORKER="1"
+    fi
 fi
-
-if ! bin/k8s_build_push.sh --app; then
-    echo " > Failed to build/push app"
-    exit 7
-fi
-
-NEW_APP_IID=`cat "${IID_FILE}"`
 
 echo " > upgrading helm"
 if ! bin/k8s_helm_upgrade.sh; then
@@ -48,7 +55,7 @@ if ! bin/k8s_helm_upgrade.sh; then
     exit 12
 fi
 
-if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
+if [ "${K8S_UPGRADE_IDLE_WORKER}" == "1" ]; then
     echo " > upgrading idle worker pod"
     echo " > deleting old pod"
     kubectl scale --replicas=0 deployment/app-idle-worker
