@@ -30,9 +30,6 @@ minio:
 app:
   enabled: true
   dppWorkerConcurrency: "0"
-  # serve and manage code rarely changes, so we pin here to latest which, once pulled, won't be updated again
-  serveImage: orihoch/knesset-data-pipelines:latest
-  managementImage: orihoch/knesset-data-pipelines:latest
 
 # lightweight DB web ui
 # no dependencies

@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: app-management
-        image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
+        image: {{.Values.managementImage | default "orihoch/knesset-data-pipelines:latest" | quote}}
         args: ["management"]
         env:
 {{ include "app-common-env" . | indent 8}}

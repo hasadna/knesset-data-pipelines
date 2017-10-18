@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: {{.Values.name | default "app" | quote}}
-        image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
+        image: {{.Values.serveImage | default "orihoch/knesset-data-pipelines:latest" | quote}}
         args: ["serve"]
         ports:
         - containerPort: 5000
