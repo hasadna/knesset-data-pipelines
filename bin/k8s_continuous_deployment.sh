@@ -49,6 +49,27 @@ else
     fi
 fi
 
+if [ "${K8S_UPGRADE_IDLE_WORKER}" ]; then
+    echo " > scaling down worker pods"
+    kubectl scale --replicas=0 deployment/app-idle-worker
+    DPP_WORKERS_NODES=`kubectl get nodes | grep -- -dpp-workers- | cut -d" " -f1 -`
+    if [ "${DPP_WORKER_NODES}" != "" ]; then
+        echo " > draining dpp-workers nodes"
+        kubectl scale --replicas=0 deployment/app-workers
+        for NODE in `kubectl get nodes | grep -- -dpp-workers- | cut -d" " -f1 -`; do
+            kubectl drain "${NODE}" --force --ignore-daemonsets
+        done
+    fi
+    while [ `kubectl get pods | grep app-idle-worker- | grep " Running " | wc -l` != "0" ]; do
+        echo "."
+        sleep 5
+    done
+    while [ `kubectl get pods | grep app-workers- | grep " Running " | wc -l` != "0" ]; do
+        echo "."
+        sleep 5
+    done
+fi
+
 echo " > upgrading helm"
 if ! bin/k8s_helm_upgrade.sh; then
     echo " > Failed helm upgrade"
@@ -56,26 +77,22 @@ if ! bin/k8s_helm_upgrade.sh; then
 fi
 
 if [ "${K8S_UPGRADE_IDLE_WORKER}" == "1" ]; then
-    echo " > upgrading idle worker pod"
-    echo " > deleting old pod"
-    kubectl scale --replicas=0 deployment/app-idle-worker
-    while [ `kubectl get pods | grep app-idle-worker- | tee /dev/stderr | grep " Running " | wc -l` != "0" ]; do
-        echo "."
-        sleep 5
-    done
-    echo " > creating new pod"
-    kubectl scale --current-replicas=0 --replicas=1 deployment/app-idle-worker
-    while [ `kubectl get pods | grep app-idle-worker- | tee /dev/stderr | grep " Running " | wc -l` == "0" ]; do
-        echo "."
-        sleep 5
-    done
-    if [ `kubectl get pods | tee /dev/stderr | grep app-workers- | wc -l` != "0" ]; then
-        echo " > WARNING! there are some active worker pods which won't be upgraded"
+    echo " > scaling idle worker back up"
+    kubectl scale --replicas=1 deployment/app-idle-worker
+    DPP_WORKERS_NODES=`kubectl get nodes | grep -- -dpp-workers- | cut -d" " -f1 -`
+    if [ "${DPP_WORKER_NODES}" != "" ] &&\
+       [ `bin/read_yaml.py devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml app enableWorkers` == "True" ]
+   then
+        echo " > uncordoning dpp-workers nodes"
+        kubectl scale --replicas=2 deployment/app-workers
+        for NODE in `kubectl get nodes | grep -- -dpp-workers- | cut -d" " -f1 -`; do
+            kubectl uncordon "${NODE}" --force --ignore-daemonsets
+        done
     fi
 fi
 
-if [ `bin/read_yaml.py devops/k8s/values-production-provision.yaml app enableAutoscaler` == "True" ]; then
-    if [ `bin/read_yaml.py devops/k8s/values-production-provision.yaml app enableWorkers` == "True" ]; then
+if [ `bin/read_yaml.py devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml app enableAutoscaler` == "True" ]; then
+    if [ `bin/read_yaml.py devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml app enableWorkers` == "True" ]; then
         if [ `kubectl get nodes | grep gke- | grep dpp-workers | wc -l` == "0" ]; then
             echo " > workers are enabled, but no worker nodes found, provisioning dpp-workers"
             bin/k8s_provision.sh dpp-workers
