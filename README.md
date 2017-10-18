@@ -9,15 +9,16 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
 ## Available Endpoints
 * public endpoints:
   * https://next.oknesset.org/pipelines/ - pipelines dashboard
-  <!--
-    TODO: enable data endpoing (files are available, but we lost the indexing ability when we moved to minio)
-   * https://next.oknesset.org/data/ - data files, also available in [json format](https://next.oknesset.org/data-json/)
-  -->
   * Metabase dashboards for quick friendly visualizations of the data in DB:
     * [ועדות](http://next.oknesset.org/metabase/public/dashboard/57604bd2-73f3-4fbc-943f-53bf45287641)
     * [חקיקה](http://next.oknesset.org/metabase/public/dashboard/edf65569-8ca3-41cb-a917-39951c80b9bc)
     * [הצעות חוק](http://next.oknesset.org/metabase/public/dashboard/0c78c5f7-2d1b-4d99-9800-0c7495e2f7be)
     * [מליאה](http://next.oknesset.org/metabase/public/dashboard/deb07e12-4a50-4023-b298-576af358c0ea)
+  * Data reference html pages:
+    * https://minio.oknesset.org/bills/aggregations/knesset_data_bills.html
+    * https://minio.oknesset.org/laws/aggregations/knesset_data_laws.html
+    * https://minio.oknesset.org/plenum/aggregations/knesset_data_plenum.html
+    * https://minio.oknesset.org/committees/aggregations/knesset_data_committees.html
   * Graphana dashboards for metrics / analytics:
     * [Knesset Dataservice Processors Metrics](https://next.oknesset.org/grafana/dashboard/db/knesset-dataservice-pipelines)
 * internal admin interfaces - password required
