@@ -72,22 +72,17 @@ def get_pipeline_run_step_parameters(pipeline_spec, pipeline_id, run_endswith, p
 
 
 def get_pipeline_schema(pipeline_spec, pipeline_id):
+    bucket = pipeline_spec
     if pipeline_id == 'committee_meeting_protocols_parsed':
-        parameters = get_pipeline_run_step_parameters(pipeline_spec, "committee-meeting-protocols", "dump_to_sql",
-                                                      parameters_match={"table": "committee_meeting_protocols_parsed"})
-        bucket = parameters["schemas-bucket"]
-        object_name = "table-schemas/{}.json".format(parameters["table"])
+        object_name = "table-schemas/committee_meeting_protocols_parsed.json"
     else:
-        parameters = get_pipeline_run_step_parameters(pipeline_spec, pipeline_id, "dump_to_sql",
-                                                      parameters_match={"table": pipeline_id})
-        bucket = parameters["schemas-bucket"]
-        object_name = "table-schemas/{}.json".format(parameters["table"])
+        object_name = "table-schemas/{}.json".format(pipeline_id)
     s3 = object_storage.get_s3()
     if object_storage.exists(s3, bucket, object_name):
         return json.loads(object_storage.read(s3, bucket, object_name))
     else:
         logging.warning("Missing local table schema, trying from remote")
-        url = "https://minio.oknesset.org/{}/table-schemas/{}.json".format(bucket, parameters["table"])
+        url = "https://minio.oknesset.org/{}/{}".format(bucket, object_name)
         res = requests.get(url)
         res.raise_for_status()
         return res.json()
