@@ -1,5 +1,5 @@
 tableschema-sql==0.9.0
-https://github.com/OriHoch/datapackage-pipelines/archive/add-raw-api-status-endpoing.zip?cb=1
+https://github.com/OriHoch/datapackage-pipelines/archive/add-raw-status-api-endpoint-backport-to-v1.2.1.zip
 knesset-data==2.0.1
 flower==0.9.2
 boto3==1.4.7
