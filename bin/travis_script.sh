@@ -83,7 +83,18 @@ else
         git config user.name "${GIT_CONFIG_USER}"
         git diff devops/k8s/values-${K8S_ENVIRONMENT}-image-app.yaml "${IID_FILE}"
         git add devops/k8s/values-${K8S_ENVIRONMENT}-image-app.yaml "${IID_FILE}"
-        git commit -m "deployment image update from travis_deploy_script --no-deploy"
+        MSG="deployment image update from travis_deploy_script --no-deploy"
+        MANAGE_VALUES_FILE="devops/k8s/values-${K8S_ENVIRONMENT}-image-app-manage.yaml"
+        if [ -f "${MANAGE_VALUES_FILE}" ] && ! git diff --exit-code "${MANAGE_VALUES_FILE}"; then
+            git add "${MANAGE_VALUES_FILE}"
+            MSG+=" (updated management image)"
+        fi
+        SERVE_VALUES_FILE="devops/k8s/values-${K8S_ENVIRONMENT}-image-app-serve.yaml"
+        if [ -f "${SERVE_VALUES_FILE}" ] && ! git diff --exit-code "${SERVE_VALUES_FILE}"; then
+            git add "${SERVE_VALUES_FILE}"
+            MSG+=" (updated serve image)"
+        fi
+        git commit -m "${MSG}"
         git push "https://${DEPLOYMENT_BOT_GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" "HEAD:${TRAVIS_BRANCH}"
     fi
     echo " > done"

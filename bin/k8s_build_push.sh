@@ -109,7 +109,8 @@ build_push() {
             if [ ! -f $MANAGE_VALUES_FILE ]; then
                 echo "app:" > $MANAGE_VALUES_FILE
                 echo "  managementImage: \"${DOCKER_TAG}\"" >> $MANAGE_VALUES_FILE
-            elif [ ! -f $SERVE_VALUES_FILE ]; then
+            fi
+            if [ ! -f $SERVE_VALUES_FILE ]; then
                 echo "app:" > $SERVE_VALUES_FILE
                 echo "  serveImage: \"${DOCKER_TAG}\"" >> $SERVE_VALUES_FILE
             fi
