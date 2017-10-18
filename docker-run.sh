@@ -12,6 +12,8 @@ GRACEFUL_SHUTDOWN="1"
 
 if [ "${1}" == "" ]; then
     # run all processes - useful for development / testing
+    python -c 'import os, redis; redis.Redis(host=os.environ["DPP_REDIS_HOST"], port=6379, db=6).flushdb()'
+    python -c 'import os, redis; redis.Redis(host=os.environ["DPP_REDIS_HOST"], port=6379, db=5).flushdb()'
     dpp init
     rm -f *.pid
     if [ "${DPP_WORKER_CONCURRENCY}" != "0" ]; then
@@ -36,7 +38,10 @@ elif [ "${1}" == "workers" ]; then
 
 elif [ "${1}" == "management" ]; then
     # runs management processes - must only run once
+    python -c 'import os, redis; redis.Redis(host=os.environ["DPP_REDIS_HOST"], port=6379, db=6).flushdb()'
+    python -c 'import os, redis; redis.Redis(host=os.environ["DPP_REDIS_HOST"], port=6379, db=5).flushdb()'
     dpp init
+    rm -f *.pid
     "${PIPELINES_BIN_PATH}/celery_run.sh" beat -l INFO &
     PIDS+="${!} "
     "${PIPELINES_BIN_PATH}/celery_run.sh" worker -l INFO -n "management@%h" --concurrency=1 -Q datapackage-pipelines-management &
