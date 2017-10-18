@@ -32,14 +32,25 @@ while true; do
     if [ "${SCALED_UP}" == "" ]; then
         exit 5
     fi
-    echo "NUM_DIRTY=${NUM_DIRTY}, NUM_FAILED=${NUM_FAILED}, SCALED_UP=${SCALED_UP}"
-    if [ "${NUM_DIRTY}" -gt "${NUM_FAILED}" ] && [ "${SCALED_UP}" == "0" ]; then
-        date
-        echo " > got some dirty nodes which are not due to failure - scaling up to handle them"
-        scale up
-    elif [ "${NUM_DIRTY}" -le "${NUM_FAILED}" ] && [ "${SCALED_UP}" == "1" ]; then
-        date
-        echo " > no more dirty nodes (which are not failures) - scaling down"
-        scale down
+    HOUR=`date +%H`
+    echo "NUM_DIRTY=${NUM_DIRTY}, NUM_FAILED=${NUM_FAILED}, SCALED_UP=${SCALED_UP}, HOUR=${HOUR}"
+    if [ "${SCALED_UP}" == "0" ]; then
+        if [ "${NUM_DIRTY}" -gt "${NUM_FAILED}" ]; then
+            date
+            echo " > got some dirty nodes which are not due to failure - scaling up to handle them"
+            scale up
+        elif [ "${HOUR}" == "00" ]; then
+            date
+            echo " > scheduled scale up at midnight"
+            scale up
+        fi
+    elif [ "${SCALED_UP}" == "1" ]; then
+        if [ "${NUM_DIRTY}" -le "${NUM_FAILED}" ]; then
+            if [ "${HOUR}" != "00" ] && [ "${HOUR}" != "01" ] && [ "${HOUR}" != "02" ]; then
+                date
+                echo " > no more dirty tasks and not between scale up hours - scaling down"
+                scale down
+            fi
+        fi
     fi
 done

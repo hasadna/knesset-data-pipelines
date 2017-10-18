@@ -30,7 +30,7 @@ is_scaled_up() {
 clone_repo() {
     URL="https://${DPP_AUTOSCALER_TOKEN}@github.com/${DPP_AUTOSCALER_REPO}.git"
     rm -rf /repo
-    git clone "${URL}" /repo
+    git clone "${URL}" /repo > /dev/null 2>&1
 }
 
 update_repo() {
@@ -68,7 +68,7 @@ scale() {
             git config user.name "${DPP_AUTOSCALER_USER}"
             git diff ${DPP_PROVISION_VALUES_FILE}
             git add ${DPP_PROVISION_VALUES_FILE}
-            git commit -m "Autoscaler - scaling ${1}"
+            git commit -m "Autoscaler - scaling ${1} --autoscaler"
             git push origin "HEAD:${DPP_AUTOSCALER_BRANCH}"
         popd > /dev/null
     fi

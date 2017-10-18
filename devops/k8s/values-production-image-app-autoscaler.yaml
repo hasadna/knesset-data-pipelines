@@ -1,3 +1,3 @@
 app:
-  autoscalerImage: "gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app-autoscaler:v1.0.6-211-g608b057-2017-10-17-22-26"
+  autoscalerImage: "gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app-autoscaler:v1.0.6-216-g68d30f5-2017-10-18-09-23"
 
