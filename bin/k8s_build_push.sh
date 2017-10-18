@@ -58,6 +58,8 @@ build_push() {
     SOURCE_CODE_URL="https://codeload.github.com/${GITHUB_USER}/${GITHUB_REPO}/zip/${GITHUB_BRANCH}"
     DOCKER_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/knesset-data-pipelines-${K8S_ENVIRONMENT}-${APP_NAME}:${VERSION}"
     IMAGE_VALUES_FILE="devops/k8s/values-${K8S_ENVIRONMENT}-image-${APP_NAME}.yaml"
+    APP_MANAGE_VALUES_FILE="devops/k8s/values-${K8S_ENVIRONMENT}-image-app-manage.yaml"
+    APP_SERVE_VALUES_FILE="devops/k8s/values-${K8S_ENVIRONMENT}-image-app-serve.yaml"
     IID_FILE="devops/k8s/iidfile-${K8S_ENVIRONMENT}-${APP_NAME}"
     if [ -f "${IID_FILE}" ]; then
         OLD_IID=`cat "${IID_FILE}"`
@@ -83,7 +85,11 @@ build_push() {
         rm -rf $TEMPDIR > /dev/null
     fi
     NEW_IID=`cat "${IID_FILE}"`
-    if [ "${OLD_IID}" != "${NEW_IID}" ]; then
+    if  [ "${OLD_IID}" != "${NEW_IID}" ] ||\
+        ( [ "${APP_NAME}" == "app" ] &&
+          ( [ ! -f $APP_MANAGE_VALUES_FILE ] || [ ! -f $APP_SERVE_VALUES_FILE ] )
+        );
+    then
         echo " > pushing tag ${DOCKER_TAG}"
         gcloud docker -- push "${DOCKER_TAG}" || exit 3
         echo " > generating values file ${IMAGE_VALUES_FILE}"
@@ -98,27 +104,28 @@ build_push() {
             echo "app:" > $IMAGE_VALUES_FILE
             echo "  autoscalerImage: \"${DOCKER_TAG}\"" >> $IMAGE_VALUES_FILE
         else
-            echo "${APP_NAME}:" > "${IMAGE_VALUES_FILE}"
-            echo "  image: \"${DOCKER_TAG}\"" >> "${IMAGE_VALUES_FILE}"
+            echo "${APP_NAME}:" > $IMAGE_VALUES_FILE
+            echo "  image: \"${DOCKER_TAG}\"" >> $IMAGE_VALUES_FILE
         fi
+        echo >> $IMAGE_VALUES_FILE
         if [ "${APP_NAME}" == "app" ]; then
             # management and serve image are updated only if not existing
             # if you need to update them, delete the relevant image values file
-            MANAGE_VALUES_FILE="devops/k8s/values-${K8S_ENVIRONMENT}-image-app-manage.yaml"
-            SERVE_VALUES_FILE="devops/k8s/values-${K8S_ENVIRONMENT}-image-app-serve.yaml"
-            if [ ! -f $MANAGE_VALUES_FILE ]; then
-                echo "app:" > $MANAGE_VALUES_FILE
-                echo "  managementImage: \"${DOCKER_TAG}\"" >> $MANAGE_VALUES_FILE
+            if [ ! -f $APP_MANAGE_VALUES_FILE ]; then
+                echo " > generating manage values file ${APP_MANAGE_VALUES_FILE}"
+                echo "app:" > $APP_MANAGE_VALUES_FILE
+                echo "  managementImage: \"${DOCKER_TAG}\"" >> $APP_MANAGE_VALUES_FILE
+                echo >> $APP_MANAGE_VALUES_FILE
             fi
-            if [ ! -f $SERVE_VALUES_FILE ]; then
-                echo "app:" > $SERVE_VALUES_FILE
-                echo "  serveImage: \"${DOCKER_TAG}\"" >> $SERVE_VALUES_FILE
+            if [ ! -f $APP_SERVE_VALUES_FILE ]; then
+                echo " > generating serve values file ${APP_SERVE_VALUES_FILE}"
+                echo "app:" > $APP_SERVE_VALUES_FILE
+                echo "  serveImage: \"${DOCKER_TAG}\"" >> $APP_SERVE_VALUES_FILE
+                echo >> $APP_SERVE_VALUES_FILE
             fi
         fi
-
-        echo >> "${IMAGE_VALUES_FILE}"
     else
-        echo " > iid is unchanged, skipping values file update"
+        echo " > skipping values file update"
     fi
 }
 
