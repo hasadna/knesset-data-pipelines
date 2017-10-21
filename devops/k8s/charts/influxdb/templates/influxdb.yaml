@@ -28,8 +28,8 @@ spec:
         - containerPort: 8086
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.1"}}
-            memory: {{.Values.memoryRequests | default "50Mi"}}
+            cpu: {{.Values.cpuRequests | default "0.001"}}
+            memory: {{.Values.memoryRequests | default "100Mi"}}
         volumeMounts:
         - name: knesset-data-pipelines-influxdb
           mountPath: /var/lib/influxdb

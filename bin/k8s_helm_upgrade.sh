@@ -11,9 +11,6 @@ VALUE_ARGS=""
 for FILE in `ls devops/k8s/values-${K8S_ENVIRONMENT}-*.yaml`; do
     VALUE_ARGS+=" -f${FILE}"
 done
-for FILE in `ls devops/k8s/provision-values-${K8S_ENVIRONMENT}/*.yaml`; do
-    VALUE_ARGS+=" -f${FILE}"
-done
 
 if ! eval "helm upgrade --timeout=5 --install --debug ${VALUE_ARGS} knesset-data-pipelines devops/k8s ${*}"; then
     echo " > upgrade failed"

@@ -1,0 +1,56 @@
+app:
+  autoscalerBranch: master
+  autoscalerGitEmail: knesset-data-production-autoscaler@next.oknesset.org
+  autoscalerGitUser: oknesset-deployment-bot
+  autoscalerInterval: '300'
+  autoscalerPipelinesUrl: http://app-serve:5000
+  autoscalerRepo: hasadna/knesset-data-pipelines
+  autoscalerValuesFile: devops/k8s/values-production-provision.yaml
+  cpuRequests: 0.7
+  dppWorkerConcurrency: 4
+  dppWorkerReplicas: 2
+  enableAutoscaler: true
+  enableWorkers: false
+  influxDb: dpp
+  memoryRequests: 1800Mi
+committees:
+  enabled: true
+db:
+  backupUploadBucketName: kdp-production-db-backups
+  backupUploadProjectId: hasadna-oknesset
+  backupUploadServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
+  backupUploadServiceAccountKeySecret: db-backup-upload-google-key
+  backupUploadZone: us-central1-a
+  gcePersistentDiskName: knesset-data-pipelines-production-db
+flower:
+  urlPrefix: flower
+global:
+  rootUrl: https://next.oknesset.org
+  skipInitContainers: true
+grafana:
+  anonymousEnabled: true
+  enabled: true
+influxdb:
+  enabled: true
+  gcePersistentDiskName: knesset-data-pipelines-production-influxdb
+jobs:
+  restoreDbGsUrl: gs://kdp-production-db-backups/17-10-05-09-12.sql
+  restoreDbJobName: db-restore-17-10-05-15-55
+  restoreDbProjectId: hasadna-oknesset
+  restoreDbServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
+  restoreDbServiceAccountKeySecret: db-backup-upload-google-key
+  restoreDbZone: us-central1-a
+letsencrypt:
+  enabled: true
+metabase:
+  enabled: true
+minio:
+  gcePersistentDiskName: knesset-data-pipelines-production-minio
+nginx:
+  enableCommittees: true
+  enableGrafana: true
+  enableMetabase: true
+  enabled: true
+  htpasswdSecretName: nginx-htpasswd
+  minioSslDomain: minio.oknesset.org
+  sslDomain: next.oknesset.org

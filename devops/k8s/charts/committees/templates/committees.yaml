@@ -29,6 +29,6 @@ spec:
         - {containerPort: 5050}
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.01"}}
-            memory: {{.Values.memoryRequests | default "10Mi"}}
+            cpu: {{.Values.cpuRequests | default "0.001"}}
+            memory: {{.Values.memoryRequests | default "110Mi"}}
 {{ end }}

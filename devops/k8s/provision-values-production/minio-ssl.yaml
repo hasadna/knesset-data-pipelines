@@ -1,2 +1,0 @@
-nginx:
-  minioSslDomain: "minio.oknesset.org"

@@ -246,7 +246,7 @@ Please proceed according to the instructions [here](https://developer.github.com
 
 You need to get a personal access token for this machine user, with public_repo access permission
 
-Add this machine user as collaborator with write access to your project"
+Add this machine user as collaborator with write access to your project
 
 You can add a collaborator from the api:"
 * `curl -u YourGithubUserName https://api.github.com/repos/${CONTINUOUS_DEPLOYMENT_REPO}/collaborators/MACHINE_USER_NAME -X PUT"`
@@ -378,3 +378,11 @@ Suggested steps:
 * Create an alerting policy based on current values (e.g. alert when CPU above X)
 * Access stack driver logging - you should be able to see logs from all pods
   * create alerting policies based on strings in the logs
+
+### Securely managing the minio server in the cluster
+
+You can use the following snippet to run management commands from the mc host itself
+
+this example sets committees bucket to be public:
+
+`kubectl exec -it minio-1863685920-ddz2g -- sh -c 'curl https://dl.minio.io/client/mc/release/linux-amd64/mc > mc && chmod +x ./mc && ./mc config host add minio http://localhost:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY && ./mc policy public minio/committees'`

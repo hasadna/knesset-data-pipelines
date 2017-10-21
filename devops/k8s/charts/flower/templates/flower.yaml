@@ -37,8 +37,8 @@ spec:
         ports: [{containerPort: 5555}]
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.01"}}
-            memory: {{.Values.memoryRequests | default "5Mi" | quote}}
+            cpu: {{.Values.cpuRequests | default "0.001"}}
+            memory: {{.Values.memoryRequests | default "50Mi" | quote}}
 #        readinessProbe:
 #          initialDelaySeconds: 5
 #          periodSeconds: 10

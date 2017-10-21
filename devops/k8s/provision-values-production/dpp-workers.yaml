@@ -1,5 +1,0 @@
-app:
-  dppWorkerConcurrency: 2
-  dppWorkerReplicas: 1
-  cpuRequests: 0.4
-  memoryRequests: "500Mi"
