@@ -1,6 +1,0 @@
-db:
-  backupUploadProjectId: hasadna-oknesset
-  backupUploadZone: us-central1-a
-  backupUploadServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
-  backupUploadServiceAccountKeySecret: db-backup-upload-google-key
-  backupUploadBucketName: kdp-production-db-backups

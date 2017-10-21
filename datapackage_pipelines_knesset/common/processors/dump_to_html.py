@@ -39,7 +39,8 @@ def filter_resources(datapackage, resources, parameters):
         save_schema_html = DEFAULT_SAVE_SCHEMA.format(table_name=datapackage["name"], ext="html")
         save_schema_json = DEFAULT_SAVE_SCHEMA.format(table_name=datapackage["name"], ext="json")
 
-        object_storage.write(parameters["bucket"], save_schema_html, html)
-        object_storage.write(parameters["bucket"], save_schema_json, json.dumps(datapackage["resources"], indent=2, ensure_ascii=False))
+        s3 = object_storage.get_s3()
+        object_storage.write(s3, parameters["bucket"], save_schema_html, html, public_bucket=True)
+        object_storage.write(s3, parameters["bucket"], save_schema_json, json.dumps(datapackage["resources"], indent=2, ensure_ascii=False), public_bucket=True)
 
 spew(datapackage, filter_resources(datapackage, resources, parameters))

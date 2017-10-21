@@ -1,8 +1,7 @@
 from datapackage_pipelines_knesset.common.processors.dump_to_sql import Processor as DumpToSqlProcessor
 from .common import get_pipeline_processor_parameters, get_pipeline_spec_pipeline_names
 from .mocks.dataservice import MockAddDataserviceCollectionResourceProcessor
-import os, json
-from datapackage_pipelines_knesset.common import object_storage
+import os
 
 
 class MockDumpToSqlProcessor(DumpToSqlProcessor):

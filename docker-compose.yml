@@ -4,15 +4,22 @@ services:
 
   redis:
     image: redis:alpine
+    ports:
+    - "6379:6379"
 
   db:
-    image: sameersbn/postgresql:9.6-2
+    image: orihoch/knesset-data-pipelines-bootstrap-db:v0.0.1-17-10-15
     ports:
       - "15432:5432"
     environment:
       - "PG_PASSWORD=123456"
     volumes:
       - .data-docker/postgresql:/var/lib/postgresql
+
+  adminer:
+    image: adminer:4.3.1-standalone
+    ports:
+    - "18080:8080"
 
   # object storage
   minio:
@@ -24,8 +31,8 @@ services:
       - /data
     environment:
     # hard-coded access keys for easy debugging
-      - "MINIO_ACCESS_KEY=HJW6280KHBS2Y105STGG"
-      - "MINIO_SECRET_KEY=rsAuRptRwTTuSocsdBCRHIToldPkPefpb2Vl/ybG"
+      - "MINIO_ACCESS_KEY=admin"
+      - "MINIO_SECRET_KEY=12345678"
     volumes:
       - .data-docker/minio:/data
 
@@ -40,9 +47,9 @@ services:
     environment:
       - "DPP_REDIS_HOST=redis"
       - "DPP_DB_ENGINE=postgresql://postgres:123456@db:5432/postgres"
-      - "DPP_WORKER_CONCURRENCY=1"
-      - "S3_ENDPOINT_URL=http://localhost:9000"
-      - "AWS_ACCESS_KEY_ID=HJW6280KHBS2Y105STGG"
-      - "AWS_SECRET_ACCESS_KEY=rsAuRptRwTTuSocsdBCRHIToldPkPefpb2Vl/ybG"
+      - "DPP_WORKER_CONCURRENCY=0"
+      - "S3_ENDPOINT_URL=http://minio:9000"
+      - "AWS_ACCESS_KEY_ID=admin"
+      - "AWS_SECRET_ACCESS_KEY=12345678"
     volumes:
       - .data-docker:/knesset/data

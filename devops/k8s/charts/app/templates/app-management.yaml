@@ -2,25 +2,25 @@
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: {{.Values.name | default "app"}}-management
+  name: app-management
 spec:
   replicas: 1
   strategy: {type: Recreate}
   template:
     metadata:
       labels:
-        app: {{.Values.name | default "app"}}-management
+        app: app-management
     spec:
       containers:
-      - name: {{.Values.name | default "app"}}-management
-        image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
+      - name: app-management
+        image: {{.Values.managementImage | default "orihoch/knesset-data-pipelines:latest" | quote}}
         args: ["management"]
         env:
 {{ include "app-common-env" . | indent 8}}
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.05"}}
-            memory: {{.Values.memoryRequests | default "10Mi" | quote}}
+            cpu: 0.001
+            memory: "100Mi"
       {{ if not .Values.global.skipInitContainers }}
       initContainers:
       - name: postgresql-create-db

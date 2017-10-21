@@ -3,6 +3,7 @@ from knesset_data.protocols.committee import CommitteeMeetingProtocol
 from knesset_data.protocols.exceptions import AntiwordException
 import os, csv, json, subprocess, logging, shutil, tempfile
 from datapackage_pipelines_knesset.common import object_storage
+import xml.etree.ElementTree
 
 
 class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
@@ -17,6 +18,7 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
             {"name": "text_object_name", "type": "string", "description": "storage object name containing the parsed protocol text"},
             {"name": "parts_object_name", "type": "string", "description": "storage object name containing the parsed protocol csv"},]
         self._schema["primaryKey"] = ["kns_session_id"]
+        self.s3 = object_storage.get_s3()
 
     def _process(self, datapackage, resources):
         return self._process_filter(datapackage, resources)
@@ -28,7 +30,7 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
         base_object_name = "protocols/parsed/{}/{}".format(meeting_protocol["kns_committee_id"], meeting_protocol["kns_session_id"])
         parts_object_name = "{}.csv".format(base_object_name)
         text_object_name = "{}.txt".format(base_object_name)
-        if not object_storage.exists(bucket, parts_object_name, min_size=5):
+        if not object_storage.exists(self.s3, bucket, parts_object_name, min_size=5):
             parse_args = (meeting_protocol["kns_committee_id"], meeting_protocol["kns_session_id"],
                           bucket, protocol_object_name, parts_object_name, text_object_name)
             if protocol_extension == "doc":
@@ -41,8 +43,8 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
                 raise Exception("unknown extension: {}".format(protocol_extension))
             if not parse_res:
                 # in case parsing failed - we remove all parsed files, to ensure re-parse next time
-                object_storage.delete(bucket, text_object_name)
-                object_storage.delete(bucket, parts_object_name)
+                object_storage.delete(self.s3, bucket, text_object_name)
+                object_storage.delete(self.s3, bucket, parts_object_name)
                 text_object_name = None
                 parts_object_name = None
         yield {"kns_committee_id": meeting_protocol["kns_committee_id"],
@@ -78,18 +80,22 @@ class ParseCommitteeMeetingProtocolsProcessor(BaseProcessor):
 
     def _parse_doc_protocol(self, committee_id, meeting_id, bucket, protocol_object_name, parts_object_name, text_object_name):
         logging.info("parsing doc protocol {} --> {}, {}".format(protocol_object_name, parts_object_name, text_object_name))
-        try:
-            with object_storage.temp_download(bucket, protocol_object_name) as protocol_filename:
+        with object_storage.temp_download(self.s3, bucket, protocol_object_name) as protocol_filename:
+            try:
                 with CommitteeMeetingProtocol.get_from_filename(protocol_filename) as protocol:
-                    object_storage.write(bucket, text_object_name, protocol.text)
+                    object_storage.write(self.s3, bucket, text_object_name, protocol.text, public_bucket=True)
                     self._parse_protocol_parts(bucket, parts_object_name, protocol)
-        except (AntiwordException, subprocess.SubprocessError):
-            logging.exception("committee {} meeting {}: failed to parse doc file, skipping".format(committee_id, meeting_id))
-            return False
+            except (
+                    AntiwordException,  # see https://github.com/hasadna/knesset-data-pipelines/issues/15
+                    subprocess.SubprocessError,
+                    xml.etree.ElementTree.ParseError  # see https://github.com/hasadna/knesset-data-pipelines/issues/32
+            ):
+                logging.exception("committee {} meeting {}: failed to parse doc file, skipping".format(committee_id, meeting_id))
+                return False
         return True
 
     def _parse_protocol_parts(self, bucket, parts_object_name, protocol):
-        with object_storage.csv_writer(bucket, parts_object_name) as csv_writer:
+        with object_storage.csv_writer(self.s3, bucket, parts_object_name, public_bucket=True) as csv_writer:
             csv_writer.writerow(["header", "body"])
             for part in protocol.parts:
                 csv_writer.writerow([part.header, part.body])
