@@ -367,7 +367,7 @@ all:
       <li>zip file should be available at <a href="https://next.oknesset.org/data/">data/</a></li>
     </ul>
   schedule:
-    crontab: "4 0 * * *"
+    crontab: "10 2 * * *"
   pipeline:
     - run: add_metadata
       parameters:

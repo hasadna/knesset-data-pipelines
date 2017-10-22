@@ -1,0 +1,25 @@
+{{ if .Values.enabled }}
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: app-idle-worker
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  template:
+    metadata:
+      labels:
+        app: app-idle-worker
+    spec:
+      containers:
+      - name: app-idle-worker
+        image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
+        args: ["workers"]
+        env:
+        - {name: DPP_WORKER_CONCURRENCY, value: "0"}
+{{ include "app-common-env" . | indent 8}}
+        resources:
+          requests:
+            cpu: 0.1
+            memory: "400Mi"
+{{ end }}

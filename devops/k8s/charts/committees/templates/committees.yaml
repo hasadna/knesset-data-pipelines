@@ -16,7 +16,6 @@ spec:
     metadata:
       labels: {app: {{.Values.name | default "committees" | quote}}}
     spec:
-{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - env:
         - name: DPP_DB_ENGINE

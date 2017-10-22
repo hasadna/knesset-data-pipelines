@@ -1,6 +1,6 @@
 import os, requests, logging
 
-def send_metric(measurement, tags, values, num_retries=0):
+def send_metric(measurement, tags, values, num_retries=0, must_succeed=False):
     url = os.environ.get("DPP_INFLUXDB_URL")
     db = os.environ.get("DPP_INFLUXDB_DB")
     if tags and url and db:
@@ -24,6 +24,8 @@ def send_metric(measurement, tags, values, num_retries=0):
             return True
         else:
             res.raise_for_status()
+    elif must_succeed:
+        raise Exception("missing required environment variables")
 
 def send_metric_parameters(measurement, tags, values, parameters):
     metric_tags = parameters.get("metric-tags", {})

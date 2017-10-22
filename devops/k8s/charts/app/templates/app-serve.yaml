@@ -20,10 +20,9 @@ spec:
       labels:
         app: {{.Values.name | default "app"}}-serve
     spec:
-{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - name: {{.Values.name | default "app" | quote}}
-        image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
+        image: {{.Values.serveImage | default "orihoch/knesset-data-pipelines:latest" | quote}}
         args: ["serve"]
         ports:
         - containerPort: 5000
@@ -31,8 +30,8 @@ spec:
 {{ include "app-common-env" . | indent 8}}
         resources:
           requests:
-            cpu: {{.Values.serveCpuRequests | default "0.05"}}
-            memory: {{.Values.serveMemoryRequests | default "10Mi" | quote}}
+            cpu: 0.05
+            memory: "100Mi"
         readinessProbe:
           initialDelaySeconds: 5
           periodSeconds: 5
