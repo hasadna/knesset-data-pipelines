@@ -1,3 +1,5 @@
+import re
+
 from datapackage_pipelines_knesset.common.processors.base_processor import BaseProcessor
 from requests.exceptions import RequestException
 import os, requests, logging, time, json
@@ -23,6 +25,8 @@ class DownloadPlenumMeetingProtocolsProcessor(BaseProcessor):
         ]
         self._schema["primaryKey"] = ["kns_plenum_session_id"]
         self._all_object_names = []
+        self.s3 = object_storage.get_s3()
+        self.extension_regex = re.compile("[.](.{3,8})$")
 
     def _process(self, datapackage, resources):
         return self._process_filter(datapackage, resources)
@@ -43,17 +47,17 @@ class DownloadPlenumMeetingProtocolsProcessor(BaseProcessor):
             else:
                 raise
         if res.status_code == 200:
-            object_storage.write(bucket, object_name, res.content)
+            object_storage.write(self.s3, bucket, object_name, res.content)
             return True
         else:
             return False
 
     def _get_extension(self, meeting):
-        ext = meeting["url"].strip()[-4:]
-        if ext in [".doc", ".rtf"]:
-            return ext[1:]
-        elif meeting["url"].strip()[-5:] == ".docx":
-            return "docx"
+
+        extension_match = self.extension_regex.search(meeting["url"])
+
+        if extension_match:
+            return extension_match.group(1)
         else:
             logging.warning("unknown extension: {}".format(meeting["url"]))
 
@@ -68,21 +72,20 @@ class DownloadPlenumMeetingProtocolsProcessor(BaseProcessor):
         protocol_extension = self._get_extension(meeting)
         object_name = "protocols/original/{}.{}".format(meeting["kns_plenum_session_id"],
                                                         protocol_extension)
-        override_meeting_ids = os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
-        if not override_meeting_ids or str(meeting["kns_session_id"]) in override_meeting_ids.split(","):
-            if not object_storage.exists(bucket, object_name):
-                override_meeting_ids = os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
-                if not override_meeting_ids or str(meeting["kns_session_id"]) in override_meeting_ids.split(","):
-                    num_retries = self._parameters.get("num-retries", 5)
-                    seconds_between_retries = self._parameters.get("seconds-between-retries", 60)
-                    logging.info("downloading {} -> {}/ {}".format(meeting["url"], bucket, object_name))
-                    if not self._save_url(meeting["url"], bucket, object_name, num_retries, seconds_between_retries):
-                        object_name = None
+
+        override_meeting_ids = os.environ.get("OVERRIDE_PLENUM_MEETING_IDS")
+        if not override_meeting_ids or str(meeting["kns_plenum_session_id"]) in override_meeting_ids.split(","):
+
+            if not object_storage.exists(self.s3, bucket, object_name):
+                num_retries = self._parameters.get("num-retries", 5)
+                seconds_between_retries = self._parameters.get("seconds-between-retries", 60)
+                logging.info("downloading {} -> {}/ {}".format(meeting["url"], bucket, object_name))
+                if not self._save_url(meeting["url"], bucket, object_name, num_retries, seconds_between_retries):
+                    object_name = None
             if object_name is not None:
                 # yields all meetings - both ones that were just downloaded, and meetings which were download previously
                 # the only meetings not yielded are meeting which failed downloading
-                yield {"kns_committee_id": meeting["kns_committee_id"],
-                       "kns_session_id": meeting["kns_session_id"],
+                yield {"kns_plenum_session_id": meeting["kns_plenum_session_id"],
                        "protocol_object_name": object_name,
                        "protocol_extension": protocol_extension}
 

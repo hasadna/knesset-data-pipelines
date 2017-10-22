@@ -1,7 +1,7 @@
 from datapackage_pipelines_knesset.common.base_processors.add_resource import AddResourceBaseProcessor
 
 # only loads documents which end with these extensions
-SUPPORTED_APPLICATION_IDS = [1, 4]
+SUPPORTED_APPLICATION_IDS = [1]
 SUPPORTED_GROUP_TYPE_ID = 28
 
 
@@ -25,7 +25,7 @@ class Processor(AddResourceBaseProcessor):
             raise Exception("processor requires kns plenum tables to exist")
         for db_row in self.db_session \
                 .query(plenumsession_table, document_table) \
-                .filter(plenumsession_table.c.PlenumSessionID == document_table.c.CommitteeSessionID) \
+                .filter(plenumsession_table.c.PlenumSessionID == document_table.c.PlenumSessionID) \
                 .filter(document_table.c.ApplicationID.in_(SUPPORTED_APPLICATION_IDS)) \
                 .filter(document_table.c.GroupTypeID == SUPPORTED_GROUP_TYPE_ID) \
                 .all():
