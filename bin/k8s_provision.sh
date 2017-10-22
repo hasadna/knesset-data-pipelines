@@ -129,7 +129,7 @@ else
 fi
 
 if [ "${WHAT}${ACTION}" != "cluster--provision" ]; then
-    source bin/k8s_connect.sh > /dev/null
+    source bin/k8s_connect.sh
 elif [ "${K8S_ENVIRONMENT}" == "" ]; then
     export K8S_ENVIRONMENT="staging"
 fi
@@ -158,7 +158,7 @@ elif [ "${WHAT}" == "cluster" ]; then
         fi
         echo " > Will create a new cluster, this might take a while..."
         echo "You should have a Google project ID with active billing"
-        echo "Cluster will comprise of 3 g1-small machines (shared vCPU, 1.70GB ram)"
+        echo "Cluster will comprise of 3 g1-small machines (0.47 allocatble cpu core, 1 GB allocatble ram)"
         echo "We also utilize some other resources which are negligable"
         echo "Total cluster cost shouldn't be more then ~0.09 USD per hour"
         echo "When done, run 'bin/k8s_provision.sh --delete' to ensure cluster is destroyed and billing will stop"
@@ -261,15 +261,69 @@ elif [ "${WHAT}" == "db-restore" ] || [ "${WHAT}" == "db-backup" ]; then
     fi
 
 elif [ "${ACTION}-${WHAT}" == "--provision-dpp-workers" ]; then
-    # TODO: ensure there are enough compute resources for these workers and assign dpp to appropriate node
+    if [ `kubectl get nodes | grep gke- | grep dpp-workers | tee /dev/stderr | grep "[ ,]Ready[ ,]" | wc -l` == "2" ]; then
+        echo " > Using existing dpp-workers node pool"
+        echo " > scaling workers to 0"
+        kubectl scale --replicas=0 deployment/app-workers
+        echo " > draining the nodes - to ensure only the workers will be assigned to them"
+        for NODE in `kubectl get nodes | grep gke- | grep dpp-workers | cut -d" " -f1 -`; do
+            kubectl drain --force --ignore-daemonsets $NODE
+        done
+        sleep 10
+        for NODE in `kubectl get nodes | grep gke- | grep dpp-workers | tee /dev/stderr | cut -d" " -f1 -`; do
+            kubectl uncordon $NODE
+        done
+    else
+        echo " > Adding workers node pool with 2 nodes n1-standard-1 (0.94 allocatble cpu cores, 2.6 GB allocatble ram)"
+        if ! gcloud container node-pools create dpp-workers \
+            "--cluster=${CLOUDSDK_CONTAINER_CLUSTER}" \
+            --disk-size=10 \
+            --machine-type=n1-standard-1 \
+            --num-nodes=2; then
+            exit 1
+        fi
+        echo " > waiting for all worker nodes to be ready and schedulable"
+        while [ `kubectl get nodes | grep gke- | grep dpp-workers | grep " Ready " | wc -l` != "2" ]; do
+            echo "."
+            sleep 5
+        done
+    fi
+    echo " > enabling the workers"
     set_values '{
         "app": {
-            "dppWorkerConcurrency": 1,
-            "dppWorkerReplicas": 3,
-            "cpuRequests": 0.20,
-            "memoryRequests": "150Mi"
+            "dppWorkerConcurrency": 4,
+            "dppWorkerReplicas": 2,
+            "cpuRequests": 0.7,
+            "memoryRequests": "1800Mi",
+            "enableWorkers": true
         }
     }'
+    bin/k8s_helm_upgrade.sh
+    echo " > scaling workers up to 2"
+    kubectl scale --replicas=2 deployment/app-workers
+    kubectl rollout status deployment/app-workers
+    exit 0
+
+elif [ "${ACTION}-${WHAT}" == "--delete-dpp-workers" ]; then
+    echo " > disabling the workers"
+    kubectl scale --replicas=0 deployment/app-workers
+    sleep 5
+    set_values '{
+        "app": {
+            "enableWorkers": false
+        }
+    }'
+    bin/k8s_helm_upgrade.sh
+    while [ `kubectl get pods | grep app-workers- | tee /dev/stderr | wc -l` != "0" ]; do
+        sleep 5
+    done
+    echo " > draining dpp-workers node pool"
+    for NODE in `kubectl get nodes | grep gke- | grep dpp-workers | cut -d" " -f1 -`; do
+        kubectl drain $NODE --force --ignore-daemonsets --grace-period=10 --timeout=15s &
+    done
+    sleep 20
+    echo " > deleting dpp-workers node pool"
+    gcloud -q container node-pools delete dpp-workers
     exit 0
 
 elif [ "${ACTION}-${WHAT}" == "--provision-metabase" ]; then
@@ -396,6 +450,8 @@ elif [ "${ACTION}-${WHAT}" == "--provision-continuous-deployment" ]; then
     add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/container.clusterAdmin"
     add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/container.developer"
     add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/storage.admin"
+    add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/compute.instanceAdmin"
+    add_service_account_role "${SERVICE_ACCOUNT_ID}" "roles/iam.serviceAccountUser"
     travis_set_env "${CONTINUOUS_DEPLOYMENT_REPO}" "SERVICE_ACCOUNT_B64_JSON_SECRET_KEY" "`cat "${SECRET_TEMPDIR}/key" | base64 -w0`"
     travis_set_env "${CONTINUOUS_DEPLOYMENT_REPO}" "K8S_ENVIRONMENT" "${K8S_ENVIRONMENT}"
     rm -rf "${SECRET_TEMPDIR}"
@@ -448,32 +504,44 @@ elif [ "${ACTION}-${WHAT}" == "--provision-cluster-nodes" ]; then
         echo "usage: bin/k8s_provision.sh cluster-nodes <NUM_OF_NODES>"
         exit 1
     fi
-    echo " > Temporarily reomve app"
-    kubectl delete deployment app-workers
-    bin/k8s_helm_upgrade.sh --set app.enabled=false --set nginx.enablePipelines=false
-    SIZE=`expr $2 - 1`
-    echo " > Setting cluster size to ${SIZE} (1 less then requested size)"
-    gcloud container clusters resize "${CLOUDSDK_CONTAINER_CLUSTER}" "--size=${SIZE}"
+    echo " > Setting cluster size to ${1}"
+    gcloud container clusters resize "${CLOUDSDK_CONTAINER_CLUSTER}" "--size=${1}"
     echo " > Done"
-    echo
-    echo " > When cluster is stable, run: bin/k8s_provision.sh cluster-nodes-workers ${2}"
-    echo
     exit 0
 
-elif [ "${ACTION}-${WHAT}" == "--provision-cluster-nodes-workers" ]; then
-    if [ "${2}" == "" ]; then
-        echo "usage: bin/k8s_provision.sh cluster-nodes-workers <TOTAL_NUM_OF_NODES>"
+elif [ "${ACTION}-${WHAT}" == "--provision-app-autoscaler" ]; then
+    if [ ! -f "devops/k8s/secrets.env.${K8S_ENVIRONMENT}" ]; then
+        echo " > You must have access to the secrets file for your environment"
         exit 1
     fi
-    echo " > Setting cluster size to ${2}"
-    gcloud container clusters resize "${CLOUDSDK_CONTAINER_CLUSTER}" "--size=${2}"
-    echo " > Done"
-    bin/k8s_helm_upgrade.sh
-    kubectl delete deployment app-management app-serve
-    echo
-    echo " > Now you should wait for app-workers pod to start"
-    echo " > Then, run a full upgrade to re-enable app management and serve"
-    echo " > bin/k8s_helm_upgrade.sh"
+    export AUTOSCALER_REPO=`env_config_getset "${CONTINUOUS_DEPLOYMENT_REPO}" "Github repo" CONTINUOUS_DEPLOYMENT_REPO`
+    export AUTOSCALER_GIT_USER=`env_config_getset "${AUTOSCALER_GIT_USER}" "Autoscaler bot user" AUTOSCALER_GIT_USER`
+    export AUTOSCALER_GIT_EMAIL=`env_config_getset "${AUTOSCALER_GIT_EMAIL}" "Autoscaler bot email" AUTOSCALER_GIT_EMAIL`
+    export AUTOSCALER_BRANCH=`env_config_set "${AUTOSCALER_BRANCH}" AUTOSCALER_BRANCH master`
+    if ! cat "devops/k8s/secrets.env.${K8S_ENVIRONMENT}" | grep AUTOSCALER_GITHUB_TOKEN; then
+        echo
+        echo " > according to GitHub policies - we are not allowed to automate creation of machine users"
+        echo
+        echo " > See the relevant section in devops/k8s/README.md regarding continuous deployment"
+        echo
+        echo " > You should get a token, and input it here"
+        read -p "Autoscaler Token: " AUTOSCALER_TOKEN
+        echo " > Updating secretes"
+        echo >> devops/k8s/secrets.env.production
+        echo "AUTOSCALER_GITHUB_TOKEN=${AUTOSCALER_TOKEN}" >> devops/k8s/secrets.env.production
+        bin/k8s_provision.sh secrets
+    fi
+    set_values '{
+        "app": {
+            "enableAutoscaler": true,
+            "autoscalerInterval": "300",
+            "autoscalerPipelinesUrl": "http://app-serve:5000",
+            "autoscalerRepo": "'$AUTOSCALER_REPO'",
+            "autoscalerGitUser": "'$AUTOSCALER_GIT_USER'",
+            "autoscalerGitEmail": "'$AUTOSCALER_GIT_EMAIL'",
+            "autoscalerBranch": "'$AUTOSCALER_BRANCH'"
+        }
+    }'
     exit 0
 
 fi

@@ -21,7 +21,6 @@ spec:
       labels:
         app: {{.Values.name | default "influxdb" | quote}}
     spec:
-{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - image: {{.Values.image | default "influxdb:1.3-alpine" | quote}}
         name: {{.Values.name | default "influxdb" | quote}}

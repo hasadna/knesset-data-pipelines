@@ -11,17 +11,16 @@ spec:
       labels:
         app: app-management
     spec:
-{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - name: app-management
-        image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
+        image: {{.Values.managementImage | default "orihoch/knesset-data-pipelines:latest" | quote}}
         args: ["management"]
         env:
 {{ include "app-common-env" . | indent 8}}
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.001"}}
-            memory: {{.Values.memoryRequests | default "100Mi" | quote}}
+            cpu: 0.001
+            memory: "100Mi"
       {{ if not .Values.global.skipInitContainers }}
       initContainers:
       - name: postgresql-create-db

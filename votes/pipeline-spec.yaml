@@ -1,6 +1,6 @@
 votes:
   schedule:
-    crontab: "0 0 * * *"
+    crontab: "10 0 * * *"
   pipeline:
     - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
       parameters:

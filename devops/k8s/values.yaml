@@ -40,6 +40,8 @@ adminer:
 # same dependencies as the main app
 flower:
   enabled: true
+  # flower app rarely changes, so we pin it here to latest which, once pulled, won't be updated again
+  image: orihoch/knesset-data-pipelines:latest
 
 # global values - shared with all subcharts
 global:

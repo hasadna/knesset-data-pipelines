@@ -28,47 +28,72 @@ if ! source bin/k8s_connect.sh; then
     exit 6
 fi
 
-IID_FILE="devops/k8s/iidfile-${K8S_ENVIRONMENT}-app"
-if [ -f "${IID_FILE}" ]; then
-    OLD_APP_IID=`cat "${IID_FILE}"`
+if [ "${K8S_CD_AUTOSCALER}" == "1" ]; then
+    echo " > autoscaler initialized action - skipping app build/push"
 else
-    OLD_APP_IID=""
+    echo " > building and pushing app image"
+    IID_FILE="devops/k8s/iidfile-${K8S_ENVIRONMENT}-app"
+    if [ -f "${IID_FILE}" ]; then
+        OLD_APP_IID=`cat "${IID_FILE}"`
+    else
+        OLD_APP_IID=""
+    fi
+    if ! bin/k8s_build_push.sh --app; then
+        echo " > Failed to build/push app"
+        exit 7
+    fi
+    NEW_APP_IID=`cat "${IID_FILE}"`
+    if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
+        echo " > changed detected in app iid file, forcing upgrade of idle worker pod"
+        K8S_UPGRADE_IDLE_WORKER="1"
+    fi
 fi
 
-if ! bin/k8s_build_push.sh --app; then
-    echo " > Failed to build/push app"
-    exit 7
+if [ "${K8S_UPGRADE_IDLE_WORKER}" == "1" ]; then
+    echo " > scaling down worker pods"
+    kubectl scale --replicas=0 deployment/app-idle-worker
+    DPP_WORKERS_NODES=`kubectl get nodes | tee /dev/stderr | grep -- -dpp-workers- | cut -d" " -f1 -`
+    if [ "${DPP_WORKER_NODES}" != "" ]; then
+        echo " > draining dpp-workers nodes"
+        kubectl scale --replicas=0 deployment/app-workers
+        for NODE in `kubectl get nodes | grep -- -dpp-workers- | cut -d" " -f1 -`; do
+            kubectl drain "${NODE}" --force --ignore-daemonsets
+        done
+    fi
 fi
 
-NEW_APP_IID=`cat "${IID_FILE}"`
+echo " > upgrading helm"
+if ! bin/k8s_helm_upgrade.sh; then
+    echo " > Failed helm upgrade"
+    exit 12
+fi
 
-if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
-    echo " > detected changes in app image - ensuring app deployment will be updated"
-    echo " > deploying app with 0 workers"
-    if ! bin/k8s_helm_upgrade.sh --recreate-pods --set app.dppWorkerConcurrency=0; then
-        echo " > Failed helm upgrade"
-        exit 8
+if [ "${K8S_UPGRADE_IDLE_WORKER}" == "1" ]; then
+    echo " > scaling idle worker back up"
+    kubectl scale --replicas=1 deployment/app-idle-worker
+    DPP_WORKERS_NODES=`kubectl get nodes | tee /dev/stderr | grep -- -dpp-workers- | cut -d" " -f1 -`
+    if [ "${DPP_WORKER_NODES}" != "" ] &&\
+       [ `bin/read_yaml.py devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml app enableWorkers` == "True" ]
+    then
+        echo " > uncordoning dpp-workers nodes"
+        kubectl scale --replicas=2 deployment/app-workers
+        for NODE in `kubectl get nodes | grep -- -dpp-workers- | cut -d" " -f1 -`; do
+            kubectl uncordon "${NODE}" --force --ignore-daemonsets
+        done
     fi
-    echo " > Sleeping 10 seconds..."
-    sleep 10
-    if ! kubectl rollout status deployment app-workers; then
-        echo " > Deployment rollout status failed"
-        exit 9
-    fi
-    echo " > deploying normally"
-    if ! bin/k8s_helm_upgrade.sh --recreate-pods --wait; then
-        echo " > Failed helm upgrade"
-        exit 10
-    fi
-    if ! kubectl rollout status deployment app-workers; then
-        echo " > Deployment rollout status failed"
-        exit 11
-    fi
-else
-    echo " > no changes detected in app - upgrading helm only"
-    if ! bin/k8s_helm_upgrade.sh; then
-        echo " > Failed helm upgrade"
-        exit 12
+fi
+
+if [ `bin/read_yaml.py devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml app enableAutoscaler` == "True" ]; then
+    if [ `bin/read_yaml.py devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml app enableWorkers` == "True" ]; then
+        if [ `kubectl get nodes | grep gke- | grep dpp-workers | wc -l` == "0" ]; then
+            echo " > workers are enabled, but no worker nodes found, provisioning dpp-workers"
+            bin/k8s_provision.sh dpp-workers
+            sleep 15
+        fi
+    elif [ `kubectl get nodes | grep gke- | grep dpp-workers | wc -l` != "0" ]; then
+        echo " > workers are disabled, but worker nodes found, deleting dpp-worker nodes"
+        bin/k8s_provision.sh dpp-workers --delete
+        sleep 15
     fi
 fi
 

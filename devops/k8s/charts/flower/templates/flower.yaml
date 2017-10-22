@@ -20,7 +20,6 @@ spec:
       labels:
         app: {{.Values.name | default "flower"}}
     spec:
-{{ include "app-workers-anti-affinity" . | indent 6}}
       containers:
       - name: flower
         image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}

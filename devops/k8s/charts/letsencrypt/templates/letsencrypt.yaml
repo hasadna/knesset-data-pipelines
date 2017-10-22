@@ -12,8 +12,16 @@ spec:
       labels:
         app: {{.Values.name | default "letsencrypt" | quote}}
     spec:
-{{ include "app-workers-anti-affinity" . | indent 6}}
-{{ include "shared-host-affinity" . | indent 8}}
+      affinity:
+        # let's encrypt must be on the same node as nginx - as they are using shared host path to share files
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values: ["nginx"]
+            topologyKey: "kubernetes.io/hostname"
       containers:
       - name: {{.Values.name | default "letsencrypt" | quote}}
         image: {{.Values.image | default "orihoch/datapackage-pipelines-plus-plus-letsencrypt:v0.0.1" | quote}}

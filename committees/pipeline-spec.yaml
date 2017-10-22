@@ -377,7 +377,7 @@ committee-meeting-protocols:
       <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
     </ul>
   schedule:
-    crontab: "2 0 * * *"
+    crontab: "10 0 * * *"
   pipeline:
     - run: ..datapackage_pipelines_knesset.committees.processors.load_committee_meeting_protocols
       parameters:
@@ -435,7 +435,7 @@ all:
       <li>zip file should be available at <a href="https://next.oknesset.org/data/">data/</a></li>
     </ul>
   schedule:
-    crontab: "4 0 * * *"
+    crontab: "10 2 * * *"
   pipeline:
     - run: add_metadata
       parameters:

@@ -17,4 +17,9 @@ setup(
     extras_require={'develop': ["tox", "pytest"]},
     url='https://github.com/hasadna/knesset-data-pipelines',
     license='MIT',
+    entry_points={
+      'console_scripts': [
+        'dpp_send_metrics = datapackage_pipelines_knesset.cli:dpp_send_metrics',
+      ]
+    },
 )
