@@ -1,6 +1,8 @@
 from datapackage_pipelines_knesset.common.processors.base_processor import BaseProcessor
 from knesset_data.protocols.committee import CommitteeMeetingProtocol
 from datapackage_pipelines_knesset.common import object_storage
+from datapackage_pipelines_knesset.common import db
+import logging
 
 class ParseCommitteeMeetingSpeakersProcessor(BaseProcessor):
 
@@ -8,20 +10,23 @@ class ParseCommitteeMeetingSpeakersProcessor(BaseProcessor):
         self._schema["fields"] = [{"name": "committee_id", "type": "integer"},
                                   {"name": "meeting_id", "type": "integer"},
                                   {"name": "name", "type": "string"} ]
+        self.s3 = object_storage.get_s3()
+        self.existing_rows = db.ExistingRows("committee-meeting-speakers", primary_key="meeting_id")
+        logging.info("bli")
         return self._process_filter(datapackage, resources)
 
     def _filter_row(self, row, **kwargs):
         committee_id = row["kns_committee_id"]
         meeting_id = row["kns_session_id"]
 
-        file_object_path = "protocols/parsed/{}/{}.txt".format(committee_id,meeting_id)
+        file_object_path = "protocols/parsed/{}/{}.txt".format(committee_id, meeting_id)
 
-        if object_storage.exists("committees",file_object_path):
+        if not self.existing_rows.contains(meeting_id) and object_storage.exists(self.s3, "committees", file_object_path):
             yield from self.extract_speakers_from_txt_file(file_object_path,committee_id,meeting_id)
 
     def extract_speakers_from_txt_file(self,file_object_path,committee_id,meeting_id):
 
-        text = object_storage.read("committees",file_object_path)
+        text = object_storage.read(self.s3, "committees", file_object_path).decode()
 
 
         with CommitteeMeetingProtocol.get_from_text(text) as protocol:
