@@ -1,0 +1,24 @@
+{{ if .Values.enabled }}
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: app-metrics
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  template:
+    metadata:
+      labels:
+        app: app-metrics
+    spec:
+      containers:
+      - name: app-metrics
+        image: {{.Values.managementImage | default "orihoch/knesset-data-pipelines:latest" | quote}}
+        args: ["metrics"]
+        env:
+{{ include "app-common-env" . | indent 8}}
+        resources:
+          requests:
+            cpu: 0.001
+            memory: "10Mi"
+{{ end }}

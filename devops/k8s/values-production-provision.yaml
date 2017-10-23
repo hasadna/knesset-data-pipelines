@@ -13,6 +13,7 @@ app:
   enableWorkers: true
   influxDb: dpp
   memoryRequests: 1800Mi
+  sshSocksProxyUrl: "socks5h://ssh-socks-proxy:8123"
 committees:
   enabled: true
 db:
@@ -54,3 +55,8 @@ nginx:
   htpasswdSecretName: nginx-htpasswd
   minioSslDomain: minio.oknesset.org
   sslDomain: next.oknesset.org
+ssh-socks-proxy:
+  enabled: true
+  socks_port: '8123'
+  ssh_host: ubuntu@db1.oknesset.org
+  ssh_port: '22'

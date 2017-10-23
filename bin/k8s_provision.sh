@@ -544,6 +544,46 @@ elif [ "${ACTION}-${WHAT}" == "--provision-app-autoscaler" ]; then
     }'
     exit 0
 
+elif [ "${ACTION}-${WHAT}" == "--provision-ssh-socks-proxy" ]; then
+    TEMPDIR=`mktemp -d`
+    export SSH_SOCKS_PROXY_HOST=`env_config_getset "${SSH_SOCKS_PROXY_HOST}" "SSH Host" SSH_SOCKS_PROXY_HOST`
+    export SSH_SOCKS_PROXY_PORT=`env_config_getset "${SSH_SOCKS_PROXY_PORT}" "SSH Port" SSH_SOCKS_PROXY_PORT`
+    export SSH_SOCKS_PROXY_KEY_COMMENT=`env_config_getset "${SSH_SOCKS_PROXY_KEY_COMMENT}" "Proxy key comment" SSH_SOCKS_PROXY_KEY_COMMENT`
+    export SSH_SOCKS_PROXY_AUTHORIZED_KEYS=`env_config_getset "${SSH_SOCKS_PROXY_AUTHORIZED_KEYS}" "Authorized keys location in ssh host" SSH_SOCKS_PROXY_AUTHORIZED_KEYS`
+    export SSH_SOCKS_PROXY_SOCKS_PORT=`env_config_getset "${SSH_SOCKS_PROXY_SOCKS_PORT}" "Socks port" SSH_SOCKS_PROXY_SOCKS_PORT`
+    export SSH_SOCKS_PROXY_HOST_KEYFILE=`env_config_getset "${SSH_SOCKS_PROXY_HOST_KEYFILE}" "Key file on host for authentication to ssh server" SSH_SOCKS_PROXY_HOST_KEYFILE`
+    PROJECT_DIR=`pwd`
+    pushd $TEMPDIR >/dev/null
+        curl -L  https://github.com/OriHoch/ssh-socks-proxy/archive/master.tar.gz | tar xvz
+        cd ssh-socks-proxy-master
+        echo "SSH_HOST=${SSH_SOCKS_PROXY_HOST}" >> .env
+        echo "SSH_PORT=${SSH_SOCKS_PROXY_PORT}" >> .env
+        echo "KEY_COMMENT=${SSH_SOCKS_PROXY_KEY_COMMENT}" >> .env
+        echo "AUTHORIZED_KEYS=${SSH_SOCKS_PROXY_AUTHORIZED_KEYS}" >> .env
+        echo "SOCKS_PORT=${SSH_SOCKS_PROXY_SOCKS_PORT}" >> .env
+        cp -f "${SSH_SOCKS_PROXY_HOST_KEYFILE}" ./ssh-host.key
+        echo "SSH_OPTS=-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /upv/workspace/ssh-host.key" >> .env
+        ./upv.sh . pull .
+        ./upv.sh . provision
+        eval `dotenv list`
+        kubectl delete secret ssh-socks-proxy
+        while ! timeout 4s kubectl create secret generic ssh-socks-proxy --from-env-file ".env"; do
+            sleep 1
+        done
+    popd >/dev/null
+    set_values '{
+        "app": {
+            "sshSocksProxyUrl": "socks5h://ssh-socks-proxy:'${SSH_SOCKS_PROXY_SOCKS_PORT}'"
+        },
+        "ssh-socks-proxy": {
+            "enabled": true,
+            "ssh_host": "'${SSH_SOCKS_PROXY_HOST}'",
+            "ssh_port": "'${SSH_SOCKS_PROXY_PORT}'",
+            "socks_port": "'${SSH_SOCKS_PROXY_SOCKS_PORT}'"
+        }
+    }'
+    exit 0
+
 fi
 
 echo " > ERROR! couldn't handle ${WHAT} ${ACTION}"

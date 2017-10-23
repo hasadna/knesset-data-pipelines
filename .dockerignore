@@ -21,3 +21,4 @@ devops
 LICENSE
 README.md
 tox.ini
+*.secret.env
