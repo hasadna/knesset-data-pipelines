@@ -11,7 +11,7 @@ app:
   dppWorkerReplicas: 2
   dppWorkersGkeNodePool: dpp-workers
   enableAutoscaler: true
-  enableWorkers: false
+  enableWorkers: true
   influxDb: dpp
   memoryRequests: 1800Mi
   metricsImage: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-27-05-16
@@ -39,8 +39,8 @@ influxdb:
   enabled: true
   gcePersistentDiskName: knesset-data-pipelines-production-influxdb
 jobs:
-  restoreDbGsUrl: ""
-  restoreDbJobName: ""
+  restoreDbGsUrl: ''
+  restoreDbJobName: ''
   restoreDbProjectId: hasadna-oknesset
   restoreDbServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
   restoreDbServiceAccountKeySecret: db-backup-upload-google-key
