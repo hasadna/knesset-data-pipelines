@@ -158,9 +158,8 @@ elif [ "${WHAT}" == "cluster" ]; then
         fi
         echo " > Will create a new cluster, this might take a while..."
         echo "You should have a Google project ID with active billing"
-        echo "Cluster will comprise of 3 g1-small machines (0.47 allocatble cpu core, 1 GB allocatble ram)"
-        echo "We also utilize some other resources which are negligable"
-        echo "Total cluster cost shouldn't be more then ~0.09 USD per hour"
+        echo "Cluster will comprise of 2 n1-standard-1 machines (each with 0.94 allocatble cpu cores, 2.6 GB allocatble ram)"
+        echo "We also utilize some other resources which are negligable compared to the compute resources"
         echo "When done, run 'bin/k8s_provision.sh --delete' to ensure cluster is destroyed and billing will stop"
         read -p "Enter your authenticated, billing activated, Google project id: " GCLOUD_PROJECT_ID
         echo " > Creating devops/k8s/.env.${K8S_ENVIRONMENT} file"
@@ -172,8 +171,8 @@ elif [ "${WHAT}" == "cluster" ]; then
         echo " > Creating the cluster"
         gcloud container clusters create "knesset-data-pipelines-${K8S_ENVIRONMENT}" \
             --disk-size=20 \
-            --machine-type=g1-small \
-            --num-nodes=3
+            --machine-type=n1-standard-1 \
+            --num-nodes=2
         while ! gcloud container clusters get-credentials "knesset-data-pipelines-${K8S_ENVIRONMENT}"; do
             echo " failed to get credentials to the clusters.. sleeping 5 seconds and retrying"
             sleep 5
@@ -367,6 +366,7 @@ elif [ "${ACTION}-${WHAT}" == "--provision-grafana-anonymous" ]; then
 elif [ "${ACTION}-${WHAT}" == "--provision-shared-host" ]; then
     echo " > Ensuring all nodes support host path"
     for NODE in `kubectl get nodes | grep gke | cut -d" " -f1 -`; do
+        echo "${NODE}"
         gcloud compute ssh "${NODE}" --command "sudo mkdir -p /var/shared-host-path/{nginx-html,letsencrypt-etc,letsencrypt-log} && sudo chown -R root:root /var/shared-host-path"
     done
     exit 0

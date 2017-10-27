@@ -44,6 +44,9 @@ spec:
           requests:
             cpu: {{.Values.cpuRequests | default "0.01"}}
             memory: {{.Values.memoryRequests | default "10Mi" | quote}}
+          limits:
+            cpu: "0.1"
+            memory: "100Mi"
         volumeMounts:
         - name: host
           mountPath: /var/log/letsencrypt

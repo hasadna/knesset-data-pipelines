@@ -37,8 +37,11 @@ spec:
         - containerPort: 3000
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.005"}}
-            memory: {{.Values.memoryRequests | default "700Mi" | quote}}
+            cpu: 0.3
+            memory: "600Mi"
+          limits:
+            cpu: 0.6
+            memory: "1400Mi"
 #        readinessProbe:
 #          initialDelaySeconds: 10
 #          periodSeconds: 10

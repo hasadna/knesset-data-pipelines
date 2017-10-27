@@ -20,6 +20,6 @@ spec:
 {{ include "app-common-env" . | indent 8}}
         resources:
           requests:
-            cpu: 0.1
-            memory: "400Mi"
+            cpu: 0.05
+            memory: "100Mi"
 {{ end }}

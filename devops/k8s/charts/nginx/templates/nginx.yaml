@@ -18,7 +18,7 @@ apiVersion: apps/v1beta1
 kind: Deployment
 metadata: {name: {{.Values.name | default "nginx" | quote}}}
 spec:
-  replicas: 1
+  replicas: {{.Values.replicas | default "2"}}
   template:
     metadata:
       labels: {app: {{.Values.name | default "nginx" | quote}}}
@@ -33,8 +33,12 @@ spec:
         {{ end }}
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.005"}}
+            # keep these values low and scale by adding replicas
+            cpu: {{.Values.cpuRequests | default "0.05"}}
             memory: {{.Values.memoryRequests | default "10Mi"}}
+          limits:
+            cpu: 0.2
+            memory: "200Mi"
         volumeMounts:
         - name: nginx-conf-d
           mountPath: /etc/nginx/conf.d

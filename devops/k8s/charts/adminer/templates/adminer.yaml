@@ -27,7 +27,11 @@ spec:
         - containerPort: 8080
         resources:
           requests:
-            cpu: {{.Values.cpuRequests | default "0.004"}}
+            cpu: "0.001"
+            memory: "10Mi"
+          limits:
+            cpu: "0.05"
+            memory: "100Mi"
         readinessProbe:
           initialDelaySeconds: 5
           periodSeconds: 10

@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: app-metrics
-        image: {{.Values.managementImage | default "orihoch/knesset-data-pipelines:latest" | quote}}
+        image: {{.Values.metricsImage | default "orihoch/knesset-data-pipelines:latest" | quote}}
         args: ["metrics"]
         env:
 {{ include "app-common-env" . | indent 8}}
@@ -21,4 +21,7 @@ spec:
           requests:
             cpu: 0.001
             memory: "10Mi"
+          limits:
+            cpu: 0.1
+            memory: "100Mi"
 {{ end }}
