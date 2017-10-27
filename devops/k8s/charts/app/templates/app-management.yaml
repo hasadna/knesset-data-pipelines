@@ -11,6 +11,8 @@ spec:
       labels:
         app: app-management
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - name: app-management
         image: {{.Values.managementImage | default "orihoch/knesset-data-pipelines:latest" | quote}}

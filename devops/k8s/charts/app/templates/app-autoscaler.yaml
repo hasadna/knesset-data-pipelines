@@ -11,6 +11,8 @@ spec:
       labels:
         app: app-autoscaler
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - name: app-autoscaler
         image: {{.Values.autoscalerImage | quote}}

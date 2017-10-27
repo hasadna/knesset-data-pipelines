@@ -20,6 +20,8 @@ spec:
       labels:
         app: {{.Values.name | default "adminer"}}
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - image: {{.Values.image | default "adminer:4.3.1-standalone"}}
         name: {{.Values.name | default "adminer"}}

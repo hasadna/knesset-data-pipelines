@@ -23,6 +23,18 @@ spec:
     metadata:
       labels: {app: {{.Values.name | default "nginx" | quote}}}
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
+      affinity:
+        # nginx must be on the same node as let's encrypt - as they are using shared host path to share files
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values: ["letsencrypt"]
+            topologyKey: "kubernetes.io/hostname"
       containers:
       - image: {{.Values.image | default "nginx:alpine" | quote}}
         name: {{.Values.name | default "nginx" | quote}}

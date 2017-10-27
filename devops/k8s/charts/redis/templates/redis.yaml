@@ -21,6 +21,8 @@ spec:
       labels:
         app: {{.Values.name | default "redis"}}
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - name: {{.Values.name | default "redis"}}
         image: {{.Values.image | default "redis:alpine"}}

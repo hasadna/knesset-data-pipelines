@@ -21,6 +21,8 @@ spec:
       labels:
         app: "ssh-socks-proxy"
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - name: "ssh-socks-proxy"
         image: orihoch/ssh-socks-proxy@sha256:94faea572a5ff570d3dea92ca381909603e488c4162f36e56416648647ffd263

@@ -11,6 +11,8 @@ spec:
       labels:
         app: {{.Values.name | default "app"}}-workers
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.dppWorkersGkeNodePool | default "dpp-workers" | quote }}
       containers:
       - name: {{.Values.name | default "app"}}-workers
         image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}

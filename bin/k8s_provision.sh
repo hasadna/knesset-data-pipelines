@@ -253,7 +253,47 @@ elif [ "${WHAT}" == "db-restore" ] || [ "${WHAT}" == "db-backup" ]; then
                 }
             }'
         fi
-        exit 0
+
+        echo "Provision values were updated, will now run the restore job"
+        echo
+        echo "DB will be deleted!"
+        echo
+        echo "Proceed with caution"
+        echo
+        echo "This script ensure that the job is disabled after it ran"
+        echo "If it was interrupted, please ensure that manually"
+        read -p "Press Enter to continue..."
+        DB_POD=`kubectl get pods | grep ^db- | cut -d" " -f1 -`
+        STOP="0"
+        for DB_NAME in "grafana metabase app"; do
+            DROP_CONNECTIONS="SELECT pg_terminate_backend(pg_stat_activity.pid)
+                FROM pg_stat_activity
+                WHERE pg_stat_activity.datname = '${DB_NAME}'
+                AND pid <> pg_backend_pid();"
+            if ! kubectl exec -c db "${DB_POD}" bash -- -c 'sudo -u postgres psql -c "'"${DROP_CONNECTIONS}"'" && sudo -u postgres psql -c "DROP DATABASE '"${DB_NAME}"';"'; then
+                STOP="1"
+                echo "ERROR!"
+            fi
+        done;
+        if [ "${STOP}" == "0" ]; then
+            echo "Running the db restore job"
+            bin/k8s_helm_upgrade.sh
+            echo "disabling the job, be sure to commit once the job ran - to prevent re-running"
+            set_values '{
+                "jobs": {
+                    "restoreDbJobName": "",
+                    "restoreDbGsUrl": "",
+                    "restoreDbServiceAccountId": "'$SERVICE_ACCOUNT_ID'",
+                    "restoreDbProjectId": "'$CLOUDSDK_CORE_PROJECT'",
+                    "restoreDbZone": "'$CLOUDSDK_COMPUTE_ZONE'",
+                    "restoreDbServiceAccountKeySecret": "'$SECRET_NAME'"
+                }
+            }'
+            exit 0
+        else
+            echo "ERROR! failed to drop databases"
+            exit 1
+        fi
     elif [ "${ACTION}" == "--delete" ]; then
         devops/db_backup/cleanup_resources.sh "${SERVICE_ACCOUNT_NAME}" "${STORAGE_BUCKET_NAME}"
         exit 0

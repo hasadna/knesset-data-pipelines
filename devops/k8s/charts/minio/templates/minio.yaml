@@ -21,6 +21,8 @@ spec:
       labels:
         app: {{.Values.name | default "minio"}}
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - name: {{.Values.name | default "minio"}}
         image: {{.Values.image | default "minio/minio"}}

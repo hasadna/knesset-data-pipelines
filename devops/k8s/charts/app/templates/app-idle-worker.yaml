@@ -11,6 +11,8 @@ spec:
       labels:
         app: app-idle-worker
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - name: app-idle-worker
         image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}

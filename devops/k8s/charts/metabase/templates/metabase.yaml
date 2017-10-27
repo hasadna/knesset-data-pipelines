@@ -23,6 +23,8 @@ spec:
       labels:
         app: {{.Values.name | default "metabase" | quote}}
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.gkeNodePool | default "default-pool" | quote }}
       containers:
       - env:
         - {name: "MB_DB_TYPE", value: "postgres"}
