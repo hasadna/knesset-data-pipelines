@@ -16,6 +16,8 @@ spec:
     metadata:
       labels: {app: {{.Values.name | default "committees" | quote}}}
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - env:
         - name: DPP_DB_ENGINE

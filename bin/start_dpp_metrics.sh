@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# start all the celery services - can be used both locally and from within a docker container
+# sends metrics which are collected from pipelines api every DPP_METRICS_INTERVAL  (by default = 5 seconds)
 
 while true; do
     sleep "${DPP_METRICS_INTERVAL:-5}"

@@ -51,7 +51,7 @@ gcloud version
 source "${HOME}/google-cloud-sdk/path.bash.inc"
 
 echo " > install helm client"
-bin/install_helm.sh
+bin/install_helm.sh --version v2.6.2
 helm version --client
 
 pip install pyyaml

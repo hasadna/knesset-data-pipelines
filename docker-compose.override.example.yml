@@ -39,3 +39,25 @@ version: "3"
 #    image: grafana/grafana
     # default username/password = admin/admin
 #    ports: ["13030:3000"]
+#
+#  autoscaler:
+#    build: devops/app_autoscaler
+#    environment:
+#    - "DPP_AUTOSCALER_INTERVAL=5"
+#    - "DPP_PIPELINES_URL=https://next.oknesset.org/pipelines"
+#    - "DPP_AUTOSCALER_REPO=OriHoch/knesset-data-pipelines"
+#    - "DPP_AUTOSCALER_USER=oknesset-deployment-bot"
+#    - "DPP_AUTOSCALER_EMAIL=knesset-data-production-autoscaler@next.oknesset.org"
+#    - "DPP_AUTOSCALER_BRANCH=master"
+#    - "DPP_AUTOSCALER_TOKEN=16922807c3fe63e0b9b3c61eae67bb91547718a2"
+#    - "DPP_PROVISION_VALUES_FILE=devops/k8s/values-production-provision.yaml"
+
+#  ssh-socks-proxy:
+#    image: orihoch/ssh-socks-proxy@sha256:94faea572a5ff570d3dea92ca381909603e488c4162f36e56416648647ffd263
+#    ports: ["8123:8123"]
+#    environment:
+#    - "SSH_HOST=ubuntu@db1.oknesset.org"
+#    - "SSH_PORT=22"
+#    - "SOCKS_PORT=8123"
+#    - "SSH_B64_KEY="
+#    - "SSH_B64_PUBKEY="

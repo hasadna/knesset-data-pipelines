@@ -158,9 +158,8 @@ elif [ "${WHAT}" == "cluster" ]; then
         fi
         echo " > Will create a new cluster, this might take a while..."
         echo "You should have a Google project ID with active billing"
-        echo "Cluster will comprise of 3 g1-small machines (0.47 allocatble cpu core, 1 GB allocatble ram)"
-        echo "We also utilize some other resources which are negligable"
-        echo "Total cluster cost shouldn't be more then ~0.09 USD per hour"
+        echo "Cluster will comprise of 2 n1-standard-1 machines (each with 0.94 allocatble cpu cores, 2.6 GB allocatble ram)"
+        echo "We also utilize some other resources which are negligable compared to the compute resources"
         echo "When done, run 'bin/k8s_provision.sh --delete' to ensure cluster is destroyed and billing will stop"
         read -p "Enter your authenticated, billing activated, Google project id: " GCLOUD_PROJECT_ID
         echo " > Creating devops/k8s/.env.${K8S_ENVIRONMENT} file"
@@ -172,8 +171,8 @@ elif [ "${WHAT}" == "cluster" ]; then
         echo " > Creating the cluster"
         gcloud container clusters create "knesset-data-pipelines-${K8S_ENVIRONMENT}" \
             --disk-size=20 \
-            --machine-type=g1-small \
-            --num-nodes=3
+            --machine-type=n1-standard-1 \
+            --num-nodes=2
         while ! gcloud container clusters get-credentials "knesset-data-pipelines-${K8S_ENVIRONMENT}"; do
             echo " failed to get credentials to the clusters.. sleeping 5 seconds and retrying"
             sleep 5
@@ -254,7 +253,47 @@ elif [ "${WHAT}" == "db-restore" ] || [ "${WHAT}" == "db-backup" ]; then
                 }
             }'
         fi
-        exit 0
+
+        echo "Provision values were updated, will now run the restore job"
+        echo
+        echo "DB will be deleted!"
+        echo
+        echo "Proceed with caution"
+        echo
+        echo "This script ensure that the job is disabled after it ran"
+        echo "If it was interrupted, please ensure that manually"
+        read -p "Press Enter to continue..."
+        DB_POD=`kubectl get pods | grep ^db- | cut -d" " -f1 -`
+        STOP="0"
+        for DB_NAME in "grafana metabase app"; do
+            DROP_CONNECTIONS="SELECT pg_terminate_backend(pg_stat_activity.pid)
+                FROM pg_stat_activity
+                WHERE pg_stat_activity.datname = '${DB_NAME}'
+                AND pid <> pg_backend_pid();"
+            if ! kubectl exec -c db "${DB_POD}" bash -- -c 'sudo -u postgres psql -c "'"${DROP_CONNECTIONS}"'" && sudo -u postgres psql -c "DROP DATABASE '"${DB_NAME}"';"'; then
+                STOP="1"
+                echo "ERROR!"
+            fi
+        done;
+        if [ "${STOP}" == "0" ]; then
+            echo "Running the db restore job"
+            bin/k8s_helm_upgrade.sh
+            echo "disabling the job, be sure to commit once the job ran - to prevent re-running"
+            set_values '{
+                "jobs": {
+                    "restoreDbJobName": "",
+                    "restoreDbGsUrl": "",
+                    "restoreDbServiceAccountId": "'$SERVICE_ACCOUNT_ID'",
+                    "restoreDbProjectId": "'$CLOUDSDK_CORE_PROJECT'",
+                    "restoreDbZone": "'$CLOUDSDK_COMPUTE_ZONE'",
+                    "restoreDbServiceAccountKeySecret": "'$SECRET_NAME'"
+                }
+            }'
+            exit 0
+        else
+            echo "ERROR! failed to drop databases"
+            exit 1
+        fi
     elif [ "${ACTION}" == "--delete" ]; then
         devops/db_backup/cleanup_resources.sh "${SERVICE_ACCOUNT_NAME}" "${STORAGE_BUCKET_NAME}"
         exit 0
@@ -367,6 +406,7 @@ elif [ "${ACTION}-${WHAT}" == "--provision-grafana-anonymous" ]; then
 elif [ "${ACTION}-${WHAT}" == "--provision-shared-host" ]; then
     echo " > Ensuring all nodes support host path"
     for NODE in `kubectl get nodes | grep gke | cut -d" " -f1 -`; do
+        echo "${NODE}"
         gcloud compute ssh "${NODE}" --command "sudo mkdir -p /var/shared-host-path/{nginx-html,letsencrypt-etc,letsencrypt-log} && sudo chown -R root:root /var/shared-host-path"
     done
     exit 0
@@ -540,6 +580,46 @@ elif [ "${ACTION}-${WHAT}" == "--provision-app-autoscaler" ]; then
             "autoscalerGitUser": "'$AUTOSCALER_GIT_USER'",
             "autoscalerGitEmail": "'$AUTOSCALER_GIT_EMAIL'",
             "autoscalerBranch": "'$AUTOSCALER_BRANCH'"
+        }
+    }'
+    exit 0
+
+elif [ "${ACTION}-${WHAT}" == "--provision-ssh-socks-proxy" ]; then
+    TEMPDIR=`mktemp -d`
+    export SSH_SOCKS_PROXY_HOST=`env_config_getset "${SSH_SOCKS_PROXY_HOST}" "SSH Host" SSH_SOCKS_PROXY_HOST`
+    export SSH_SOCKS_PROXY_PORT=`env_config_getset "${SSH_SOCKS_PROXY_PORT}" "SSH Port" SSH_SOCKS_PROXY_PORT`
+    export SSH_SOCKS_PROXY_KEY_COMMENT=`env_config_getset "${SSH_SOCKS_PROXY_KEY_COMMENT}" "Proxy key comment" SSH_SOCKS_PROXY_KEY_COMMENT`
+    export SSH_SOCKS_PROXY_AUTHORIZED_KEYS=`env_config_getset "${SSH_SOCKS_PROXY_AUTHORIZED_KEYS}" "Authorized keys location in ssh host" SSH_SOCKS_PROXY_AUTHORIZED_KEYS`
+    export SSH_SOCKS_PROXY_SOCKS_PORT=`env_config_getset "${SSH_SOCKS_PROXY_SOCKS_PORT}" "Socks port" SSH_SOCKS_PROXY_SOCKS_PORT`
+    export SSH_SOCKS_PROXY_HOST_KEYFILE=`env_config_getset "${SSH_SOCKS_PROXY_HOST_KEYFILE}" "Key file on host for authentication to ssh server" SSH_SOCKS_PROXY_HOST_KEYFILE`
+    PROJECT_DIR=`pwd`
+    pushd $TEMPDIR >/dev/null
+        curl -L  https://github.com/OriHoch/ssh-socks-proxy/archive/master.tar.gz | tar xvz
+        cd ssh-socks-proxy-master
+        echo "SSH_HOST=${SSH_SOCKS_PROXY_HOST}" >> .env
+        echo "SSH_PORT=${SSH_SOCKS_PROXY_PORT}" >> .env
+        echo "KEY_COMMENT=${SSH_SOCKS_PROXY_KEY_COMMENT}" >> .env
+        echo "AUTHORIZED_KEYS=${SSH_SOCKS_PROXY_AUTHORIZED_KEYS}" >> .env
+        echo "SOCKS_PORT=${SSH_SOCKS_PROXY_SOCKS_PORT}" >> .env
+        cp -f "${SSH_SOCKS_PROXY_HOST_KEYFILE}" ./ssh-host.key
+        echo "SSH_OPTS=-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /upv/workspace/ssh-host.key" >> .env
+        ./upv.sh . pull .
+        ./upv.sh . provision
+        eval `dotenv list`
+        kubectl delete secret ssh-socks-proxy
+        while ! timeout 4s kubectl create secret generic ssh-socks-proxy --from-env-file ".env"; do
+            sleep 1
+        done
+    popd >/dev/null
+    set_values '{
+        "app": {
+            "sshSocksProxyUrl": "socks5h://ssh-socks-proxy:'${SSH_SOCKS_PROXY_SOCKS_PORT}'"
+        },
+        "ssh-socks-proxy": {
+            "enabled": true,
+            "ssh_host": "'${SSH_SOCKS_PROXY_HOST}'",
+            "ssh_port": "'${SSH_SOCKS_PROXY_PORT}'",
+            "socks_port": "'${SSH_SOCKS_PROXY_SOCKS_PORT}'"
         }
     }'
     exit 0

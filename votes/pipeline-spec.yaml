@@ -12,6 +12,7 @@ votes:
             source: vote_id
             type: integer
             description: the primary key
+            primaryKey: true
           knesset_num:
             source: knesset_num
             type: integer
@@ -101,9 +102,10 @@ votes:
             source: remark
             type: string
             description: remark
-    - run: ..datapackage_pipelines_knesset.common.processors.update_sql_resource
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
       parameters:
-        input-resource: votes
-        output-resource: votes
+        resource: votes
         table: votes
-        save-schema: ../data/votes.json
+        schemas-bucket: votes

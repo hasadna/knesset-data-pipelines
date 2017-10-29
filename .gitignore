@@ -118,3 +118,4 @@ ENV/
 devops/k8s/Chart.yaml
 devops/k8s/charts/*/Chart.yaml
 devops/k8s/secrets.env.production
+*.secret.env
