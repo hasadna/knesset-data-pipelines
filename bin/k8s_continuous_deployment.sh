@@ -44,12 +44,12 @@ else
     fi
     NEW_APP_IID=`cat "${IID_FILE}"`
     if [ "${OLD_APP_IID}" != "${NEW_APP_IID}" ]; then
-        echo " > changed detected in app iid file, forcing upgrade of idle worker pod"
-        K8S_UPGRADE_IDLE_WORKER="1"
+        echo " > changed detected in app iid file, forcing upgrade of workers"
+        K8S_UPGRADE_WORKERS="1"
     fi
 fi
 
-if [ "${K8S_UPGRADE_IDLE_WORKER}" == "1" ]; then
+if [ "${K8S_UPGRADE_WORKERS}" == "1" ]; then
     echo " > scaling down worker pods"
     kubectl scale --replicas=0 deployment/app-idle-worker
     DPP_WORKERS_NODES=`kubectl get nodes | tee /dev/stderr | grep -- -dpp-workers- | cut -d" " -f1 -`
@@ -68,7 +68,7 @@ if ! bin/k8s_helm_upgrade.sh; then
     exit 12
 fi
 
-if [ "${K8S_UPGRADE_IDLE_WORKER}" == "1" ]; then
+if [ "${K8S_UPGRADE_WORKERS}" == "1" ]; then
     echo " > scaling idle worker back up"
     kubectl scale --replicas=1 deployment/app-idle-worker
     DPP_WORKERS_NODES=`kubectl get nodes | tee /dev/stderr | grep -- -dpp-workers- | cut -d" " -f1 -`

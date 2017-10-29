@@ -15,7 +15,6 @@ app:
   influxDb: dpp
   memoryRequests: 1800Mi
   metricsImage: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-27-05-16
-  serveImage: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-27-05-16
   sshSocksProxyUrl: socks5h://ssh-socks-proxy:8123
 committees:
   enabled: true
