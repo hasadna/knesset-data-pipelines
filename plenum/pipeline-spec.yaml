@@ -57,7 +57,7 @@ kns_plenumsession:
         table: kns_plenumsession
         schemas-bucket: plenum
 
-KNS_plmsessionitem:
+kns_plmsessionitem:
   description: >
     <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
     <ul>
@@ -178,6 +178,34 @@ kns_documentplenumsession:
         resource: kns_documentplenumsession
         table: kns_documentplenumsession
         schemas-bucket: plenum
+
+### parse protocols
+
+plenum-meeting-protocols:
+  description: >
+    <p>runs daily, downloads and (not yet implemented) parses plenum meeting protocols</p>
+    <ul>
+      <li>(not yet implemented) saves data to DB table - committee_meeting_protocols_parsed</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.plenum.processors.load_plenum_meeting_protocols
+      parameters:
+        resource: kns_documentplenumsession
+    # downloads the source protocol files for meetings which weren't downloaded before
+    # saves the files in object storage
+    # all meetings with url are yielded for parse processor
+    - run: ..datapackage_pipelines_knesset.plenum.processors.download_plenum_meeting_protocols
+      parameters:
+        input-resource: kns_documentplenumsession
+        output-resource: plenum-meeting-protocols
+        data-resource-descriptor:
+          name: plenum-meeting-protocols
+
+
+# create datapackage
 
 all:
   description: >
