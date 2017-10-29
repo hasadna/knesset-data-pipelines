@@ -7,4 +7,5 @@
 - {name: RTF_EXTRACTOR_BIN, value: "/knesset/bin/rtf_extractor.py"}
 {{ if .Values.influxDb }}- {name: DPP_INFLUXDB_URL, value: "http://influxdb:8086"}
 - {name: DPP_INFLUXDB_DB, value: {{.Values.influxDb | quote}}}{{ end }}
+{{ if .Values.sshSocksProxyUrl }}- {"name": "DATASERVICE_HTTP_PROXY", "value": {{ .Values.sshSocksProxyUrl | quote }}}{{ end }}
 {{- end -}}

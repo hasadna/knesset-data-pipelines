@@ -9,10 +9,13 @@ app:
   cpuRequests: 0.7
   dppWorkerConcurrency: 4
   dppWorkerReplicas: 2
+  dppWorkersGkeNodePool: dpp-workers
   enableAutoscaler: true
-  enableWorkers: false
+  enableWorkers: true
   influxDb: dpp
   memoryRequests: 1800Mi
+  metricsImage: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-29-11-27
+  sshSocksProxyUrl: socks5h://ssh-socks-proxy:8123
 committees:
   enabled: true
 db:
@@ -25,6 +28,7 @@ db:
 flower:
   urlPrefix: flower
 global:
+  gkeNodePool: pool-1
   rootUrl: https://next.oknesset.org
   skipInitContainers: true
 grafana:
@@ -34,8 +38,8 @@ influxdb:
   enabled: true
   gcePersistentDiskName: knesset-data-pipelines-production-influxdb
 jobs:
-  restoreDbGsUrl: gs://kdp-production-db-backups/17-10-05-09-12.sql
-  restoreDbJobName: db-restore-17-10-05-15-55
+  restoreDbGsUrl: ''
+  restoreDbJobName: ''
   restoreDbProjectId: hasadna-oknesset
   restoreDbServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
   restoreDbServiceAccountKeySecret: db-backup-upload-google-key
@@ -44,6 +48,7 @@ letsencrypt:
   enabled: true
 metabase:
   enabled: true
+  gkeNodePool: pool-2
 minio:
   gcePersistentDiskName: knesset-data-pipelines-production-minio
 nginx:
@@ -54,3 +59,8 @@ nginx:
   htpasswdSecretName: nginx-htpasswd
   minioSslDomain: minio.oknesset.org
   sslDomain: next.oknesset.org
+ssh-socks-proxy:
+  enabled: true
+  socks_port: '8123'
+  ssh_host: ubuntu@db1.oknesset.org
+  ssh_port: '22'

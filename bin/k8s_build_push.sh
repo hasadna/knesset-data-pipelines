@@ -109,20 +109,14 @@ build_push() {
         fi
         echo >> $IMAGE_VALUES_FILE
         if [ "${APP_NAME}" == "app" ]; then
-            # management and serve image are updated only if not existing
-            # if you need to update them, delete the relevant image values file
-            if [ ! -f $APP_MANAGE_VALUES_FILE ]; then
-                echo " > generating manage values file ${APP_MANAGE_VALUES_FILE}"
-                echo "app:" > $APP_MANAGE_VALUES_FILE
-                echo "  managementImage: \"${DOCKER_TAG}\"" >> $APP_MANAGE_VALUES_FILE
-                echo >> $APP_MANAGE_VALUES_FILE
-            fi
-            if [ ! -f $APP_SERVE_VALUES_FILE ]; then
-                echo " > generating serve values file ${APP_SERVE_VALUES_FILE}"
-                echo "app:" > $APP_SERVE_VALUES_FILE
-                echo "  serveImage: \"${DOCKER_TAG}\"" >> $APP_SERVE_VALUES_FILE
-                echo >> $APP_SERVE_VALUES_FILE
-            fi
+            echo " > generating manage values file ${APP_MANAGE_VALUES_FILE}"
+            echo "app:" > $APP_MANAGE_VALUES_FILE
+            echo "  managementImage: \"${DOCKER_TAG}\"" >> $APP_MANAGE_VALUES_FILE
+            echo >> $APP_MANAGE_VALUES_FILE
+            echo " > generating serve values file ${APP_SERVE_VALUES_FILE}"
+            echo "app:" > $APP_SERVE_VALUES_FILE
+            echo "  serveImage: \"${DOCKER_TAG}\"" >> $APP_SERVE_VALUES_FILE
+            echo >> $APP_SERVE_VALUES_FILE
         fi
     else
         echo " > skipping values file update"

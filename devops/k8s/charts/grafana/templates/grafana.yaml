@@ -21,6 +21,8 @@ spec:
       labels:
         app: {{.Values.name | default "grafana" | quote}}
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - image: {{.Values.image | default "grafana/grafana" | quote}}
         env:

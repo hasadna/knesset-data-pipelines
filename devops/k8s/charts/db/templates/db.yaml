@@ -21,6 +21,8 @@ spec:
       labels:
         app: {{.Values.name | default "db" | quote}}
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - name: {{.Values.name | default "db" | quote}}
         image: {{.Values.image | default "sameersbn/postgresql:9.6-2" | quote}}

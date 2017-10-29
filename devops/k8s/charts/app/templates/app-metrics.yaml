@@ -2,26 +2,28 @@
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: app-idle-worker
+  name: app-metrics
 spec:
   replicas: 1
   strategy: {type: Recreate}
   template:
     metadata:
       labels:
-        app: app-idle-worker
+        app: app-metrics
     spec:
       nodeSelector:
         cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
-      - name: app-idle-worker
-        image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
-        args: ["workers"]
+      - name: app-metrics
+        image: {{.Values.metricsImage | default "orihoch/knesset-data-pipelines:latest" | quote}}
+        args: ["metrics"]
         env:
-        - {name: DPP_WORKER_CONCURRENCY, value: "0"}
 {{ include "app-common-env" . | indent 8}}
         resources:
           requests:
-            cpu: 0.05
+            cpu: 0.001
+            memory: "10Mi"
+          limits:
+            cpu: 0.1
             memory: "100Mi"
 {{ end }}

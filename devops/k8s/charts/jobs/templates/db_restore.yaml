@@ -8,6 +8,8 @@ spec:
     metadata:
       name: {{.Values.restoreDbJobName | quote}}
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - name: {{.Values.restoreDbJobName | quote}}
         image: {{.Values.restoreDbImage | quote}}

@@ -20,6 +20,8 @@ spec:
       labels:
         app: {{.Values.name | default "flower"}}
     spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - name: flower
         image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
