@@ -2,7 +2,7 @@ from datapackage_pipelines_knesset.common.processors.base_processor import BaseP
 from knesset_data.protocols.committee import CommitteeMeetingProtocol
 from datapackage_pipelines_knesset.common import object_storage
 from datapackage_pipelines_knesset.common import db
-
+import logging
 
 class ParseCommitteeMeetingAttendeesProcessor(BaseProcessor):
 
@@ -12,7 +12,7 @@ class ParseCommitteeMeetingAttendeesProcessor(BaseProcessor):
                                   {"name": "name", "type": "string"},
                                   {"name": "role", "type": "string"},
                                   {"name": "additional_information", "type": "string"}, ]
-        self.s3 = object_storage.get_s3
+        self.s3 = object_storage.get_s3()
         self.existing_rows = db.ExistingRows("committee-meeting-attendees", primary_key="meeting_id")
         return self._process_filter(datapackage, resources)
 
@@ -21,7 +21,6 @@ class ParseCommitteeMeetingAttendeesProcessor(BaseProcessor):
         meeting_id = row["kns_session_id"]
 
         file_object_path = "protocols/parsed/{}/{}.txt".format(committee_id,meeting_id)
-
         if not self.existing_rows.contains(meeting_id) and object_storage.exists(self.s3, "committees",file_object_path):
             yield from self.extract_attendees_from_txt_file(file_object_path,committee_id,meeting_id)
 
