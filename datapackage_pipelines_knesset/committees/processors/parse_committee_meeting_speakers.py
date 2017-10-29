@@ -2,7 +2,6 @@ from datapackage_pipelines_knesset.common.processors.base_processor import BaseP
 from knesset_data.protocols.committee import CommitteeMeetingProtocol
 from datapackage_pipelines_knesset.common import object_storage
 from datapackage_pipelines_knesset.common import db
-import logging
 
 class ParseCommitteeMeetingSpeakersProcessor(BaseProcessor):
 
@@ -12,7 +11,6 @@ class ParseCommitteeMeetingSpeakersProcessor(BaseProcessor):
                                   {"name": "name", "type": "string"} ]
         self.s3 = object_storage.get_s3()
         self.existing_rows = db.ExistingRows("committee-meeting-speakers", primary_key="meeting_id")
-        logging.info("bli")
         return self._process_filter(datapackage, resources)
 
     def _filter_row(self, row, **kwargs):
