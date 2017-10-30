@@ -2,6 +2,7 @@ app:
   autoscalerBranch: master
   autoscalerGitEmail: knesset-data-production-autoscaler@next.oknesset.org
   autoscalerGitUser: oknesset-deployment-bot
+  autoscalerImage: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app-autoscaler:v1.0.6-224-g431a718-2017-10-18-12-46
   autoscalerInterval: '300'
   autoscalerPipelinesUrl: http://app-serve:5000
   autoscalerRepo: hasadna/knesset-data-pipelines
@@ -12,10 +13,9 @@ app:
   dppWorkersGkeNodePool: dpp-workers
   enableAutoscaler: true
   enableWorkers: true
-  image: 'gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-29-18-05'
+  image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-30-07-42
   influxDb: dpp
   memoryRequests: 1800Mi
-  autoscalerImage: 'gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app-autoscaler:v1.0.6-224-g431a718-2017-10-18-12-46'
   sshSocksProxyUrl: socks5h://ssh-socks-proxy:8123
 committees:
   enabled: true
