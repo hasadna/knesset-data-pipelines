@@ -87,14 +87,19 @@ if [ `bin/read_yaml.py devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml app e
     if [ `bin/read_yaml.py devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml app enableWorkers` == "True" ]; then
         if [ `kubectl get nodes | grep gke- | grep dpp-workers | wc -l` == "0" ]; then
             echo " > workers are enabled, but no worker nodes found, provisioning dpp-workers"
-            bin/k8s_provision.sh dpp-workers
+            bin/k8s_provision.sh dpp-workers || exit 1
             sleep 15
         fi
     elif [ `kubectl get nodes | grep gke- | grep dpp-workers | wc -l` != "0" ]; then
         echo " > workers are disabled, but worker nodes found, deleting dpp-worker nodes"
-        bin/k8s_provision.sh dpp-workers --delete
+        bin/k8s_provision.sh dpp-workers --delete || exit 1
         sleep 15
     fi
+fi
+
+if [ "${K8S_FORCE_UPDATE_METABASE}" == "1" ]; then
+    echo " > updating metabase"
+    bin/k8s_force_update.sh metabase
 fi
 
 echo " > Deployment complete!"

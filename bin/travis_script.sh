@@ -72,6 +72,12 @@ else
     export K8S_CD_AUTOSCALER="0"
 fi
 
+if echo "${TRAVIS_COMMIT_MESSAGE}" | grep -- "--force-update-metabase" > /dev/null; then
+    export K8S_FORCE_UPDATE_METABASE="1"
+else
+    export K8S_FORCE_UPDATE_METABASE="0"
+fi
+
 if ! bin/k8s_continuous_deployment.sh; then
     echo " > Failed continuous deployment"
     exit 1

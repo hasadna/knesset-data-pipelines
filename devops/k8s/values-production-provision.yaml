@@ -13,7 +13,7 @@ app:
   dppWorkersGkeNodePool: dpp-workers
   enableAutoscaler: true
   enableWorkers: true
-  image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-30-07-42
+  image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-29-18-05
   influxDb: dpp
   memoryRequests: 1800Mi
   sshSocksProxyUrl: socks5h://ssh-socks-proxy:8123
@@ -52,7 +52,7 @@ letsencrypt:
   enabled: true
 metabase:
   enabled: true
-  gkeNodePool: pool-2
+  gkeNodePool: metabase-6
 minio:
   gcePersistentDiskName: knesset-data-pipelines-production-minio
 nginx:

@@ -1,4 +1,8 @@
 
+read_values() {
+    bin/read_yaml.py "devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml" $*
+}
+
 set_values() {
     bin/update_yaml.py "${1}" "devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml"
 }
