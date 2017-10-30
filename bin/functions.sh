@@ -181,12 +181,12 @@ build_push() {
         echo " > saving values"
         echo " > image: \"${DOCKER_TAG}\""
         if [ "${APP_NAME}" == "db-backup" ]; then
-            set_values '{"db": {"dbBackupImage": "'$IMAGE_VALUES_FILE'"}}'
-            set_values '{"jobs": {"restoreDbImage": "'$IMAGE_VALUES_FILE'"}}'
+            set_values '{"db": {"dbBackupImage": "'$DOCKER_TAG'"}}'
+            set_values '{"jobs": {"restoreDbImage": "'$DOCKER_TAG'"}}'
         elif [ "${APP_NAME}" == "app-autoscaler" ]; then
-            set_values '{"app": {"autoscalerImage": "'$IMAGE_VALUES_FILE'"}}'
+            set_values '{"app": {"autoscalerImage": "'$DOCKER_TAG'"}}'
         else
-            set_values '{"'$APP_NAME'": {"image": "'$IMAGE_VALUES_FILE'"}}'
+            set_values '{"'$APP_NAME'": {"image": "'$DOCKER_TAG'"}}'
         fi
     else
         echo " > skipping values file update"
