@@ -52,7 +52,7 @@ letsencrypt:
   enabled: true
 metabase:
   enabled: true
-  gkeNodePool: metabase-6
+  gkeNodePool: metabase-7
 minio:
   gcePersistentDiskName: knesset-data-pipelines-production-minio
 nginx:
