@@ -12,22 +12,22 @@ app:
   dppWorkersGkeNodePool: dpp-workers
   enableAutoscaler: true
   enableWorkers: true
+  image: 'gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-29-18-05'
   influxDb: dpp
   memoryRequests: 1800Mi
-  image: "gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-29-18-05"
-  autoscalerImage: "gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app-autoscaler:v1.0.6-224-g431a718-2017-10-18-12-46"
+  autoscalerImage: 'gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app-autoscaler:v1.0.6-224-g431a718-2017-10-18-12-46'
   sshSocksProxyUrl: socks5h://ssh-socks-proxy:8123
 committees:
   enabled: true
-  image: "gcr.io/hasadna-oknesset/knesset-data-pipelines-committees:v1.0.6-83-g8a136f6-2017-10-05-14-23"
+  image: gcr.io/hasadna-oknesset/knesset-data-pipelines-committees:v1.0.6-83-g8a136f6-2017-10-05-14-23
 db:
   backupUploadBucketName: kdp-production-db-backups
   backupUploadProjectId: hasadna-oknesset
   backupUploadServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
   backupUploadServiceAccountKeySecret: db-backup-upload-google-key
   backupUploadZone: us-central1-a
+  dbBackupImage: gcr.io/hasadna-oknesset/knesset-data-pipelines-db-backup:v1.0.6-83-g8a136f6-2017-10-05-14-23
   gcePersistentDiskName: knesset-data-pipelines-production-db
-  dbBackupImage: "gcr.io/hasadna-oknesset/knesset-data-pipelines-db-backup:v1.0.6-83-g8a136f6-2017-10-05-14-23"
 flower:
   urlPrefix: flower
 global:
@@ -42,12 +42,12 @@ influxdb:
   gcePersistentDiskName: knesset-data-pipelines-production-influxdb
 jobs:
   restoreDbGsUrl: ''
+  restoreDbImage: gcr.io/hasadna-oknesset/knesset-data-pipelines-db-backup:v1.0.6-83-g8a136f6-2017-10-05-14-23
   restoreDbJobName: ''
   restoreDbProjectId: hasadna-oknesset
   restoreDbServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
   restoreDbServiceAccountKeySecret: db-backup-upload-google-key
   restoreDbZone: us-central1-a
-  restoreDbImage: "gcr.io/hasadna-oknesset/knesset-data-pipelines-db-backup:v1.0.6-83-g8a136f6-2017-10-05-14-23"
 letsencrypt:
   enabled: true
 metabase:

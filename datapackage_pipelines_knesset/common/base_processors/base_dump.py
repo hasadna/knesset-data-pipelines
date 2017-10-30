@@ -36,13 +36,12 @@ class BaseDumpProcessor(FilterResourceBaseProcessor):
         self._row_num = 0
         self._rows_buffer = []
         if self._commit_buffer_length > 1:
-            logging.info("{}: initialized, committing every {} rows".format(self._log_prefix,
-                                                                            self._commit_buffer_length))
+            logging.info("initialized, committing every {} rows".format(self._commit_buffer_length))
         else:
             logging.info("{}: initialized".format(self._log_prefix))
         yield from super(BaseDumpProcessor, self)._filter_resource(*args)
         self._flush_rows_buffer()
 
     def _filter_stat_key(self, stat):
-        stat = "{}: {}".format(self._log_prefix, stat)
+        stat = "{}".format(stat)
         return stat
