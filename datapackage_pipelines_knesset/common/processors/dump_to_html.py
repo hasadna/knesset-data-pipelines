@@ -20,17 +20,19 @@ def _get_schema_table(tablename, fields, primaryKey):
     return html
 
 
-def filter_resource(descriptor, data):
+def filter_resource(descriptor, data, stats):
     for row in data:
+        stats[descriptor["name"]] += 1
         yield row
 
-def filter_resources(datapackage, resources, parameters):
+def filter_resources(datapackage, resources, parameters, stats):
     tables = []
     for resource_descriptor, resource_data in zip(datapackage["resources"], resources):
         schema = resource_descriptor["schema"]
+        stats[resource_descriptor["name"]] = 0
         tables.append(_get_schema_table(resource_descriptor["name"], schema["fields"], schema["primaryKey"]))
 
-        yield filter_resource(resource_descriptor, resource_data)
+        yield filter_resource(resource_descriptor, resource_data, stats)
 
     html = """<html><head><meta charset="UTF-8"></head><body>{tables}</body></html>""".format(tables="".join(tables))
 
@@ -43,4 +45,5 @@ def filter_resources(datapackage, resources, parameters):
         object_storage.write(s3, parameters["bucket"], save_schema_html, html, public_bucket=True)
         object_storage.write(s3, parameters["bucket"], save_schema_json, json.dumps(datapackage["resources"], indent=2, ensure_ascii=False), public_bucket=True)
 
-spew(datapackage, filter_resources(datapackage, resources, parameters))
+stats = {}
+spew(datapackage, filter_resources(datapackage, resources, parameters, stats), stats)
