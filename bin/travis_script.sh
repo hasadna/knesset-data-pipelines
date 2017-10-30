@@ -81,23 +81,9 @@ else
         echo " > Committing app image change to GitHub"
         git config user.email "${GIT_CONFIG_EMAIL}"
         git config user.name "${GIT_CONFIG_USER}"
-        git diff "devops/k8s/values-${K8S_ENVIRONMENT}-image-app.yaml" "${IID_FILE}"
-        git add "devops/k8s/values-${K8S_ENVIRONMENT}-image-app.yaml" "${IID_FILE}"
+        git diff "devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml" "${IID_FILE}"
+        git add "devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml" "${IID_FILE}"
         MSG="deployment image update from travis_deploy_script --no-deploy"
-        MANAGE_VALUES_FILE="devops/k8s/values-${K8S_ENVIRONMENT}-image-app-manage.yaml"
-        if git diff --exit-code "${MANAGE_VALUES_FILE}"; then
-            if git add "${MANAGE_VALUES_FILE}"; then
-                echo " > updated app manage image values file"
-                MSG+=" (updated management image)"
-            fi
-        fi
-        SERVE_VALUES_FILE="devops/k8s/values-${K8S_ENVIRONMENT}-image-app-serve.yaml"
-        if git diff --exit-code "${SERVE_VALUES_FILE}"; then
-            if git add "${SERVE_VALUES_FILE}"; then
-                echo " > updated app serve image values file"
-                MSG+=" (updated serve image)"
-            fi
-        fi
         git commit -m "${MSG}"
         git push "https://${DEPLOYMENT_BOT_GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git" "HEAD:${TRAVIS_BRANCH}"
     fi

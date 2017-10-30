@@ -14,10 +14,11 @@ app:
   enableWorkers: true
   influxDb: dpp
   memoryRequests: 1800Mi
-  metricsImage: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-29-11-27
+  image: "gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-29-18-05"
   sshSocksProxyUrl: socks5h://ssh-socks-proxy:8123
 committees:
   enabled: true
+  image: "gcr.io/hasadna-oknesset/knesset-data-pipelines-committees:v1.0.6-83-g8a136f6-2017-10-05-14-23"
 db:
   backupUploadBucketName: kdp-production-db-backups
   backupUploadProjectId: hasadna-oknesset
@@ -25,6 +26,7 @@ db:
   backupUploadServiceAccountKeySecret: db-backup-upload-google-key
   backupUploadZone: us-central1-a
   gcePersistentDiskName: knesset-data-pipelines-production-db
+  dbBackupImage: "gcr.io/hasadna-oknesset/knesset-data-pipelines-db-backup:v1.0.6-83-g8a136f6-2017-10-05-14-23"
 flower:
   urlPrefix: flower
 global:
@@ -44,6 +46,7 @@ jobs:
   restoreDbServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
   restoreDbServiceAccountKeySecret: db-backup-upload-google-key
   restoreDbZone: us-central1-a
+  restoreDbImage: "gcr.io/hasadna-oknesset/knesset-data-pipelines-db-backup:v1.0.6-83-g8a136f6-2017-10-05-14-23"
 letsencrypt:
   enabled: true
 metabase:

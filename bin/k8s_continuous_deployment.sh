@@ -50,7 +50,7 @@ else
 fi
 
 if [ "${K8S_UPGRADE_WORKERS}" == "1" ]; then
-    echo " > scaling down worker pods"
+    echo " > scaling down worker pods (to reduce CPU load while deploying)"
     kubectl scale --replicas=0 deployment/app-idle-worker
     DPP_WORKERS_NODES=`kubectl get nodes | tee /dev/stderr | grep -- -dpp-workers- | cut -d" " -f1 -`
     if [ "${DPP_WORKER_NODES}" != "" ]; then
@@ -69,7 +69,7 @@ if ! bin/k8s_helm_upgrade.sh; then
 fi
 
 if [ "${K8S_UPGRADE_WORKERS}" == "1" ]; then
-    echo " > scaling idle worker back up"
+    echo " > scaling workers back up"
     kubectl scale --replicas=1 deployment/app-idle-worker
     DPP_WORKERS_NODES=`kubectl get nodes | tee /dev/stderr | grep -- -dpp-workers- | cut -d" " -f1 -`
     if [ "${DPP_WORKER_NODES}" != "" ] &&\
