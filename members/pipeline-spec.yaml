@@ -85,18 +85,14 @@ kns_persontoposition:
             source: "{name}"
             type: integer
             description: קוד זיהוי לאדם
+          PositionID:
+            source: "{name}"
+            type: integer
+            description: קוד זיהוי לתפקיד
           KnessetNum:
             source: "{name}"
             type: integer
             description: מספר כנסת
-          StartDate:
-            source: "{name}"
-            type: datetime
-            description: תאריך התחלה
-          FinishDate:
-            source: "{name}"
-            type: datetime
-            description: תאריך סיום
           GovMinistryID:
             source: "{name}"
             type: integer
@@ -129,6 +125,14 @@ kns_persontoposition:
             source: "{name}"
             type: string
             description: שם ועידה
+          StartDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך התחלה
+          FinishDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך סיום
           IsCurrent:
             source: "{name}"
             type: boolean
