@@ -2,14 +2,19 @@ from datapackage_pipelines_knesset.common.processors.base_processor import BaseP
 from datapackage_pipelines_knesset.common.db import get_session
 from sqlalchemy import *
 from datapackage_pipelines_knesset.common.utils import get_pipeline_schema
+import logging
 
 class LoadSqlResource(BaseProcessor):
 
     def __init__(self, parameters=None, datapackage=None, resources=None):
         super(LoadSqlResource, self).__init__(parameters, datapackage, resources)
-        pipeline_spec = self._parameters["schema-bucket"]
-        pipeline_id = self._parameters["resource-name"]
-        self._schema = get_pipeline_schema(pipeline_spec, pipeline_id)
+        if not self._parameters.get("schema"):
+            pipeline_spec = self._parameters["schema-bucket"]
+            pipeline_id = self._parameters["resource-name"]
+            self._schema = get_pipeline_schema(pipeline_spec, pipeline_id)
+        else:
+            self._schema = self._parameters["schema"]
+
 
     @property
     def db_session(self):

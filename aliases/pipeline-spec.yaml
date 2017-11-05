@@ -1,0 +1,34 @@
+### parse people aliases
+
+committee-meeting-aliases:
+  description: >
+    <p>runs daily, based on committee_meeting_protocols_parsed table</p>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: committee-meeting-attendees
+        table: committee_meeting_attendees
+        schema:
+          fields: [
+            {name: "committee_id", type: "integer"},
+            {name: "meeting_id", type: "integer"},
+            {name: "name", type: "string"},
+            {name: "role", type: "string"},
+            {name: "additional_information", type: "string"}
+          ]
+          primaryKey: ["committee_id"]
+    - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_aliases
+      parameters:
+        input-resource: committee-meeting-attendees
+        output-resource: committee-meeting-aliases
+        name: name
+        type: meeting
+    - run: dump.to_sql
+      parameters:
+        tables:
+          committee_meeting_aliases:
+            resource-name: committee-meeting-aliases
+            mode: update
