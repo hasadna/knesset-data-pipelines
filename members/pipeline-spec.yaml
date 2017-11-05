@@ -59,7 +59,7 @@ kns_person:
         schemas-bucket: members
 
 
-### kns dataservice tables.
+### יודגש, מסיבות פנימיות הטבלה KNS_Person  מכילה גם שמות של אנשים שאינם חברי כנסת כמו למשל מנהלי הוועדות בכנסת. כדי לקבל מידע רק על חברי הכנסת, יש לעשות JOIN עם טבלת KNS_PersonToPosition ולפלטר לפי עמודת Position ID (43=ח"כ, 61=ח"כית)
 kns_persontoposition:
   description: >
     <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
