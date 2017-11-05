@@ -27,8 +27,7 @@ class Processor(AddResourceBaseProcessor):
             .filter(persontoposition_table.p.PositionID.in_(SUPPORTED_POSITION_IDS))\
         .all():
             row = db_row._asdict()
-            yield {"url": row["FilePath"],
-                "kns_person_id": row["PersonID"]}
+            yield {"kns_person_id": row["PersonID"]}
 
 
 if __name__ == "__main__":
