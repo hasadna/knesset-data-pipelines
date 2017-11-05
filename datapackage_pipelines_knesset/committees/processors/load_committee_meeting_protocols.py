@@ -1,5 +1,6 @@
 from datapackage_pipelines_knesset.common.base_processors.add_resource import AddResourceBaseProcessor
 from sqlalchemy import or_
+import os
 import logging
 
 
@@ -25,6 +26,7 @@ class Processor(AddResourceBaseProcessor):
         documentcommitteesession_table = self.db_meta.tables.get("kns_documentcommitteesession")
         if committee_table is None or committeesession_table is None or documentcommitteesession_table is None:
             raise Exception("processor requires kns committee tables to exist")
+        override_meeting_ids = os.environ.get("OVERRIDE_COMMITTEE_MEETING_IDS")
         for db_row in self.db_session\
             .query(committee_table, committeesession_table, documentcommitteesession_table)\
             .filter(committeesession_table.c.CommitteeID==committee_table.c.CommitteeID)\
@@ -33,9 +35,10 @@ class Processor(AddResourceBaseProcessor):
         .all():
             row = db_row._asdict()
             if str(row["GroupTypeID"]) == "23":
-                yield {"url": row["FilePath"],
-                       "kns_committee_id": row["CommitteeID"],
-                       "kns_session_id": row["CommitteeSessionID"]}
+                if not override_meeting_ids or str(row["CommitteeSessionID"]) in override_meeting_ids.split(","):
+                    yield {"url": row["FilePath"],
+                        "kns_committee_id": row["CommitteeID"],
+                        "kns_session_id": row["CommitteeSessionID"]}
 
 
 if __name__ == "__main__":

@@ -50,7 +50,7 @@ else
 fi
 
 if [ "${K8S_UPGRADE_WORKERS}" == "1" ]; then
-    echo " > scaling down worker pods"
+    echo " > scaling down worker pods (to reduce CPU load while deploying)"
     kubectl scale --replicas=0 deployment/app-idle-worker
     DPP_WORKERS_NODES=`kubectl get nodes | tee /dev/stderr | grep -- -dpp-workers- | cut -d" " -f1 -`
     if [ "${DPP_WORKER_NODES}" != "" ]; then
@@ -69,7 +69,7 @@ if ! bin/k8s_helm_upgrade.sh; then
 fi
 
 if [ "${K8S_UPGRADE_WORKERS}" == "1" ]; then
-    echo " > scaling idle worker back up"
+    echo " > scaling workers back up"
     kubectl scale --replicas=1 deployment/app-idle-worker
     DPP_WORKERS_NODES=`kubectl get nodes | tee /dev/stderr | grep -- -dpp-workers- | cut -d" " -f1 -`
     if [ "${DPP_WORKER_NODES}" != "" ] &&\
@@ -87,14 +87,19 @@ if [ `bin/read_yaml.py devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml app e
     if [ `bin/read_yaml.py devops/k8s/values-${K8S_ENVIRONMENT}-provision.yaml app enableWorkers` == "True" ]; then
         if [ `kubectl get nodes | grep gke- | grep dpp-workers | wc -l` == "0" ]; then
             echo " > workers are enabled, but no worker nodes found, provisioning dpp-workers"
-            bin/k8s_provision.sh dpp-workers
+            bin/k8s_provision.sh dpp-workers || exit 1
             sleep 15
         fi
     elif [ `kubectl get nodes | grep gke- | grep dpp-workers | wc -l` != "0" ]; then
         echo " > workers are disabled, but worker nodes found, deleting dpp-worker nodes"
-        bin/k8s_provision.sh dpp-workers --delete
+        bin/k8s_provision.sh dpp-workers --delete || exit 1
         sleep 15
     fi
+fi
+
+if [ "${K8S_FORCE_UPDATE_METABASE}" == "1" ]; then
+    echo " > updating metabase"
+    bin/k8s_force_update.sh metabase
 fi
 
 echo " > Deployment complete!"

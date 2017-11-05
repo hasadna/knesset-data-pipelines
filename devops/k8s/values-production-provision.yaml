@@ -2,6 +2,7 @@ app:
   autoscalerBranch: master
   autoscalerGitEmail: knesset-data-production-autoscaler@next.oknesset.org
   autoscalerGitUser: oknesset-deployment-bot
+  autoscalerImage: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app-autoscaler:v1.0.6-224-g431a718-2017-10-18-12-46
   autoscalerInterval: '300'
   autoscalerPipelinesUrl: http://app-serve:5000
   autoscalerRepo: hasadna/knesset-data-pipelines
@@ -12,18 +13,20 @@ app:
   dppWorkersGkeNodePool: dpp-workers
   enableAutoscaler: true
   enableWorkers: false
+  image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-30-11-12
   influxDb: dpp
   memoryRequests: 1800Mi
-  metricsImage: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-29-11-27
   sshSocksProxyUrl: socks5h://ssh-socks-proxy:8123
 committees:
   enabled: true
+  image: gcr.io/hasadna-oknesset/knesset-data-pipelines-committees:v1.0.6-83-g8a136f6-2017-10-05-14-23
 db:
   backupUploadBucketName: kdp-production-db-backups
   backupUploadProjectId: hasadna-oknesset
   backupUploadServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
   backupUploadServiceAccountKeySecret: db-backup-upload-google-key
   backupUploadZone: us-central1-a
+  dbBackupImage: gcr.io/hasadna-oknesset/knesset-data-pipelines-db-backup:v1.0.6-83-g8a136f6-2017-10-05-14-23
   gcePersistentDiskName: knesset-data-pipelines-production-db
 flower:
   urlPrefix: flower
@@ -39,6 +42,7 @@ influxdb:
   gcePersistentDiskName: knesset-data-pipelines-production-influxdb
 jobs:
   restoreDbGsUrl: ''
+  restoreDbImage: gcr.io/hasadna-oknesset/knesset-data-pipelines-db-backup:v1.0.6-83-g8a136f6-2017-10-05-14-23
   restoreDbJobName: ''
   restoreDbProjectId: hasadna-oknesset
   restoreDbServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
@@ -48,7 +52,7 @@ letsencrypt:
   enabled: true
 metabase:
   enabled: true
-  gkeNodePool: pool-2
+  gkeNodePool: metabase-7
 minio:
   gcePersistentDiskName: knesset-data-pipelines-production-minio
 nginx:

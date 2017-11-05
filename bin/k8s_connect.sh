@@ -14,6 +14,8 @@ else
     export K8S_ENVIRONMENT="${K8S_ENVIRONMENT}"
 fi
 
+source bin/functions.sh
+
 if [ ! -f "devops/k8s/.env.${K8S_ENVIRONMENT}" ]; then
     echo " > Missing devops/k8s/.env.$K8S_ENVIRONMENT file, will try to create it and connect to an existing cluster"
     if [ "${CLOUDSDK_CORE_PROJECT}" != "" ]; then

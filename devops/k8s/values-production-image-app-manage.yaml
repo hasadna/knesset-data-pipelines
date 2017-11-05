@@ -1,3 +1,0 @@
-app:
-  managementImage: "gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-10-29-11-27"
-

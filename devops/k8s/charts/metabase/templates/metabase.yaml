@@ -15,16 +15,13 @@ metadata:
   name: {{.Values.name | default "metabase" | quote}}
 spec:
   replicas: 1
-  strategy:
-    # Metabase is very CPU and memory intensive - so we use recreate strategy to prevent overloading the cluster
-    type: Recreate
   template:
     metadata:
       labels:
         app: {{.Values.name | default "metabase" | quote}}
     spec:
       nodeSelector:
-        cloud.google.com/gke-nodepool: {{ .Values.gkeNodePool | default "default-pool" | quote }}
+        app: metabase
       containers:
       - env:
         - {name: "MB_DB_TYPE", value: "postgres"}
@@ -44,13 +41,20 @@ spec:
           limits:
             cpu: 0.6
             memory: "1400Mi"
-#        readinessProbe:
-#          initialDelaySeconds: 10
-#          periodSeconds: 10
-#          timeoutSeconds: 5
-#          httpGet:
-#            path: /
-#            port: 3000
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 120
+          timeoutSeconds: 5
+          failureThreshold: 6
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 60
+          timeoutSeconds: 3
+          periodSeconds: 5
       {{ if not .Values.global.skipInitContainers }}
       initContainers:
       - name: metabase-create-db
