@@ -25,6 +25,7 @@ COPY committees /knesset/committees
 COPY laws /knesset/laws
 COPY plenum /knesset/plenum
 COPY votes /knesset/votes
+COPY members /knesset/members
 COPY bin /knesset/bin
 COPY docker-run.sh /knesset/
 
