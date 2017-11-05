@@ -3,6 +3,8 @@ from sqlalchemy import or_
 import os
 import logging
 
+# only loads members with the following positionId:
+SUPPORTED_POSITION_IDS = [43, 61]
 
 class Processor(AddResourceBaseProcessor):
 
@@ -10,7 +12,9 @@ class Processor(AddResourceBaseProcessor):
         return resource_descriptor.get("schema", {
             "fields": [
                 {"name": "url", "type": "string", "description": "url to download protocol from"},
-                {"name": "kns_person_id", "type": "integer", "description": "primary key from kns_person table"}
+                {
+                    "name": "kns_person_id", "type": "integer",
+                    "description": "primary key from kns_person table"}
             ],
             "primaryKey": ["kns_person_id"]
         })
@@ -20,17 +24,14 @@ class Processor(AddResourceBaseProcessor):
         persontoposition_table = self.db_meta.tables.get("kns_persontoposition")
         if person_table is None or persontoposition_table is None:
             raise Exception("processor requires kns person tables to exist")
-        override_meeting_ids = os.environ.get("OVERRIDE_PERSON_IDS")
         for db_row in self.db_session\
             .query(person_table, persontoposition_table)\
-            .filter(persontoposition_table.c.PersonID==person_table.c.PersonID)\
-            .filter(or_(*(documentcommitteesession_table.c.FilePath.like("%.{}".format(e)) for e in SUPPORTED_EXTENSIONS)))\
+            .filter(persontoposition_table.p.PersonID==person_table.p.PersonID)\
+            .filter(persontoposition_table.p.PositionID.in_(SUPPORTED_POSITION_IDS))\
         .all():
             row = db_row._asdict()
-            if str(row["GroupTypeID"]) == "23":
-                if not override_meeting_ids or str(row["PersonID"]) in override_meeting_ids.split(","):
-                    yield {"url": row["FilePath"],
-                        "kns_person_id": row["PersonID"]}
+            yield {"url": row["FilePath"],
+                "kns_person_id": row["PersonID"]}
 
 
 if __name__ == "__main__":
