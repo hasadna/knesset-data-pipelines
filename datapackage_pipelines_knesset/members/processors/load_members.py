@@ -1,7 +1,4 @@
 from datapackage_pipelines_knesset.common.base_processors.add_resource import AddResourceBaseProcessor
-from sqlalchemy import or_
-import os
-import logging
 
 # only loads members with the following positionId:
 SUPPORTED_POSITION_IDS = [43, 61]
