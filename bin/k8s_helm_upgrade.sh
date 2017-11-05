@@ -18,7 +18,3 @@ if ! eval "helm upgrade --timeout=5 --install --debug ${VALUE_ARGS} knesset-data
 fi
 
 echo " > Helm upgrade complete"
-echo
-echo " > Pay attention that this doesn't necesarily mean deployment is complete"
-echo
-echo " > if you don't care about ~30 seconds of down-time, run bin/k8s_hard_reset.sh"

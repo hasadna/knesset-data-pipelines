@@ -15,7 +15,7 @@ spec:
         cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
       containers:
       - name: app-metrics
-        image: {{.Values.metricsImage | default "orihoch/knesset-data-pipelines:latest" | quote}}
+        image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
         args: ["metrics"]
         env:
 {{ include "app-common-env" . | indent 8}}

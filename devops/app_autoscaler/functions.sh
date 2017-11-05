@@ -48,7 +48,11 @@ scale() {
             git config user.name "${DPP_AUTOSCALER_USER}"
             git diff ${DPP_PROVISION_VALUES_FILE}
             git add ${DPP_PROVISION_VALUES_FILE}
-            git commit -m "Autoscaler - scaling ${1} --autoscaler"
+            MSG="Autoscaler - scaling ${1} --autoscaler"
+            if [ "${1}" == "down" ]; then
+                MSG+=" --force-update-metabase"
+            fi
+            git commit -m "${MSG}"
             git push origin "HEAD:${DPP_AUTOSCALER_BRANCH}"
         popd > /dev/null
     fi
