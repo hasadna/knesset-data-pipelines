@@ -59,6 +59,7 @@ kns_person:
         schemas-bucket: members
 
 
+### kns dataservice tables; This table is required to determine if a member is an active member.
 kns_persontoposition:
   description: >
     <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
@@ -83,7 +84,7 @@ kns_persontoposition:
           PersonID:
             source: "{name}"
             type: integer
-            description: מספר שורה בטלבת חברי כנסת
+            description: קוד זיהוי לאדם
           KnessetNum:
             source: "{name}"
             type: integer
@@ -111,7 +112,7 @@ kns_persontoposition:
           FactionID:
             source: "{name}"
             type: integer
-            description: מספר שורה בטבלת faction
+            description: קוד סיעה
           FactionName:
             source: "{name}"
             type: string
