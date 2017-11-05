@@ -1,0 +1,192 @@
+### kns dataservice tables
+
+
+kns_person:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_person
+        service-name: api
+        method-name: "KNS_Person"
+        fields:
+          PersonID:
+            source: "{name}"
+            type: integer
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          LastName:
+            source: "{name}"
+            type: string
+            description: שם משפחה
+          FirstName:
+            source: "{name}"
+            type: string
+            description: שם פרטי
+          GenderID:
+            source: "{name}"
+            type: integer
+            description: מין
+          GenderDesc:
+            source: "{name}"
+            type: integer
+            description: תיאור מין
+          Email:
+            source: "{name}"
+            type: string
+            description: אימייל חבר הכנסת
+          IsCurrent:
+            source: "{name}"
+            type: boolean
+            description: האם בכנסת הנוכחית
+          LastUpdatedDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_person
+        table: kns_person
+        schemas-bucket: members
+
+
+'''
+ יודגש, מסיבות פנימיות הטבלה KNS_Person  מכילה גם שמות של אנשים שאינם חברי כנסת כמו למשל מנהלי הוועדות בכנסת.
+  כדי לקבל מידע רק על חברי הכנסת, יש לעשות JOIN עם טבלת KNS_PersonToPosition ולפלטר לפי עמודת Position ID
+ (43=ח"כ, 61=ח"כית)
+'''
+kns_persontoposition:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_persontoposition
+        service-name: api
+        method-name: "KNS_PersonToPosition"
+        fields:
+          PersonToPositionID:
+            source: "{name}"
+            type: integer
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          PersonID:
+            source: "{name}"
+            type: integer
+            description: קוד זיהוי לאדם
+          PositionID:
+            source: "{name}"
+            type: integer
+            description: קוד זיהוי לתפקיד
+          KnessetNum:
+            source: "{name}"
+            type: integer
+            description: מספר כנסת
+          GovMinistryID:
+            source: "{name}"
+            type: integer
+            description: מספר שורה בטבלת הכנסת
+          GovMinistryName:
+            source: "{name}"
+            type: string
+            description: שם הכנסת
+          DutyDesc:
+            source: "{name}"
+            type: string
+            description: תיאור התפקיד
+          FactionID:
+            source: "{name}"
+            type: integer
+            description: קוד סיעה
+          FactionName:
+            source: "{name}"
+            type: string
+            description: שם
+          GovernmentNum:
+            source: "{name}"
+            type: integer
+            description: מספר הממשלה
+          CommitteeID:
+            source: "{name}"
+            type: integer
+            description: מספר ועידה
+          CommitteeName:
+            source: "{name}"
+            type: string
+            description: שם ועידה
+          StartDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך התחלה
+          FinishDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך סיום
+          IsCurrent:
+            source: "{name}"
+            type: boolean
+            description: האם מדובר בכנסת הנוכחית
+          LastUpdatedDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_persontoposition
+        table: kns_persontoposition
+        schemas-bucket: members
+
+
+kns_mksitecode:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+    <ul>
+      <li>saves data to table with the same name in Knesset Data DB</li>
+      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+    </ul>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_mksitecode
+        service-name: api
+        method-name: "KNS_MkSiteCode"
+        fields:
+          MKSiteCode:
+            source: "{name}"
+            type: integer
+            description: מספר השורה בטבלה זו
+            primaryKey: true
+          KnsID:
+            source: "{name}"
+            type: integer
+            description: קוד הח"כ בבסיס הנתונים של סנהדרין (משמש את הטבלאות המתוארות במסמך זה)
+          SiteId:
+            source: "{name}"
+            type: integer
+            description: קוד הח"כ בטבלאות אתר הכנסת הישן (משמש לזיהוי הח"כ בחלק מדפי האתר)
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_mksitecode
+        table: kns_mksitecode
+        schemas-bucket: members
