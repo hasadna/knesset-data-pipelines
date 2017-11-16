@@ -386,3 +386,12 @@ You can use the following snippet to run management commands from the mc host it
 this example sets committees bucket to be public:
 
 `kubectl exec -it minio-1863685920-ddz2g -- sh -c 'curl https://dl.minio.io/client/mc/release/linux-amd64/mc > mc && chmod +x ./mc && ./mc config host add minio http://localhost:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY && ./mc policy public minio/committees'`
+
+### copying db tables to csv file
+```
+kubectl exec -it db-1781652776-m1mx8 -- bash
+sudo -u postgres psql -dapp
+app=# \copy committee_meeting_attendees to 'committee_meeting_attendees_2017-11-16.csv' csv header
+gzip committee_meeting_attendees_2017-11-16.csv
+
+```
