@@ -1,0 +1,127 @@
+### parse people people
+
+committee-meeting-people-attendees:
+  description: >
+    <p>runs daily, based on committee_meeting_attendees table</p>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: committee-meeting-attendees
+        table: committee_meeting_attendees
+        schema:
+          fields: [
+            {name: "committee_id", type: "integer"},
+            {name: "meeting_id", type: "integer"},
+            {name: "name", type: "string"},
+            {name: "role", type: "string"},
+            {name: "additional_information", type: "string"}
+          ]
+          primaryKey: ["committee_id"]
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
+      parameters:
+        input-resource: committee-meeting-attendees
+        output-resource: committee-meeting-people
+        schema:
+          fields: [
+            {name: "name", type: "string"},
+            {name: "meeting_id", type: "integer"},
+            {name: "type", type: "string"}
+          ]
+          primaryKey: ["name", "meeting_id", "type"]
+        dump-fields: {
+          name: "name",
+          meeting_id: "meeting_id"
+        }
+        constants: {
+          type: "attendees"
+        }
+    - run: dump.to_sql
+      parameters:
+        tables:
+          committee_meeting_people:
+            resource-name: committee-meeting-people
+            mode: update
+
+
+committee-meeting-people-speakers:
+  description: >
+    <p>runs daily, based on committee_meeting_speakers table</p>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: committee-meeting-speakers
+        table: committee_meeting_speakers
+        schema:
+          fields: [
+            {name: "committee_id", type: "integer"},
+            {name: "meeting_id", type: "integer"},
+            {name: "name", type: "string"}
+          ]
+          primaryKey: ["committee_id"]
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
+      parameters:
+        input-resource: committee-meeting-speakers
+        output-resource: committee-meeting-people
+        schema:
+          fields: [
+            {name: "name", type: "string"},
+            {name: "meeting_id", type: "integer"},
+            {name: "type", type: "string"}
+          ]
+          primaryKey: ["name", "meeting_id", "type"]
+        dump-fields: {
+          name: "name",
+          meeting_id: "meeting_id"
+        }
+        constants: {
+          type: "speakers"
+        }
+    - run: dump.to_sql
+      parameters:
+        tables:
+          committee_meeting_people:
+            resource-name: committee-meeting-people
+            mode: update
+
+committee-meeting-aliases:
+  description: >
+    <p>runs daily, based on committee_meeting_aliases table</p>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: committee-meeting-people
+        table: committee_meeting_people
+        schema:
+          fields: [
+            {name: "name", type: "string"},
+            {name: "meeting_id", type: "integer"},
+            {name: "type", type: "string"}
+          ]
+          primaryKey: ["name", "meeting_id", "type"]
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
+      parameters:
+        input-resource: committee-meeting-people
+        output-resource: committee-meeting-aliases
+        schema:
+          fields: [
+            {name: "name", type: "string"}
+          ]
+          primaryKey: ["name"]
+        dump-fields: {
+          name: "name"
+        }
+    - run: dump.to_sql
+      parameters:
+        tables:
+          committee_meeting_aliases:
+            resource-name: committee-meeting-aliases
+            mode: update
