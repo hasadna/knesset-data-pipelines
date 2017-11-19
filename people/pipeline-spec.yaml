@@ -1,0 +1,127 @@
+### parse people people
+
+people-committee-attendees:
+  description: >
+    <p>runs daily, based on committee_meeting_attendees table</p>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: committee-meeting-attendees
+        table: committee_meeting_attendees
+        schema:
+          fields: [
+            {name: "committee_id", type: "integer"},
+            {name: "meeting_id", type: "integer"},
+            {name: "name", type: "string"},
+            {name: "role", type: "string"},
+            {name: "additional_information", type: "string"}
+          ]
+          primaryKey: ["committee_id"]
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
+      parameters:
+        input-resource: committee-meeting-attendees
+        output-resource: people
+        schema:
+          fields: [
+            {name: "name", type: "string"},
+            {name: "type_id", type: "integer"},
+            {name: "type", type: "string"}
+          ]
+          primaryKey: ["name", "type_id", "type"]
+        dump-fields: {
+          name: "name",
+          meeting_id: "type_id"
+        }
+        constants: {
+          type: "attendees"
+        }
+    - run: dump.to_sql
+      parameters:
+        tables:
+          people:
+            resource-name: people
+            mode: update
+
+
+people-committee-speakers:
+  description: >
+    <p>runs daily, based on committee_meeting_speakers table</p>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: committee-meeting-speakers
+        table: committee_meeting_speakers
+        schema:
+          fields: [
+            {name: "committee_id", type: "integer"},
+            {name: "meeting_id", type: "integer"},
+            {name: "name", type: "string"}
+          ]
+          primaryKey: ["committee_id"]
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
+      parameters:
+        input-resource: committee-meeting-speakers
+        output-resource: people
+        schema:
+          fields: [
+            {name: "name", type: "string"},
+            {name: "type_id", type: "integer"},
+            {name: "type", type: "string"}
+          ]
+          primaryKey: ["name", "type_id", "type"]
+        dump-fields: {
+          name: "name",
+          meeting_id: "type_id"
+        }
+        constants: {
+          type: "speakers"
+        }
+    - run: dump.to_sql
+      parameters:
+        tables:
+          people:
+            resource-name: people
+            mode: update
+
+people-aliases:
+  description: >
+    <p>runs daily, based on people_aliases table</p>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: people
+        table: people
+        schema:
+          fields: [
+            {name: "name", type: "string"},
+            {name: "type_id", type: "integer"},
+            {name: "type", type: "string"}
+          ]
+          primaryKey: ["name", "type_id", "type"]
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
+      parameters:
+        input-resource: people
+        output-resource: people-aliases
+        schema:
+          fields: [
+            {name: "name", type: "string"}
+          ]
+          primaryKey: ["name"]
+        dump-fields: {
+          name: "name"
+        }
+    - run: dump.to_sql
+      parameters:
+        tables:
+          people_aliases:
+            resource-name: people-aliases
+            mode: update
