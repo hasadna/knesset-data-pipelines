@@ -1,6 +1,6 @@
 ### parse people people
 
-committee-meeting-people-attendees:
+people-committee-attendees:
   description: >
     <p>runs daily, based on committee_meeting_attendees table</p>
   schedule:
@@ -23,17 +23,17 @@ committee-meeting-people-attendees:
     - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
       parameters:
         input-resource: committee-meeting-attendees
-        output-resource: committee-meeting-people
+        output-resource: people
         schema:
           fields: [
             {name: "name", type: "string"},
-            {name: "meeting_id", type: "integer"},
+            {name: "type_id", type: "integer"},
             {name: "type", type: "string"}
           ]
-          primaryKey: ["name", "meeting_id", "type"]
+          primaryKey: ["name", "type_id", "type"]
         dump-fields: {
           name: "name",
-          meeting_id: "meeting_id"
+          meeting_id: "type_id"
         }
         constants: {
           type: "attendees"
@@ -41,12 +41,12 @@ committee-meeting-people-attendees:
     - run: dump.to_sql
       parameters:
         tables:
-          committee_meeting_people:
-            resource-name: committee-meeting-people
+          people:
+            resource-name: people
             mode: update
 
 
-committee-meeting-people-speakers:
+people-committee-speakers:
   description: >
     <p>runs daily, based on committee_meeting_speakers table</p>
   schedule:
@@ -67,17 +67,17 @@ committee-meeting-people-speakers:
     - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
       parameters:
         input-resource: committee-meeting-speakers
-        output-resource: committee-meeting-people
+        output-resource: people
         schema:
           fields: [
             {name: "name", type: "string"},
-            {name: "meeting_id", type: "integer"},
+            {name: "type_id", type: "integer"},
             {name: "type", type: "string"}
           ]
-          primaryKey: ["name", "meeting_id", "type"]
+          primaryKey: ["name", "type_id", "type"]
         dump-fields: {
           name: "name",
-          meeting_id: "meeting_id"
+          meeting_id: "type_id"
         }
         constants: {
           type: "speakers"
@@ -85,32 +85,32 @@ committee-meeting-people-speakers:
     - run: dump.to_sql
       parameters:
         tables:
-          committee_meeting_people:
-            resource-name: committee-meeting-people
+          people:
+            resource-name: people
             mode: update
 
-committee-meeting-aliases:
+people-aliases:
   description: >
-    <p>runs daily, based on committee_meeting_aliases table</p>
+    <p>runs daily, based on people_aliases table</p>
   schedule:
     crontab: "10 0 * * *"
   pipeline:
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
         schema-bucket: committees
-        resource-name: committee-meeting-people
-        table: committee_meeting_people
+        resource-name: people
+        table: people
         schema:
           fields: [
             {name: "name", type: "string"},
-            {name: "meeting_id", type: "integer"},
+            {name: "type_id", type: "integer"},
             {name: "type", type: "string"}
           ]
-          primaryKey: ["name", "meeting_id", "type"]
+          primaryKey: ["name", "type_id", "type"]
     - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
       parameters:
-        input-resource: committee-meeting-people
-        output-resource: committee-meeting-aliases
+        input-resource: people
+        output-resource: people-aliases
         schema:
           fields: [
             {name: "name", type: "string"}
@@ -122,6 +122,6 @@ committee-meeting-aliases:
     - run: dump.to_sql
       parameters:
         tables:
-          committee_meeting_aliases:
-            resource-name: committee-meeting-aliases
+          people_aliases:
+            resource-name: people-aliases
             mode: update

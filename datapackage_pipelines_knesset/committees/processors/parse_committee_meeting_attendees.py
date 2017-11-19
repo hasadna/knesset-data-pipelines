@@ -4,8 +4,6 @@ from datapackage_pipelines_knesset.common import object_storage
 from datapackage_pipelines_knesset.common import db
 import logging
 
-MAX_NAME_LEN = 70
-
 class ParseCommitteeMeetingAttendeesProcessor(BaseProcessor):
 
     def _process(self, datapackage, resources):
@@ -40,14 +38,14 @@ class ParseCommitteeMeetingAttendeesProcessor(BaseProcessor):
                     if key == "invitees":
                         yield {"committee_id":committee_id,
                                "meeting_id":meeting_id,
-                               "name":attendee["name"][:MAX_NAME_LEN] if len(attendee["name"]) > MAX_NAME_LEN else attendee["name"],
+                               "name":attendee["name"],
                                "role":"invitees",
                                "additional_information":attendee["role"] if "role" in attendee.keys() else ""}
 
                     else:
                         yield {"committee_id":committee_id,
                                "meeting_id":meeting_id,
-                               "name":attendee[:MAX_NAME_LEN] if len(attendee) > MAX_NAME_LEN else attendee,
+                               "name":attendee,
                                "role":key,
                                "additional_information":""}
 
