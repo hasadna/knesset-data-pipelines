@@ -75,6 +75,10 @@ def get_pipeline_schema(pipeline_spec, pipeline_id):
     bucket = pipeline_spec
     if pipeline_id == 'committee_meeting_protocols_parsed':
         object_name = "table-schemas/committee_meeting_protocols_parsed.json"
+    elif pipeline_id == "committee-meeting-attendees":
+        object_name = "table-schemas/committee_meeting_attendees.json"
+    elif pipeline_id == "committee-meeting-speakers":
+        object_name = "table-schemas/committee_meeting_speakers.json"
     else:
         object_name = "table-schemas/{}.json".format(pipeline_id)
     s3 = object_storage.get_s3()

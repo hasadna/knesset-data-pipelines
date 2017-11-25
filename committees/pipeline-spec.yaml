@@ -466,8 +466,12 @@ committee-meeting-speakers:
           committee_meeting_speakers:
             resource-name: committee-meeting-speakers
             mode: insert
-
-
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: committee-meeting-speakers
+        table: committee_meeting_speakers
+        schemas-bucket: committees
+        only-save-schema: true
 
 
 all:
