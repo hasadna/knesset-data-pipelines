@@ -107,12 +107,14 @@ from
     def _save_schema_json(self, save_schema):
         object_name = save_schema.format(table_name=self._tablename, ext="json")
         bucket = self._parameters["schemas-bucket"]
-        object_storage.write(self.s3, bucket, object_name, json.dumps(self._schema, indent=2), public_bucket=True)
+        if self.s3:
+            object_storage.write(self.s3, bucket, object_name, json.dumps(self._schema, indent=2), public_bucket=True)
 
     def _save_schema_html(self, save_schema):
         object_name = save_schema.format(table_name=self._tablename, ext="html")
         bucket = self._parameters["schemas-bucket"]
-        object_storage.write(self.s3, bucket, object_name, self._get_schema_html(), public_bucket=True)
+        if self.s3:
+            object_storage.write(self.s3, bucket, object_name, self._get_schema_html(), public_bucket=True)
 
     def _filter_resource(self, resource_number, resource_data):
         self._tablename = self._parameters["table"]

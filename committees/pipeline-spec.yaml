@@ -513,6 +513,16 @@ all:
         schema-bucket: committees
         resource-name: committee_meeting_protocols_parsed
         table: committee_meeting_protocols_parsed
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: committee-meeting-attendees
+        table: committee_meeting_attendees
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: committee-meeting-speakers
+        table: committee_meeting_speakers
     - run: aws.dump.to_s3
       parameters:
         bucket: committees
