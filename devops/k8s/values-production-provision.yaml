@@ -13,7 +13,7 @@ app:
   dppWorkersGkeNodePool: dpp-workers
   enableAutoscaler: true
   enableWorkers: false
-  image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-11-25-12-31
+  image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-11-25-16-08
   influxDb: dpp
   memoryRequests: 1800Mi
   sshSocksProxyUrl: socks5h://ssh-socks-proxy:8123
