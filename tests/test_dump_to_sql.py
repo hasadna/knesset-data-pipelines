@@ -8,9 +8,10 @@ class MockDumpToSqlProcessor(DumpToSqlProcessor):
 
     def save_schemas(self):
         self._tablename = self._parameters["table"]
-        save_schema = os.path.join(os.path.dirname(__file__), "mocks", "table_schema_{table_name}.{ext}")
-        self._save_schema_json(save_schema)
-        self._save_schema_html(save_schema)
+        # TODO: update to test the object_storage
+        # save_schema = os.path.join(os.path.dirname(__file__), "mocks", "table_schema_{table_name}.{ext}")
+        # self._save_schema_json(save_schema)
+        # self._save_schema_html(save_schema)
 
 
 def assert_dump_to_sql_table_schema(pipeline_spec_name, pipeline_name):
