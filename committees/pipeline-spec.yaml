@@ -487,11 +487,11 @@ all:
       parameters:
         name: knesset_data_committees
         description: Knesset committees and committee meetings data from Knesset dataservice API
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: committees
-        resource-name: kns_committee
-        table: kns_committee
+#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+#      parameters:
+#        schema-bucket: committees
+#        resource-name: kns_committee
+#        table: kns_committee
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
         schema-bucket: committees
@@ -502,36 +502,44 @@ all:
         schema-bucket: committees
         resource-name: kns_cmtsitecode
         table: kns_cmtsitecode
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+#      parameters:
+#        schema-bucket: committees
+#        resource-name: kns_committeesession
+#        table: kns_committeesession
+#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+#      parameters:
+#        schema-bucket: committees
+#        resource-name: kns_cmtsessionitem
+#        table: kns_cmtsessionitem
+#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+#      parameters:
+#        schema-bucket: committees
+#        resource-name: kns_documentcommitteesession
+#        table: kns_documentcommitteesession
+#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+#      parameters:
+#        schema-bucket: committees
+#        resource-name: committee_meeting_protocols_parsed
+#        table: committee_meeting_protocols_parsed
+#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+#      parameters:
+#        schema-bucket: committees
+#        resource-name: committee-meeting-attendees
+#        table: committee_meeting_attendees
+#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+#      parameters:
+#        schema-bucket: committees
+#        resource-name: committee-meeting-speakers
+#        table: committee_meeting_speakers
+    - run: ckan.dump.to_ckan
       parameters:
-        schema-bucket: committees
-        resource-name: kns_committeesession
-        table: kns_committeesession
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: committees
-        resource-name: kns_cmtsessionitem
-        table: kns_cmtsessionitem
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: committees
-        resource-name: kns_documentcommitteesession
-        table: kns_documentcommitteesession
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: committees
-        resource-name: committee_meeting_protocols_parsed
-        table: committee_meeting_protocols_parsed
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: committees
-        resource-name: committee-meeting-attendees
-        table: committee_meeting_attendees
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: committees
-        resource-name: committee-meeting-speakers
-        table: committee_meeting_speakers
+        ckan-host: https://www.odata.org.il
+        ckan-api-key: env:CKAN_API_KEY
+        overwrite_existing: true
+        dataset-properties:
+          name: knesset-data-committees
+          owner_org: open-knesset
     - run: aws.dump.to_s3
       parameters:
         bucket: committees
