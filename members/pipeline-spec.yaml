@@ -36,7 +36,7 @@ kns_person:
             description: מין
           GenderDesc:
             source: "{name}"
-            type: integer
+            type: string
             description: תיאור מין
           Email:
             source: "{name}"
@@ -188,3 +188,37 @@ kns_mksitecode:
         resource: kns_mksitecode
         table: kns_mksitecode
         schemas-bucket: members
+
+
+
+all:
+  description: >
+    <p>runs daily, aggregates data from all relevant DB tables to a datapackage zip file</p>
+  schedule:
+    crontab: "10 2 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: knesset_data_members
+        description: Knesset members and positions from Knesset dataservice API
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: members
+        resource-name: kns_mksitecode
+        table: kns_mksitecode
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: members
+        resource-name: kns_persontoposition
+        table: kns_persontoposition
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: members
+        resource-name: kns_person
+        table: kns_person
+    - run: aws.dump.to_s3
+      parameters:
+        bucket: members
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_html
+      parameters:
+        bucket: members
