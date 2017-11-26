@@ -12,7 +12,7 @@ app:
   dppWorkerReplicas: 2
   dppWorkersGkeNodePool: dpp-workers
   enableAutoscaler: true
-  enableWorkers: false
+  enableWorkers: true
   image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-11-26-10-13
   influxDb: dpp
   memoryRequests: 1800Mi
