@@ -59,6 +59,49 @@ kns_person:
         schemas-bucket: members
 
 
+# סוגי התפקידים הקיימים בכנסת
+kns_position:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_position
+        service-name: api
+        method-name: "KNS_Position"
+        fields:
+          PositionID:
+            source: "{name}"
+            type: integer
+            description: קוד תפקיד
+            primaryKey: true
+          Description:
+            source: "{name}"
+            type: string
+            description: תיאור התפקיד (חבר כנסת, יו"ר ועדה, שר ועוד)
+          GenderID:
+            source: "{name}"
+            type: integer
+            description: קוד מגדר
+          GenderDesc:
+            source: "{name}"
+            type: string
+            description: תיאור מגדר
+          LastUpdatedDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_position
+        table: kns_position
+        schemas-bucket: members
+
+
 # יודגש, מסיבות פנימיות הטבלה KNS_Person  מכילה גם שמות של אנשים שאינם חברי כנסת כמו למשל מנהלי הוועדות בכנסת.
 # כדי לקבל מידע רק על חברי הכנסת, יש לעשות JOIN עם טבלת KNS_PersonToPosition ולפלטר לפי עמודת Position ID
 # (43=ח"כ, 61=ח"כית)
@@ -216,6 +259,11 @@ all:
         schema-bucket: members
         resource-name: kns_person
         table: kns_person
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: members
+        resource-name: kns_position
+        table: kns_position
     - run: aws.dump.to_s3
       parameters:
         bucket: members
