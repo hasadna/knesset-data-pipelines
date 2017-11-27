@@ -26,18 +26,11 @@ people-committee-attendees:
         output-resource: people
         schema:
           fields: [
-            {name: "name", type: "string"},
-            {name: "type_id", type: "integer"},
-            {name: "type", type: "string"}
+            {name: "name", type: "string", from: "name"},
+            {name: "type_id", type: "integer", from: "meeting_id"},
+            {name: "type", type: "string", const: "attendees"}
           ]
           primaryKey: ["name", "type_id", "type"]
-        dump-fields: {
-          name: "name",
-          meeting_id: "type_id"
-        }
-        constants: {
-          type: "attendees"
-        }
     - run: dump.to_sql
       parameters:
         tables:
@@ -70,18 +63,11 @@ people-committee-speakers:
         output-resource: people
         schema:
           fields: [
-            {name: "name", type: "string"},
-            {name: "type_id", type: "integer"},
-            {name: "type", type: "string"}
+            {name: "name", type: "string", from: "name"},
+            {name: "type_id", type: "integer", from: "meeting_id"},
+            {name: "type", type: "string", const: "speakers"}
           ]
           primaryKey: ["name", "type_id", "type"]
-        dump-fields: {
-          name: "name",
-          meeting_id: "type_id"
-        }
-        constants: {
-          type: "speakers"
-        }
     - run: dump.to_sql
       parameters:
         tables:
@@ -113,7 +99,7 @@ people-aliases:
         output-resource: people-aliases
         schema:
           fields: [
-            {name: "name", type: "string"}
+            {name: "name", type: "string", from: "name"}
           ]
           primaryKey: ["name"]
         dump-fields: {
