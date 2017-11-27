@@ -13,16 +13,21 @@ class DumpFields(BaseProcessor):
 
     def _filter_row(self, row, **kwargs):
         fields = {}
+        skip = False
 
         for field in self._schema["fields"]:
             value = row[field["from"]] if "from" in field else field["const"]
 
-            if not value:
+            if not value and "default" in field:
                 value = field["default"]
+
+            if not value and "required" in field:
+                skip = True
 
             fields[field["name"]] = value
 
-        yield fields
+        if not skip:
+            yield fields
 
 if __name__ == "__main__":
     DumpFields.main()

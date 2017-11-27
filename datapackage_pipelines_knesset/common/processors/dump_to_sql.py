@@ -46,29 +46,30 @@ class Processor(BaseDumpProcessor):
         return self._get_row_key(row) in [self._get_row_key(r) for r in rows]
 
     def _commit(self, rows):
-        self.db_connect(retry=True)
-        mapper = self._get_mapper()
-        update_rows = []
-        insert_rows = []
-        for row in rows:
-            if not self._is_row_in(row, update_rows + insert_rows):
-                filter_args = (getattr(self.db_table.c, field)==row[field] for field in self._update_keys)
-                if self.db_session.query(self.db_table).filter(*filter_args).count() > 0:
-                    update_rows.append(row)
-                else:
-                    insert_rows.append(row)
-        if len(insert_rows) > 0:
-            self.db_session.bulk_insert_mappings(mapper, insert_rows)
-            self._incr_stat("inserted rows", len(insert_rows))
-        if len(update_rows) > 0:
-            self.db_session.bulk_update_mappings(mapper, update_rows)
-            self._incr_stat("updated rows", len(update_rows))
-        self.db_commit()
-        logging.info("{}: commit ({} updated, {} inserted)".format(self._log_prefix,
-                                                                   self._get_stat("updated rows", 0),
-                                                                   self._get_stat("inserted rows", 0)))
-        # force a new session on next commit
-        self._db_session = None
+        if not self._parameters.get("only-save-schema"):
+            self.db_connect(retry=True)
+            mapper = self._get_mapper()
+            update_rows = []
+            insert_rows = []
+            for row in rows:
+                if not self._is_row_in(row, update_rows + insert_rows):
+                    filter_args = (getattr(self.db_table.c, field)==row[field] for field in self._update_keys)
+                    if self.db_session.query(self.db_table).filter(*filter_args).count() > 0:
+                        update_rows.append(row)
+                    else:
+                        insert_rows.append(row)
+            if len(insert_rows) > 0:
+                self.db_session.bulk_insert_mappings(mapper, insert_rows)
+                self._incr_stat("inserted rows", len(insert_rows))
+            if len(update_rows) > 0:
+                self.db_session.bulk_update_mappings(mapper, update_rows)
+                self._incr_stat("updated rows", len(update_rows))
+            self.db_commit()
+            logging.info("{}: commit ({} updated, {} inserted)".format(self._log_prefix,
+                                                                       self._get_stat("updated rows", 0),
+                                                                       self._get_stat("inserted rows", 0)))
+            # force a new session on next commit
+            self._db_session = None
 
     def _get_schema_fields_html(self):
         html = "<table border=5 cellpadding=5 cellspacing=2><tr><th>name</th><th>type</th><th>description</th></tr>"
@@ -120,17 +121,20 @@ from
         if save_schema:
             self._save_schema_json(save_schema)
             self._save_schema_html(save_schema)
-        self._update_keys = self._schema["primaryKey"]
-        if not self._update_keys or len(self._update_keys) == 0:
-            raise Exception("dump requires a primaryKey")
-        self.db_connect()
-        table = self.db_meta.tables.get(self._tablename)
-        if table is not None and self._parameters.get("drop-table"):
-            table.drop()
-            self._db_session = None
-            self._db_meta = None
-            self._set_stat("dropped table", True)
-            logging.info("table dropped: {}".format(self._tablename))
+        if self._parameters.get("only-save-schema"):
+            logging.info("common.processors.dump_to_sql: not commiting, only saving schema")
+        else:
+            self._update_keys = self._schema["primaryKey"]
+            if not self._update_keys or len(self._update_keys) == 0:
+                raise Exception("dump requires a primaryKey")
+            self.db_connect()
+            table = self.db_meta.tables.get(self._tablename)
+            if table is not None and self._parameters.get("drop-table"):
+                table.drop()
+                self._db_session = None
+                self._db_meta = None
+                self._set_stat("dropped table", True)
+                logging.info("table dropped: {}".format(self._tablename))
         yield from super(Processor, self)._filter_resource(resource_number, resource_data)
 
     @property

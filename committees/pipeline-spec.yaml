@@ -421,9 +421,8 @@ committee-meeting-attendees:
     - run: ..datapackage_pipelines_knesset.committees.processors.load_committee_meeting_protocols
       parameters:
         resource: kns_documentcommitteesession
-    # downloads the source protocol files for meetings which weren't downloaded before
-    # saves the files in object storage
-    # all meetings with url are yielded for parse processor
+    # only yields attendees for meetings which don't exist in the attendees table in DB
+    # meaning that every meeting is parsed once - until all it's attendees are deleted from attendees table
     - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_attendees
       parameters:
         input-resource: kns_documentcommitteesession
@@ -434,6 +433,12 @@ committee-meeting-attendees:
           committee_meeting_attendees:
             resource-name: committee-meeting-attendees
             mode: insert
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: committee-meeting-attendees
+        table: committee_meeting_attendees
+        schemas-bucket: committees
+        only-save-schema: true
 
 committee-meeting-speakers:
   description: >
@@ -461,8 +466,12 @@ committee-meeting-speakers:
           committee_meeting_speakers:
             resource-name: committee-meeting-speakers
             mode: insert
-
-
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: committee-meeting-speakers
+        table: committee_meeting_speakers
+        schemas-bucket: committees
+        only-save-schema: true
 
 
 all:
@@ -513,6 +522,16 @@ all:
         schema-bucket: committees
         resource-name: committee_meeting_protocols_parsed
         table: committee_meeting_protocols_parsed
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: committee-meeting-attendees
+        table: committee_meeting_attendees
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: committee-meeting-speakers
+        table: committee_meeting_speakers
     - run: aws.dump.to_s3
       parameters:
         bucket: committees

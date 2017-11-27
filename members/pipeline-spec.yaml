@@ -62,6 +62,52 @@ kns_person:
 # יודגש, מסיבות פנימיות הטבלה KNS_Person  מכילה גם שמות של אנשים שאינם חברי כנסת כמו למשל מנהלי הוועדות בכנסת.
 #  כדי לקבל מידע רק על חברי הכנסת, יש לעשות JOIN עם טבלת KNS_PersonToPosition ולפלטר לפי עמודת Position ID
 # (43=ח"כ, 61=ח"כית)
+# סוגי התפקידים הקיימים בכנסת
+kns_position:
+  description: >
+    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: kns_position
+        service-name: api
+        method-name: "KNS_Position"
+        fields:
+          PositionID:
+            source: "{name}"
+            type: integer
+            description: קוד תפקיד
+            primaryKey: true
+          Description:
+            source: "{name}"
+            type: string
+            description: תיאור התפקיד (חבר כנסת, יו"ר ועדה, שר ועוד)
+          GenderID:
+            source: "{name}"
+            type: integer
+            description: קוד מגדר
+          GenderDesc:
+            source: "{name}"
+            type: string
+            description: תיאור מגדר
+          LastUpdatedDate:
+            source: "{name}"
+            type: datetime
+            description: תאריך עדכון אחרון
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_position
+        table: kns_position
+        schemas-bucket: members
+
+
+# יודגש, מסיבות פנימיות הטבלה KNS_Person  מכילה גם שמות של אנשים שאינם חברי כנסת כמו למשל מנהלי הוועדות בכנסת.
+# כדי לקבל מידע רק על חברי הכנסת, יש לעשות JOIN עם טבלת KNS_PersonToPosition ולפלטר לפי עמודת Position ID
+# (43=ח"כ, 61=ח"כית)
 kns_persontoposition:
   description: >
     <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
@@ -190,6 +236,93 @@ kns_mksitecode:
         schemas-bucket: members
 
 
+mk_individual:
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
+      parameters:
+        resource-name: mk_individual
+        service-name: members
+        method-name: "View_mk_individual"
+        fields:
+          mk_individual_id:
+            source: "{name}"
+            type: integer
+            primaryKey: true
+          mk_status_id:
+            source: "{name}"
+            type: integer
+          mk_individual_name:
+            source: "{name}"
+            type: string
+          mk_individual_name_eng:
+            source: "{name}"
+            type: string
+          mk_individual_first_name:
+            source: "{name}"
+            type: string
+          mk_individual_first_name_eng:
+            source: "{name}"
+            type: string
+          mk_individual_email:
+            source: "{name}"
+            type: string
+          mk_individual_photo:
+            source: "{name}"
+            type: string
+    - run: ..datapackage_pipelines_knesset.common.processors.throttle
+      parameters: {"rows-per-page": 50}
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: mk_individual
+        table: mk_individual
+        schemas-bucket: members
+
+
+all:
+  description: >
+    <p>runs daily, aggregates data from all relevant DB tables to a datapackage zip file</p>
+  schedule:
+    crontab: "10 2 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: knesset_data_members
+        description: Knesset members and positions from Knesset dataservice API
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: members
+        resource-name: kns_mksitecode
+        table: kns_mksitecode
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: members
+        resource-name: kns_persontoposition
+        table: kns_persontoposition
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: members
+        resource-name: kns_person
+        table: kns_person
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: members
+        resource-name: kns_position
+        table: kns_position
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: members
+        resource-name: mk_individual
+        table: mk_individual
+    - run: aws.dump.to_s3
+      parameters:
+        bucket: members
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_html
+      parameters:
+        bucket: members
+
+
 kns_members:
   description: >
     <p>Create view from members tables</p>
@@ -207,7 +340,7 @@ kns_members:
         output-resource: kns_members
         schema:
           fields: [
-            {name: "PersonID", type: "integer", from: "PersonID", default: "0"},
+            {name: "PersonID", type: "integer", from: "PersonID", required: "true"},
             {name: "KnessetNum", type: "integer", from: "KnessetNum", default: "0"},
             {name: "FactionName", type: "string", from: "FactionName", default: "-"}
           ]
@@ -237,11 +370,12 @@ kns_committee_members:
         output-resource: kns_committee_members
         schema:
           fields: [
-            {name: "CommitteeID", type: "integer", from: "CommitteeID", default: "0"},
-            {name: "PersonID", type: "integer", from: "PersonID", default: "0"},
+            {name: "CommitteeID", type: "integer", from: "CommitteeID", required: "true"},
+            {name: "PersonID", type: "integer", from: "PersonID", required: "true"},
             {name: "KnessetNum", type: "integer", from: "KnessetNum", default: "0"},
+            {name: "PositionID", type: "integer", from: "PositionID", default: "0"}
           ]
-          primaryKey: ["CommitteeID", "PersonID", "KnessetNum"]
+          primaryKey: ["CommitteeID", "PersonID", "KnessetNum", "PositionID"]
     - run: dump.to_sql
       parameters:
         tables:
