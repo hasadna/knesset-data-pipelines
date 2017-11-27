@@ -375,7 +375,7 @@ kns_committee_members:
             {name: "KnessetNum", type: "integer", from: "KnessetNum", default: "0"},
             {name: "PositionID", type: "integer", from: "PositionID", default: "0"}
           ]
-          primaryKey: ["CommitteeID", "PersonID", "KnessetNum", "PositionID"]
+          primaryKey: ["CommitteeID", "PersonID", "KnessetNum"]
     - run: dump.to_sql
       parameters:
         tables:
