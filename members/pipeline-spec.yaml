@@ -59,6 +59,9 @@ kns_person:
         schemas-bucket: members
 
 
+# יודגש, מסיבות פנימיות הטבלה KNS_Person  מכילה גם שמות של אנשים שאינם חברי כנסת כמו למשל מנהלי הוועדות בכנסת.
+#  כדי לקבל מידע רק על חברי הכנסת, יש לעשות JOIN עם טבלת KNS_PersonToPosition ולפלטר לפי עמודת Position ID
+# (43=ח"כ, 61=ח"כית)
 # סוגי התפקידים הקיימים בכנסת
 kns_position:
   description: >
@@ -318,3 +321,64 @@ all:
     - run: ..datapackage_pipelines_knesset.common.processors.dump_to_html
       parameters:
         bucket: members
+
+
+kns_members:
+  description: >
+    <p>Create view from members tables</p>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: members
+        resource-name: kns_persontoposition
+        table: kns_persontoposition
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
+      parameters:
+        input-resource: kns_persontoposition
+        output-resource: kns_members
+        schema:
+          fields: [
+            {name: "PersonID", type: "integer", from: "PersonID", required: "true"},
+            {name: "KnessetNum", type: "integer", from: "KnessetNum", default: "0"},
+            {name: "FactionName", type: "string", from: "FactionName", default: "-"}
+          ]
+          primaryKey: ["PersonID", "KnessetNum", "FactionName"]
+    - run: dump.to_sql
+      parameters:
+        tables:
+          kns_members:
+            resource-name: kns_members
+            mode: update
+
+
+kns_committee_members:
+  description: >
+    <p>Create view from members tables</p>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: members
+        resource-name: kns_persontoposition
+        table: kns_persontoposition
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
+      parameters:
+        input-resource: kns_persontoposition
+        output-resource: kns_committee_members
+        schema:
+          fields: [
+            {name: "CommitteeID", type: "integer", from: "CommitteeID", required: "true"},
+            {name: "PersonID", type: "integer", from: "PersonID", required: "true"},
+            {name: "KnessetNum", type: "integer", from: "KnessetNum", default: "0"},
+            {name: "PositionID", type: "integer", from: "PositionID", default: "0"}
+          ]
+          primaryKey: ["CommitteeID", "PersonID", "KnessetNum"]
+    - run: dump.to_sql
+      parameters:
+        tables:
+          kns_committee_members:
+            resource-name: kns_committee_members
+            mode: update
