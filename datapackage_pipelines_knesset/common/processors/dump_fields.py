@@ -7,18 +7,27 @@ class DumpFields(BaseProcessor):
         super(DumpFields, self).__init__(*args, **kwargs)
 
         self._schema = self._parameters.get("schema")
-        self._dump_fields = self._parameters.get("dump-fields")
-        self._constants = self._parameters.get("constants", {})
 
     def _process(self, datapackage, resources):
         return self._process_filter(datapackage, resources)
 
     def _filter_row(self, row, **kwargs):
-        fields = self._constants
-        for field, name in self._dump_fields.items():
-            fields[name] = row[field]
+        fields = {}
+        skip = False
 
-        yield fields
+        for field in self._schema["fields"]:
+            value = row[field["from"]] if "from" in field else field["const"]
+
+            if not value and "default" in field:
+                value = field["default"]
+
+            if not value and "required" in field:
+                skip = True
+
+            fields[field["name"]] = value
+
+        if not skip:
+            yield fields
 
 if __name__ == "__main__":
     DumpFields.main()
