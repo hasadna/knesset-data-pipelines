@@ -30,7 +30,7 @@ def filter_resources(datapackage, resources, parameters, stats):
     for resource_descriptor, resource_data in zip(datapackage["resources"], resources):
         schema = resource_descriptor["schema"]
         stats[resource_descriptor["name"]] = 0
-        tables.append(_get_schema_table(resource_descriptor["name"], schema["fields"], schema["primaryKey"]))
+        tables.append(_get_schema_table(resource_descriptor["name"], schema["fields"], schema.get("primaryKey", [])))
 
         yield filter_resource(resource_descriptor, resource_data, stats)
 

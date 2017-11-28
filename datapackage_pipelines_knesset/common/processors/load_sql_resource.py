@@ -34,7 +34,7 @@ class LoadSqlResource(BaseProcessor):
         meta.reflect()
         table = meta.tables.get(self._parameters["table"])
         if table is not None:
-            for db_row in self.db_session.query(table).all():
+            for db_row in self.db_session.query(table):
                 row = {}
                 for field in self._schema["fields"]:
                     val = getattr(db_row, field["name"])
