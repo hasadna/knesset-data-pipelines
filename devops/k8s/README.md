@@ -395,3 +395,11 @@ app=# \copy committee_meeting_attendees to 'committee_meeting_attendees_2017-11-
 gzip committee_meeting_attendees_2017-11-16.csv
 
 ```
+
+### Installing charts from knesset data repos
+
+Assuming knesset-data-committees is a sibling directory of knesset-data-pipelines:
+
+```
+bin/k8s_upgrade_chart.sh --install knesset-data-committees ../knesset-data-committees/k8s
+```
