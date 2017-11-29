@@ -45,6 +45,20 @@ data:
         }
     }
     {{ end }}
+    {{ if .Values.enableCommitteesNext }}
+    server {
+        listen 443 ssl http2;
+        server_name committees-next.oknesset.org;
+        include /etc/nginx/conf.d/ssl.inc;
+        ssl_certificate /etc/letsencrypt/live/committees-next.oknesset.org/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/committees-next.oknesset.org/privkey.pem;
+        ssl_trusted_certificate /etc/letsencrypt/live/committees-next.oknesset.org/chain.pem;
+        include /etc/nginx/conf.d/letsencrypt.inc;
+        location / {
+          proxy_pass http://storage.googleapis.com/knesset-data-committees/;
+        }
+    }
+    {{ end }}
 
   letsencrypt.inc: |
     # let's encrypt authentication challenge

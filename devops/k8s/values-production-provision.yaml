@@ -63,6 +63,7 @@ nginx:
   htpasswdSecretName: nginx-htpasswd
   minioSslDomain: minio.oknesset.org
   sslDomain: next.oknesset.org
+  enableCommitteesNext: true
 ssh-socks-proxy:
   enabled: true
   socks_port: '8123'
