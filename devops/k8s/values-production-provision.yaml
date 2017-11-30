@@ -12,7 +12,7 @@ app:
   dppWorkerReplicas: 2
   dppWorkersGkeNodePool: dpp-workers
   enableAutoscaler: true
-  enableWorkers: false
+  enableWorkers: true
   image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-11-28-15-37
   influxDb: dpp
   memoryRequests: 1800Mi
@@ -57,13 +57,13 @@ minio:
   gcePersistentDiskName: knesset-data-pipelines-production-minio
 nginx:
   enableCommittees: true
+  enableCommitteesNext: true
   enableGrafana: true
   enableMetabase: true
   enabled: true
   htpasswdSecretName: nginx-htpasswd
   minioSslDomain: minio.oknesset.org
   sslDomain: next.oknesset.org
-  enableCommitteesNext: true
 ssh-socks-proxy:
   enabled: true
   socks_port: '8123'
