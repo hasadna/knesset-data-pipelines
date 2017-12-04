@@ -8,7 +8,7 @@ people-committee-attendees:
   pipeline:
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema-bucket: committees
+        schema-bucket: people
         resource-name: committee-meeting-attendees
         table: committee_meeting_attendees
         schema:
@@ -47,7 +47,7 @@ people-committee-speakers:
   pipeline:
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema-bucket: committees
+        schema-bucket: people
         resource-name: committee-meeting-speakers
         table: committee_meeting_speakers
         schema:
@@ -83,7 +83,7 @@ people-aliases:
   pipeline:
     - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
       parameters:
-        schema-bucket: committees
+        schema-bucket: people
         resource-name: people
         table: people
         schema:
@@ -111,3 +111,54 @@ people-aliases:
           people_aliases:
             resource-name: people-aliases
             mode: update
+
+all:
+  description: >
+    <p>runs daily, aggregates data from all relevant DB tables to a datapackage zip file</p>
+  schedule:
+    crontab: "10 2 * * *"
+  pipeline:
+    - run: add_metadata
+      parameters:
+        name: knesset_people
+        description: Knesset people
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: people
+        resource-name: people-committee-attendees
+        table: people
+        schema:
+          fields: [
+            {name: "name", type: "string"},
+            {name: "type_id", type: "integer"},
+            {name: "type", type: "string"}
+          ]
+          primaryKey: ["name", "type_id", "type"]
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: people
+        resource-name: people-committee-speakers
+        table: people
+        schema:
+          fields: [
+            {name: "name", type: "string"},
+            {name: "type_id", type: "integer"},
+            {name: "type", type: "string"}
+          ]
+          primaryKey: ["name", "type_id", "type"]
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: people
+        resource-name: people-aliases
+        table: people-aliases
+        schema:
+          fields: [
+            {name: "name", type: "string", from: "name"}
+          ]
+          primaryKey: ["name"]
+    - run: aws.dump.to_s3
+      parameters:
+        bucket: people
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_html
+      parameters:
+        bucket: people
