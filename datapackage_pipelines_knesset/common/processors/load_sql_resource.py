@@ -29,6 +29,17 @@ class LoadSqlResource(BaseProcessor):
         self._db_session.commit()
         super(LoadSqlResource, self)._process_cleanup()
 
+    def _filter_row(self, row, **kwargs):
+        if "filter" in self._parameters:
+            for field_name, filter_value in self._parameters["filter"].items():
+                if not filter_value and row.get(field_name):
+                    return False
+                elif filter_value and not row.get(field_name):
+                    return False
+                elif row.get(field_name) != filter_value:
+                    return False
+        return True
+
     def _get_resource(self):
         meta = MetaData(bind=self.db_session.connection())
         meta.reflect()
@@ -39,7 +50,8 @@ class LoadSqlResource(BaseProcessor):
                 for field in self._schema["fields"]:
                     val = getattr(db_row, field["name"])
                     row[field["name"]] = val
-                yield row
+                if self._filter_row(row):
+                    yield row
         self._process_cleanup()
 
     def _process(self, datapackage, resources):

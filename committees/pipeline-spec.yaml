@@ -527,11 +527,14 @@ all:
         schema-bucket: committees
         resource-name: committee-meeting-attendees
         table: committee_meeting_attendees
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: committees
-        resource-name: committee-meeting-speakers
-        table: committee_meeting_speakers
+        # there are simply too many attendees, we limit here to only mks, at least for the dump (DB has all the data)
+        filter: {"role": "mks"}
+     # same for speakers - but here we don't know who are the MKs, so we just don't dump them for now
+#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+#      parameters:
+#        schema-bucket: committees
+#        resource-name: committee-meeting-speakers
+#        table: committee_meeting_speakers
     - run: aws.dump.to_s3
       parameters:
         bucket: committees

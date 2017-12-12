@@ -8,7 +8,7 @@ services:
     - "6379:6379"
 
   db:
-    image: orihoch/knesset-data-pipelines-bootstrap-db:v0.0.1-17-10-15
+    image: orihoch/knesset-data-pipelines-bootstrap-db:v0.0.0-17-12-12
     ports:
       - "15432:5432"
     environment:

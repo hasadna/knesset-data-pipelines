@@ -139,3 +139,10 @@ In this example the session id is `284231` and committee id is `196`
   * original downloaded .doc: `284231.doc` - http://localhost:9000/minio/committees/protocols/original/196/
   * parsed files: `284231.txt` / `284231.csv` - http://localhost:9000/minio/committees/protocols/parsed/196/
 
+### Updating the DB
+
+The db image is updated with new data from time to time, to recreate the DB from scratch with latest data:
+
+```
+docker-compose stop db && sudo rm -rf .data-docker/postgresql/ && docker-compose up -d db
+```
