@@ -13,7 +13,7 @@ app:
   dppWorkersGkeNodePool: dpp-workers
   enableAutoscaler: true
   enableWorkers: false
-  image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-12-04-19-17
+  image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v1.0.6-470-gea95066-2017-12-12-17-17
   influxDb: dpp
   memoryRequests: 1800Mi
   sshSocksProxyUrl: socks5h://ssh-socks-proxy:8123
@@ -31,8 +31,9 @@ db:
 flower:
   urlPrefix: flower
 global:
-  gkeNodePool: pool-1
   dbNodePool: db-pool
+  gkeNodePool: pool-1
+  idleWorkerPool: idle-worker-super-pool
   rootUrl: https://next.oknesset.org
   skipInitContainers: true
 grafana:

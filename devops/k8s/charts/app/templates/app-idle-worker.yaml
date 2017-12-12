@@ -12,7 +12,7 @@ spec:
         app: app-idle-worker
     spec:
       nodeSelector:
-        cloud.google.com/gke-nodepool: {{ .Values.global.gkeNodePool | default "default-pool" | quote }}
+        cloud.google.com/gke-nodepool: {{ if .Values.global.idleWorkerPool }}{{ .Values.global.idleWorkerPool | quote }}{{ else }}{{ .Values.global.gkeNodePool | default "default-pool" | quote }}{{ end }}
       containers:
       - name: app-idle-worker
         image: {{.Values.image | default "orihoch/knesset-data-pipelines:latest" | quote}}
