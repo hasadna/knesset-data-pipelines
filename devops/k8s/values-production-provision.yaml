@@ -32,6 +32,7 @@ flower:
   urlPrefix: flower
 global:
   gkeNodePool: pool-1
+  dbNodePool: db-pool
   rootUrl: https://next.oknesset.org
   skipInitContainers: true
 grafana:
