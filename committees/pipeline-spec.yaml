@@ -474,6 +474,35 @@ committee-meeting-speakers:
         only-save-schema: true
 
 
+committee-meetings-metadata:
+  description: >
+    <p>runs daily, updates a committee_meetings table which contains joined metadata about meetings</p>
+  schedule:
+    crontab: "10 0 * * *"
+  pipeline:
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: kns_committee
+        table: kns_committee
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: kns_cmtsessionitem
+        table: kns_cmtsessionitem
+    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+      parameters:
+        schema-bucket: committees
+        resource-name: kns_committeesession
+        table: kns_committeesession
+    - run: ..datapackage_pipelines_knesset.committees.processors.committee_meetings_metadata
+    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+      parameters:
+        resource: kns_committeesession
+        table: committee_meetings_metadata
+        schemas-bucket: committees
+
+
 all:
   description: >
     <p>runs daily, aggregates data from all relevant DB tables to a datapackage zip file</p>
@@ -522,22 +551,17 @@ all:
         schema-bucket: committees
         resource-name: committee_meeting_protocols_parsed
         table: committee_meeting_protocols_parsed
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: committees
-        resource-name: committee-meeting-attendees
-        table: committee_meeting_attendees
-        # there are simply too many attendees, we limit here to only mks, at least for the dump (DB has all the data)
-        filter: {"role": "mks"}
-     # same for speakers - but here we don't know who are the MKs, so we just don't dump them for now
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema-bucket: committees
-#        resource-name: committee-meeting-speakers
-#        table: committee_meeting_speakers
     - run: aws.dump.to_s3
       parameters:
         bucket: committees
     - run: ..datapackage_pipelines_knesset.common.processors.dump_to_html
       parameters:
         bucket: committees
+
+#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
+#      parameters:
+#        schema-bucket: committees
+#        resource-name: committee-meeting-attendees
+#        table: committee_meeting_attendees
+#        # there are simply too many attendees, we limit here to only mks, at least for the dump (DB has all the data)
+#        filter: {"role": "mks"}
