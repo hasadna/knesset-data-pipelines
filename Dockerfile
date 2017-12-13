@@ -26,7 +26,9 @@ COPY laws /knesset/laws
 COPY plenum /knesset/plenum
 COPY votes /knesset/votes
 COPY members /knesset/members
-COPY people /knesset/people
+# temporarily remove people - it consumes too much memory
+# TODO: investigate
+# COPY people /knesset/people
 COPY bin /knesset/bin
 COPY docker-run.sh /knesset/
 

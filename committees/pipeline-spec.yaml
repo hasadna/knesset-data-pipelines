@@ -407,71 +407,74 @@ committee-meeting-protocols:
         # lower commit batches - because protocol parsing takes some time
         commit-every: 50
 
-# create datapackage
-committee-meeting-attendees:
-  description: >
-    <p>runs daily, downloads and parses committee meeting protocols</p>
-    <ul>
-      <li>saves data to DB table - committee_meeting_protocols_parsed</li>
-      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
-    </ul>
-  schedule:
-    crontab: "10 0 * * *"
-  pipeline:
-    - run: ..datapackage_pipelines_knesset.committees.processors.load_committee_meeting_protocols
-      parameters:
-        resource: kns_documentcommitteesession
-    # only yields attendees for meetings which don't exist in the attendees table in DB
-    # meaning that every meeting is parsed once - until all it's attendees are deleted from attendees table
-    - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_attendees
-      parameters:
-        input-resource: kns_documentcommitteesession
-        output-resource: committee-meeting-attendees
-    - run: dump.to_sql
-      parameters:
-        tables:
-          committee_meeting_attendees:
-            resource-name: committee-meeting-attendees
-            mode: insert
-    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
-      parameters:
-        resource: committee-meeting-attendees
-        table: committee_meeting_attendees
-        schemas-bucket: committees
-        only-save-schema: true
+# looks like these processors consume too much memory - removed temporarily
+# TODO: investigate memory consumption, I think it's related to the dump_to_sql processor
 
-committee-meeting-speakers:
-  description: >
-    <p>runs daily, downloads and parses committee meeting protocols</p>
-    <ul>
-      <li>saves data to DB table - committee_meeting_protocols_parsed</li>
-      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
-    </ul>
-  schedule:
-    crontab: "10 0 * * *"
-  pipeline:
-    - run: ..datapackage_pipelines_knesset.committees.processors.load_committee_meeting_protocols
-      parameters:
-        resource: kns_documentcommitteesession
-    # downloads the source protocol files for meetings which weren't downloaded before
-    # saves the files in object storage
-    # all meetings with url are yielded for parse processor
-    - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_speakers
-      parameters:
-        input-resource: kns_documentcommitteesession
-        output-resource: committee-meeting-speakers
-    - run: dump.to_sql
-      parameters:
-        tables:
-          committee_meeting_speakers:
-            resource-name: committee-meeting-speakers
-            mode: insert
-    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
-      parameters:
-        resource: committee-meeting-speakers
-        table: committee_meeting_speakers
-        schemas-bucket: committees
-        only-save-schema: true
+## create datapackage
+#committee-meeting-attendees:
+#  description: >
+#    <p>runs daily, downloads and parses committee meeting protocols</p>
+#    <ul>
+#      <li>saves data to DB table - committee_meeting_protocols_parsed</li>
+#      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+#    </ul>
+#  schedule:
+#    crontab: "10 0 * * *"
+#  pipeline:
+#    - run: ..datapackage_pipelines_knesset.committees.processors.load_committee_meeting_protocols
+#      parameters:
+#        resource: kns_documentcommitteesession
+#    # only yields attendees for meetings which don't exist in the attendees table in DB
+#    # meaning that every meeting is parsed once - until all it's attendees are deleted from attendees table
+#    - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_attendees
+#      parameters:
+#        input-resource: kns_documentcommitteesession
+#        output-resource: committee-meeting-attendees
+#    - run: dump.to_sql
+#      parameters:
+#        tables:
+#          committee_meeting_attendees:
+#            resource-name: committee-meeting-attendees
+#            mode: insert
+#    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+#      parameters:
+#        resource: committee-meeting-attendees
+#        table: committee_meeting_attendees
+#        schemas-bucket: committees
+#        only-save-schema: true
+#
+#committee-meeting-speakers:
+#  description: >
+#    <p>runs daily, downloads and parses committee meeting protocols</p>
+#    <ul>
+#      <li>saves data to DB table - committee_meeting_protocols_parsed</li>
+#      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
+#    </ul>
+#  schedule:
+#    crontab: "10 0 * * *"
+#  pipeline:
+#    - run: ..datapackage_pipelines_knesset.committees.processors.load_committee_meeting_protocols
+#      parameters:
+#        resource: kns_documentcommitteesession
+#    # downloads the source protocol files for meetings which weren't downloaded before
+#    # saves the files in object storage
+#    # all meetings with url are yielded for parse processor
+#    - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_speakers
+#      parameters:
+#        input-resource: kns_documentcommitteesession
+#        output-resource: committee-meeting-speakers
+#    - run: dump.to_sql
+#      parameters:
+#        tables:
+#          committee_meeting_speakers:
+#            resource-name: committee-meeting-speakers
+#            mode: insert
+#    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
+#      parameters:
+#        resource: committee-meeting-speakers
+#        table: committee_meeting_speakers
+#        schemas-bucket: committees
+#        only-save-schema: true
 
 
 committee-meetings-metadata:
