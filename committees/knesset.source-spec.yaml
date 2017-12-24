@@ -1,94 +1,85 @@
 ### kns dataservice tables
 
 kns_committee:
-  description: >
-    <p>runs daily, loads data from the latest version of the <a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">Knesset dataservice odata interface</a></p>
-    <ul>
-      <li>saves data to table with the same name in Knesset Data DB</li>
-      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
-    </ul>
-  schedule:
-    crontab: "10 0 * * *"
-  pipeline:
-    - run: ..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource
-      parameters:
-        resource-name: kns_committee
-        service-name: api
-        method-name: "KNS_Committee"
-        fields:
-          CommitteeID:
-            source: "{name}"
-            type: integer
-            description: קוד הוועדה
-            primaryKey: true
-          Name:
-            source: "{name}"
-            type: string
-            description: שם הוועדה
-          CategoryID:
-            source: "{name}"
-            type: integer
-            description: קוד הקטגוריה של הוועדה
-          CategoryDesc:
-            source: "{name}"
-            type: string
-            description: >
-              תיאור הקטגוריה של הוועדה
-              בכל כנסת, כל הוועדות מוקמות מחדש.
-              השדה קטגוריה כולל את רשימת הקטגוריות הנושאיות שאליהן משויכות הוועדות.
-              למשל הקטגוריה של ועדת הפנים והגנת הסביבה היא "פנים" וכך היה גם כאשר שם הוועדה היה ועדת הפנים ואיכות הסביבה.
-              גם ועדות המשנה של כל ועדה משויכות לקטגוריה שלה.
-              מדובר בשיוך נושאי של הוועדות.
-          KnessetNum:
-            source: "{name}"
-            type: integer
-            description: מספר הכנסת
-          CommitteeTypeID:
-            source: "{name}"
-            type: integer
-            description: קוד סוג הוועדה
-          CommitteeTypeDesc:
-            source: "{name}"
-            type: string
-            description: >
-              תיאור סוג הוועדה
-              (ראשית, מיוחדת, משנה, משותפת, הכנסת)
-          Email:
-            source: "{name}"
-            type: string
-            description: כתובת הדוא"ל של הוועדה
-          StartDate:
-            source: "{name}"
-            type: datetime
-            description: תאריך התחלה
-          FinishDate:
-            source: "{name}"
-            type: datetime
-            description: תאריך סיום
-          AdditionalTypeID:
-            source: "{name}"
-            type: integer
-            description: קוד סוג משנה של הוועדה
-          AdditionalTypeDesc:
-            source: "{name}"
-            type: string
-            description: תיאור סוג משנה של הוועדה (קבועה, מיוחדת, חקירה)
-          ParentCommitteeID:
-            source: "{name}"
-            type: integer
-            description: קוד ועדת האם (רלוונטי רק לוועדת משנה)
-          CommitteeParentName:
-            source: "{name}"
-            type: string
-            description: תיאור ועדת האם
-          IsCurrent:
-            source: "{name}"
-            type: boolean
-            description: האם הוועדה פעילה?
-          LastUpdatedDate:
-            source: "{name}"
-            type: datetime
-            description: תאריך עדכון אחרון
+  pipeline_type: "knesset dataservice"
+  dataservice-parameters:
+    resource-name: kns_committee
+    service-name: api
+    method-name: "KNS_Committee"
+    fields:
+      CommitteeID:
+        source: "{name}"
+        type: integer
+        description: קוד הוועדה
+        primaryKey: true
+      Name:
+        source: "{name}"
+        type: string
+        description: שם הוועדה
+      CategoryID:
+        source: "{name}"
+        type: integer
+        description: קוד הקטגוריה של הוועדה
+      CategoryDesc:
+        source: "{name}"
+        type: string
+        description: >
+          תיאור הקטגוריה של הוועדה
+          בכל כנסת, כל הוועדות מוקמות מחדש.
+          השדה קטגוריה כולל את רשימת הקטגוריות הנושאיות שאליהן משויכות הוועדות.
+          למשל הקטגוריה של ועדת הפנים והגנת הסביבה היא "פנים" וכך היה גם כאשר שם הוועדה היה ועדת הפנים ואיכות הסביבה.
+          גם ועדות המשנה של כל ועדה משויכות לקטגוריה שלה.
+          מדובר בשיוך נושאי של הוועדות.
+      KnessetNum:
+        source: "{name}"
+        type: integer
+        description: מספר הכנסת
+      CommitteeTypeID:
+        source: "{name}"
+        type: integer
+        description: קוד סוג הוועדה
+      CommitteeTypeDesc:
+        source: "{name}"
+        type: string
+        description: >
+          תיאור סוג הוועדה
+          (ראשית, מיוחדת, משנה, משותפת, הכנסת)
+      Email:
+        source: "{name}"
+        type: string
+        description: כתובת הדוא"ל של הוועדה
+      StartDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך התחלה
+      FinishDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך סיום
+      AdditionalTypeID:
+        source: "{name}"
+        type: integer
+        description: קוד סוג משנה של הוועדה
+      AdditionalTypeDesc:
+        source: "{name}"
+        type: string
+        description: תיאור סוג משנה של הוועדה (קבועה, מיוחדת, חקירה)
+      ParentCommitteeID:
+        source: "{name}"
+        type: integer
+        description: קוד ועדת האם (רלוונטי רק לוועדת משנה)
+      CommitteeParentName:
+        source: "{name}"
+        type: string
+        description: תיאור ועדת האם
+      IsCurrent:
+        source: "{name}"
+        type: boolean
+        description: האם הוועדה פעילה?
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון
     - run: ..datapackage_pipelines_knesset.common.processors.throttle
       parameters: {"rows-per-page": 50}
     - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql

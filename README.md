@@ -38,6 +38,31 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
 
 Looking to contribute? check out the [Help Wanted Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) or the [Noob Friendly Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22noob+friendly%22) for some ideas.
 
+
+## Running the pipelines locally
+
+Most pipelines are available to run locally with minimal infrastructure dependencies.
+
+Install some dependencies (following works for latest version of Ubuntu):
+
+```
+sudo apt-get install -y python3.6 python3-pip python3.6-dev libleveldb-dev libleveldb1v5
+sudo pip3 install pipenv
+```
+
+install the dependencies
+
+```
+pipenv install
+```
+
+activate the virtualenv
+
+```
+pipenv shell
+```
+
+
 ### Running the full pipelines environment using docker
 
 #### A note for windows users:
