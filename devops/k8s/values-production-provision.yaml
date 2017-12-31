@@ -71,3 +71,10 @@ ssh-socks-proxy:
   socks_port: '8123'
   ssh_host: ubuntu@db1.oknesset.org
   ssh_port: '22'
+knesset-data-people:
+  enabled: true
+  committeeMeetingAttendeesJob:
+    # http://storage.googleapis.com/knesset-data-people-committee-attendees/committee-meeting-attendees/kns_committeesession.csv
+    image: orihoch/knesset-data-people:committee-meeting-attendees@sha256:9a5ee3d2107add952a1b079e19bc53ef5499b8088c16ecc5ebd13a03ae994ca6
+    bucket: knesset-data-people-committee-attendees
+    schedule: "@weekly"

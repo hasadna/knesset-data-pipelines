@@ -29,7 +29,7 @@ spec:
           chmod +x mc &&
           ./mc config host add minio http://minio:9000 "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}" &&
           (! ./mc ls minio/letsencrypt-backup || (
-            ./mc mirror --force --insecure minio/letsencrypt-backup /etc/letsencrypt
+            ./mc mirror --overwrite --insecure minio/letsencrypt-backup /etc/letsencrypt
           )) &&
           /entrypoint.sh
         resources:
@@ -55,9 +55,10 @@ spec:
         - "sh"
         - "-c"
         - >
+          sleep 3600 &&
           mc config host add minio http://minio:9000 "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}" &&
           mc mb -p minio/letsencrypt-backup &&
-          mc mirror --force --insecure --watch /etc/letsencrypt minio/letsencrypt-backup
+          mc mirror --overwrite --insecure --watch /etc/letsencrypt minio/letsencrypt-backup
         env:
         - {name: MINIO_ACCESS_KEY, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "MINIO_ACCESS_KEY"}}}
         - {name: MINIO_SECRET_KEY, valueFrom: {secretKeyRef: {name: {{.Values.global.secretEnvVars | quote}}, key: "MINIO_SECRET_KEY"}}}
