@@ -1,38 +1,24 @@
-FROM orihoch/knesset-data-pipelines-base:v1.0.5
-
-COPY requirements.txt /requirements.txt
-RUN pip install -r /requirements.txt
-
-RUN mkdir /knesset
-WORKDIR /knesset
-
-COPY datapackage_pipelines_knesset /knesset/datapackage_pipelines_knesset
-COPY setup.py /knesset/
+FROM orihoch/sk8s-pipelines
 
 ENV PYTHONUNBUFFERED 1
-
-RUN cd /knesset && pip install .
-
 ENV PIPELINES_BIN_PATH /knesset/bin
 ENV RTF_EXTRACTOR_BIN /knesset/bin/rtf_extractor.py
-
 # this environment variable is set by k8s - so we force it to the default here
 # see the comments on https://github.com/puckel/docker-airflow/issues/46
 ENV FLOWER_PORT 5555
 
-COPY bills /knesset/bills
-COPY committees /knesset/committees
-COPY laws /knesset/laws
-COPY plenum /knesset/plenum
-COPY votes /knesset/votes
-COPY members /knesset/members
-# temporarily remove people - it consumes too much memory
-# TODO: investigate
-# COPY people /knesset/people
-COPY bin /knesset/bin
-COPY docker-run.sh /knesset/
+COPY Pipfile /pipelines/
+COPY Pipfile.lock /pipelines/
+RUN pipenv install --system --deploy --ignore-pipfile && pipenv check
 
-ENTRYPOINT ["/knesset/docker-run.sh"]
+COPY datapackage_pipelines_knesset /pipelines/datapackage_pipelines_knesset
+COPY setup.py /pipelines/
+RUN pip install .
 
-EXPOSE 5000
-VOLUME /knesset/data
+COPY bills /pipelines/bills
+COPY committees /pipelines/committees
+COPY laws /pipelines/laws
+COPY plenum /pipelines/plenum
+COPY votes /pipelines/votes
+COPY members /pipelines/members
+COPY bin /pipelines/bin

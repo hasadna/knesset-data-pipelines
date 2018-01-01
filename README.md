@@ -62,6 +62,24 @@ activate the virtualenv
 pipenv shell
 ```
 
+Install `datapackage_pipelines_knesset`
+
+```
+pip install -e .
+```
+
+List the available pipelines
+
+```
+dpp
+```
+
+run a pipeline
+
+```
+dpp run <PIPELINE_ID>
+```
+
 
 ### Running the full pipelines environment using docker
 

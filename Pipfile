@@ -12,6 +12,8 @@ distribute = "*"
 "datapackage-pipelines[speedup]" = "*"
 knesset-data = "*"
 "requests[socks]" = "*"
+botocore = "*"
+"boto3" = "*"
 
 
 [dev-packages]

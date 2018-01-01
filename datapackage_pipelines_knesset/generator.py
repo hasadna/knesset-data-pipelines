@@ -1,5 +1,7 @@
-from datapackage_pipelines.generators import GeneratorBase
+from datapackage_pipelines.generators import GeneratorBase, steps
 from copy import deepcopy
+import logging
+
 
 class Generator(GeneratorBase):
 
@@ -18,15 +20,22 @@ class Generator(GeneratorBase):
     @classmethod
     def filter_pipeline(cls, pipeline_id, pipeline):
         if pipeline.get("pipeline-type") == "knesset dataservice":
-            yield from cls.get_knesset_dataservice_pipeline(pipeline_id, pipeline)
-        else:
-            yield pipeline_id, pipeline
+            pipeline_id, pipeline = cls.get_knesset_dataservice_pipeline(pipeline_id, pipeline)
+        yield pipeline_id, pipeline
 
     @classmethod
     def get_knesset_dataservice_pipeline(cls, pipeline_id, pipeline):
-        pipeline_schedule = {"crontab": "10 0 * * *"}
-        pipeline_steps = [{"run": "load_dataservice_resource",
-                           "parameters": pipeline["dataservice-parameters"]}]
-        pipeline = {'pipeline': pipeline_steps}
-        yield pipeline_id, {}
-        pass
+        return pipeline_id, {'description': '<p>'
+                                                'runs daily, loads data from the latest version of the '
+                                                '<a href="https://github.com/hasadna/knesset-data/blob/master/docs/dataservice/README.md">'
+                                                    'Knesset dataservice odata interface'
+                                                '</a>'
+                                           '</p> ',
+                            'schedule': {'crontab': '10 0 * * *'},
+                            'pipeline': steps(('..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource',
+                                               pipeline["dataservice-parameters"]),
+                                              ('..datapackage_pipelines_knesset.common.processors.throttle',
+                                               {'rows-per-page': 50}),
+                                              ('dump.to_path',
+                                               {'out-path': '../data/{}/{}'.format(pipeline['schemas-bucket'],
+                                                                                   pipeline_id)}))}

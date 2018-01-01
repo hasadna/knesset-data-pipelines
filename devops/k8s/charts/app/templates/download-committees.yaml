@@ -1,0 +1,60 @@
+{{ if .Values.downloadCommitteesJob }}
+apiVersion: batch/v1
+kind: Job
+#apiVersion: batch/v1beta1
+#kind: CronJob
+metadata:
+  name: download-committees
+spec:
+#  schedule: {{ .Values.downloadCommitteesJob.schedule | quote }}
+#  concurrencyPolicy: Forbid
+#  jobTemplate:
+#    spec:
+  template:
+    metadata:
+      name: download-committees
+    spec:
+      containers:
+      - name: pipelines
+        image: {{ .Values.downloadCommitteesJob.image | quote }}
+        command:
+        - bash
+        - "-c"
+        - |
+          while ! [ -e /pipelines/data/synced ]; do sleep 5 && echo .; done && rm -f /pipelines/data/synced &&\
+          dpp run ./committees/kns_committee &&\
+          dpp run ./committees/kns_jointcommittee &&\
+          dpp run ./committees/kns_cmtsitecode &&\
+          dpp run ./committees/kns_committeesession &&\
+          dpp run ./committees/kns_cmtsessionitem &&\
+          dpp run ./committees/kns_documentcommitteesession &&\
+          touch /pipelines/data/done
+        volumeMounts: [{"name": "data", "mountPath": "/pipelines/data"}]
+      - name: ops
+        image: orihoch/sk8sops:pipelines-gcs@sha256:a6e8f94c2e68fc8da552abcbdac865763d40e79895b87ff06a98ebd588070cf0
+        resources: {"requests": {"cpu": "0.01", "memory": "100Mi"}}
+        env:
+        - name: CLOUDSDK_CORE_PROJECT
+          value: {{ .Values.global.CLOUDSDK_CORE_PROJECT | quote }}
+        - name: GS_BUCKET_NAME
+          value: {{ .Values.pipelinesStorage.GS_BUCKET_NAME | quote }}
+        - name: OUTPUT_PATH_PREFIX
+          value: {{ .Values.downloadCommitteesJob.OUTPUT_PATH_PREFIX | quote }}
+        - name: DISABLE_TIMESTAMP
+          value: "1"
+        volumeMounts:
+        - name: data
+          mountPath: /pipelines/data
+        - name: k8s-ops
+          mountPath: /k8s-ops
+          readOnly: true
+      volumes:
+      # this is the k8s ops secret, see https://github.com/OriHoch/sk8s-ops/blob/master/README.md#secrets
+      - name: k8s-ops
+        secret:
+          secretName: ops
+      # empty dir is stored on host and shared between all container in pod, we use it to sync data between the pods
+      - name: data
+        emptyDir: {}
+      restartPolicy: Never
+{{ end }}

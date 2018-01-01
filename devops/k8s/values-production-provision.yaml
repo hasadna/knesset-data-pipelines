@@ -17,6 +17,13 @@ app:
   influxDb: dpp
   memoryRequests: 1800Mi
   sshSocksProxyUrl: socks5h://ssh-socks-proxy:8123
+  pipelinesStorage:
+    CLOUDSDK_CORE_PROJECT: hasadna-oknesset
+    GS_BUCKET_NAME: knesset-data-pipelines
+  downloadCommitteesJob:
+    image: orihoch/knesset-data-pipelines@sha256:de69fb1b6e26470507a2f2363d1213e785a19993ae33a8310b38fe0177b19fee
+    schedule: "@daily"
+    OUTPUT_PATH_PREFIX: committees/
 committees:
   enabled: true
   image: gcr.io/hasadna-oknesset/knesset-data-pipelines-committees:v1.0.6-83-g8a136f6-2017-10-05-14-23
