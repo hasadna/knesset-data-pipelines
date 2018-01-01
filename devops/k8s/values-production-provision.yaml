@@ -12,7 +12,7 @@ app:
   dppWorkerReplicas: 2
   dppWorkersGkeNodePool: dpp-workers
   enableAutoscaler: true
-  enableWorkers: false
+  enableWorkers: true
   image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-12-13-14-23
   influxDb: dpp
   memoryRequests: 1800Mi
@@ -50,6 +50,12 @@ jobs:
   restoreDbServiceAccountId: kdp-production-db-backups@hasadna-oknesset.iam.gserviceaccount.com
   restoreDbServiceAccountKeySecret: db-backup-upload-google-key
   restoreDbZone: us-central1-a
+knesset-data-people:
+  committeeMeetingAttendeesJob:
+    bucket: knesset-data-people-committee-attendees
+    image: orihoch/knesset-data-people:committee-meeting-attendees@sha256:9a5ee3d2107add952a1b079e19bc53ef5499b8088c16ecc5ebd13a03ae994ca6
+    schedule: '@weekly'
+  enabled: true
 letsencrypt:
   enabled: true
 metabase:
@@ -71,10 +77,3 @@ ssh-socks-proxy:
   socks_port: '8123'
   ssh_host: ubuntu@db1.oknesset.org
   ssh_port: '22'
-knesset-data-people:
-  enabled: true
-  committeeMeetingAttendeesJob:
-    # http://storage.googleapis.com/knesset-data-people-committee-attendees/committee-meeting-attendees/kns_committeesession.csv
-    image: orihoch/knesset-data-people:committee-meeting-attendees@sha256:9a5ee3d2107add952a1b079e19bc53ef5499b8088c16ecc5ebd13a03ae994ca6
-    bucket: knesset-data-people-committee-attendees
-    schedule: "@weekly"
