@@ -103,12 +103,7 @@ kns_jointcommittee:
         type: integer
         description: קוד הוועדה המשתתפת
       LastUpdatedDate:
-        source: "{name}"kns_committee &&\
-          dpp run ./committees/kns_jointcommittee &&\
-          dpp run ./committees/kns_cmtsitecode &&\
-          dpp run ./committees/kns_committeesession &&\
-          dpp run ./committees/kns_cmtsessionitem &&\
-          dpp run ./committees/kns_documentcommitteesession &&
+        source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
 
@@ -284,11 +279,21 @@ kns_documentcommitteesession:
         description: תאריך עדכון אחרון
 
 
-#join-meetings:
-#  pipeline:
+download-document-committee-session:
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/committees/kns_documentcommitteesession/datapackage.json
+      resource: kns_documentcommitteesession
 #  - run: load_resource
 #    parameters:
-#      url: ../data/committees/
+#      url: ../data/committees/download_document_committee_session
+#      resource: download_document_committee_session
+  - run: download_document_committee_session
+  - run: dump.to_path
+    parameters:
+      out-path: ../data/committees/download_document_committee_session
+
 
 ### parse protocols
 

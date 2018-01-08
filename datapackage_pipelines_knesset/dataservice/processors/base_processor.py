@@ -66,8 +66,10 @@ class BaseDataserviceProcessor(BaseProcessor):
                 if field_source:
                     field_source = field_source.format(name=name)
                     ORDERED_FIELDS.append((name, KnessetDataServiceSimpleField(field_source, field["type"])))
-        self._schema = {"fields": fields,
-                       "primaryKey": [self._primary_key_field_name]}
+        self._schema = {"fields": fields,}
+                       # better not to define primary key in the schema as knesset has a bug which might duplicate primary keys...
+                       # see https://github.com/hasadna/knesset-data/issues/148
+                       # "primaryKey": [self._primary_key_field_name]}
         self.dataservice_class = self._extend_dataservice_class(DataServiceClass)
 
     def _get_base_dataservice_class(self):

@@ -14,6 +14,7 @@ knesset-data = "*"
 "requests[socks]" = "*"
 botocore = "*"
 "boto3" = "*"
+python-dotenv = "*"
 
 
 [dev-packages]
