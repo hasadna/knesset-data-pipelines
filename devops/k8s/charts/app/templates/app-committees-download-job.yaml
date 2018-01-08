@@ -35,13 +35,13 @@ spec:
         resources: {"requests": {"cpu": "0.01", "memory": "100Mi"}}
         env:
         - name: CLOUDSDK_CORE_PROJECT
-          value: {{ .Values.global.CLOUDSDK_CORE_PROJECT | quote }}
+          value: {{ .Values.pipelinesStorage.CLOUDSDK_CORE_PROJECT | quote }}
         - name: GS_BUCKET_NAME
           value: {{ .Values.pipelinesStorage.GS_BUCKET_NAME | quote }}
         - name: OUTPUT_PATH_PREFIX
           value: {{ .Values.downloadCommitteesJob.OUTPUT_PATH_PREFIX | quote }}
-        - name: DISABLE_TIMESTAMP
-          value: "1"
+        - name: SYNC_ARGS
+          value: "-a public-read"
         volumeMounts:
         - name: data
           mountPath: /pipelines/data
