@@ -279,17 +279,19 @@ kns_documentcommitteesession:
         description: תאריך עדכון אחרון
 
 
-download-document-committee-session:
+download_document_committee_session:
   pipeline:
   - run: load_resource
     parameters:
       url: ../data/committees/kns_documentcommitteesession/datapackage.json
       resource: kns_documentcommitteesession
-#  - run: load_resource
-#    parameters:
-#      url: ../data/committees/download_document_committee_session
-#      resource: download_document_committee_session
   - run: download_document_committee_session
+    parameters:
+      out-path: ../data/committees/download_document_committee_session
+      # FILES_LIMIT
+      # files-limit: 50
+      # CHECK_REMOTE_STORAGE
+      # check-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
   - run: dump.to_path
     parameters:
       out-path: ../data/committees/download_document_committee_session
