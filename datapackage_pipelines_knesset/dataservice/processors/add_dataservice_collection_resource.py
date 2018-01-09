@@ -29,6 +29,11 @@ class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
                     if int(os.environ.get("OVERRIDE_DATASERVICE_COLLECTION_LIMIT_ITEMS","")) < resources_yielded:
                         return
                 row = self._filter_dataservice_object(dataservice_object)
+                for k in row:
+                    for field in self._schema["fields"]:
+                        if field["name"] == k:
+                            if field["type"] == "integer" and row[k] is not None:
+                                row[k] = int(row[k])
                 self._send_metric("filter_row", {}, {"fields": len(row)})
                 yield row
                 if resources_yielded%100 == 0:

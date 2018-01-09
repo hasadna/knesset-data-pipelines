@@ -11,7 +11,7 @@ app:
   dppWorkerConcurrency: 4
   dppWorkerReplicas: 2
   dppWorkersGkeNodePool: dpp-workers
-  enableAutoscaler: true
+  enableAutoscaler: false
   enableWorkers: false
   image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-12-13-14-23
   influxDb: dpp
@@ -24,6 +24,11 @@ app:
   committeeProtocolsJob: true
   committeeParseProtocolsJob: true
   downloadBillsJob: true
+  downloadLawsJob: true
+  downloadMembersJob: true
+  downloadPlenumJob: true
+  downloadVotesJob: true
+
 committees:
   enabled: true
   image: gcr.io/hasadna-oknesset/knesset-data-pipelines-committees:v1.0.6-83-g8a136f6-2017-10-05-14-23
