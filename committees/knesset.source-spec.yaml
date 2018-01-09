@@ -221,7 +221,7 @@ kns_cmtsessionitem:
         description: מספר סידורי של הפריט בישיבה
       StatusID:
         source: "{name}"
-        type: string
+        type: integer
         description: קוד סטטוס של הפריט בזמן הישיבה
       Name:
         source: "{name}"
@@ -229,7 +229,7 @@ kns_cmtsessionitem:
         description: שם הפריט בישיבה
       ItemTypeID:
         source: "{name}"
-        type: string
+        type: integer
         description: קוד סוג הפריט
       LastUpdatedDate:
         source: "{name}"
