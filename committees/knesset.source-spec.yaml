@@ -130,6 +130,7 @@ kns_cmtsitecode:
         type: integer
         description: קוד הוועדה בבסיס הנתונים של אתר הכנסת (משמש את חלק מדפי האתר)
 
+
 kns_committeesession:
   pipeline-type: knesset dataservice
   schemas-bucket: "committees"
@@ -295,6 +296,54 @@ download_document_committee_session:
   - run: dump.to_path
     parameters:
       out-path: ../data/committees/download_document_committee_session
+
+
+parse_meeting_protocols_text:
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/committees/download_document_committee_session/datapackage.json
+      resource: kns_documentcommitteesession
+  - run: filter
+    parameters:
+      in:
+      - GroupTypeID: 23
+  - run: parse_meeting_protocols
+    parameters:
+      check-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/meeting_protocols_text/
+      type: text
+      # FILES_LIMIT
+      # files-limit: 5
+      # download-from-path: ../data/committees/download_document_committee_session/
+      download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
+      out-path: ../data/committees/meeting_protocols_text
+  - run: dump.to_path
+    parameters:
+      out-path: ../data/committees/meeting_protocols_text
+
+
+parse_meeting_protocols_parts:
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/committees/download_document_committee_session/datapackage.json
+      resource: kns_documentcommitteesession
+  - run: filter
+    parameters:
+      in:
+      - GroupTypeID: 23
+  - run: parse_meeting_protocols
+    parameters:
+      check-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/meeting_protocols_parts/
+      type: parts
+      # FILES_LIMIT
+      # files-limit: 5
+      # download-from-path: ../data/committees/download_document_committee_session/
+      download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
+      out-path: ../data/committees/meeting_protocols_parts
+  - run: dump.to_path
+    parameters:
+      out-path: ../data/committees/meeting_protocols_parts
 
 
 ### parse protocols
