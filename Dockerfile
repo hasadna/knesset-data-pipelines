@@ -1,5 +1,7 @@
 FROM orihoch/sk8s-pipelines
 
+RUN apk --update add antiword
+
 ENV PYTHONUNBUFFERED 1
 ENV PIPELINES_BIN_PATH /knesset/bin
 ENV RTF_EXTRACTOR_BIN /knesset/bin/rtf_extractor.py
@@ -18,7 +20,7 @@ RUN pip install .
 COPY bills /pipelines/bills
 COPY committees /pipelines/committees
 COPY laws /pipelines/laws
+COPY members /pipelines/members
 COPY plenum /pipelines/plenum
 COPY votes /pipelines/votes
-COPY members /pipelines/members
 COPY bin /pipelines/bin

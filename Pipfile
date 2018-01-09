@@ -7,8 +7,6 @@ name = "pypi"
 
 [packages]
 
-setuptools = "*"
-distribute = "*"
 "datapackage-pipelines[speedup]" = "*"
 knesset-data = "*"
 "requests[socks]" = "*"

@@ -1,5 +1,5 @@
 from datapackage_pipelines.wrapper import ingest, spew
-import logging, os, requests, csv
+import logging, os, requests, csv, shutil
 from knesset_data.protocols.committee import CommitteeMeetingProtocol
 from copy import deepcopy
 from datapackage_pipelines_knesset.common import utils
@@ -27,7 +27,7 @@ def file_exists(rel_filename):
 def parse_protocol(output_filename, protocol):
     full_output_filename = out_path + "/" + output_filename
     os.makedirs(os.path.dirname(full_output_filename), exist_ok=True)
-    if parse_type == "txt":
+    if parse_type == "text":
         with open(full_output_filename, "w") as of:
             of.write(protocol.text)
             stats["parsed files"] += 1
@@ -38,7 +38,7 @@ def parse_protocol(output_filename, protocol):
                 csv_writer.writerow(["header", "body"])
                 for part in protocol.parts:
                     csv_writer.writerow([part.header, part.body])
-            os.rename(filename, full_output_filename)
+            shutil.copy(filename, full_output_filename)
             stats["parsed files"] += 1
     else:
         raise NotImplementedError

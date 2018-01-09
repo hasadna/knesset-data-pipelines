@@ -1,0 +1,62 @@
+{{ if .Values.downloadBillsJob }}
+apiVersion: batch/v1
+kind: Job
+#apiVersion: batch/v1beta1
+#kind: CronJob
+metadata:
+  name: bills-download
+spec:
+#  schedule: "@daily"
+#  concurrencyPolicy: Forbid
+#  jobTemplate:
+#    spec:
+  template:
+    metadata:
+      name: bills-download
+    spec:
+      containers:
+      - name: pipelines
+        image: orihoch/knesset-data-pipelines@sha256:656615e04b68a718c0cc2b3eb0dcff8f43fa1796294c847ca8a99dde822ff75d
+        command:
+        - bash
+        - "-c"
+        - |
+          while ! [ -e /pipelines/data/synced ]; do sleep 5 && echo .; done && rm -f /pipelines/data/synced &&\
+          dpp run ./bills/kns_bill &&\
+          dpp run ./bills/kns_billname &&\
+          dpp run ./bills/kns_billinitiator &&\
+          dpp run ./bills/kns_billhistoryinitiator &&\
+          dpp run ./bills/kns_billsplit &&\
+          dpp run ./bills/kns_billunion &&\
+          touch /pipelines/data/done
+        volumeMounts: [{"name": "data", "mountPath": "/pipelines/data"}]
+      - name: ops
+        image: orihoch/sk8sops:pipelines-gcs@sha256:c232fcbd4ffff456b9cb9312a4b7d62cec8c0fe6b36bf31e50625a618f129746
+        resources: {"requests": {"cpu": "0.01", "memory": "100Mi"}}
+        env:
+        - name: CLOUDSDK_CORE_PROJECT
+          value: hasadna-oknesset
+        - name: GS_BUCKET_NAME
+          value: knesset-data-pipelines
+        - name: OUTPUT_PATH_PREFIX
+          value: data/
+        - name: SYNC_ARGS
+          value: "-a public-read"
+        - name: DISABLE_TIMESTAMP
+          value: "1"
+        volumeMounts:
+        - name: data
+          mountPath: /pipelines/data
+        - name: k8s-ops
+          mountPath: /k8s-ops
+          readOnly: true
+      volumes:
+      # this is the k8s ops secret, see https://github.com/OriHoch/sk8s-ops/blob/master/README.md#secrets
+      - name: k8s-ops
+        secret:
+          secretName: ops
+      # empty dir is stored on host and shared between all container in pod, we use it to sync data between the pods
+      - name: data
+        emptyDir: {}
+      restartPolicy: Never
+{{ end }}

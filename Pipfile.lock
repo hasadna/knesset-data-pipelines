@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "78e84c8f8bfc3e87f9edf46814ee1fe49216d0d3fb46e91fb713b51bea4f69af"
+            "sha256": "c940b042cd7baa1aed946a1691444afe06f2c6fe3a15f6b0c8dba2e80d13c974"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -65,17 +65,17 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:00a384f703d7abdc9eb932e64404060b6287543afbd03cae0f811dc29aa2c129",
-                "sha256:c41540a1d74a4ef7c642d91cb47dae884eafe6665d76a1b9ce1032e3aabde56c"
+                "sha256:653df9f86ca73576777f1e7ee0c55e4b5ac481412f5d8f6d6fb969fa012a0281",
+                "sha256:39897daf828e72391fc0531a20293404d67d5d9fb32415e49f4fa780ae0297ce"
             ],
-            "version": "==1.5.7"
+            "version": "==1.5.10"
         },
         "botocore": {
             "hashes": [
-                "sha256:b15773f65e4fb2fd58709a7b8453f524ec0d04c86e2052b0dd3c938b4eb38be2",
-                "sha256:e4513a02f68e7efd7494ee56db201d87620218ca879aae361abbb71bcde3aa5f"
+                "sha256:37a744ed1b7e2bd2d402db3f02c5b84c369f5e83194524bf05e7a14a86d157fe",
+                "sha256:004061920d3268d95e84e9db21c731820bddb7b9adfcdeb040f0aac3890de11e"
             ],
-            "version": "==1.8.21"
+            "version": "==1.8.24"
         },
         "cached-property": {
             "hashes": [
@@ -300,9 +300,15 @@
         },
         "plyvel": {
             "hashes": [
-                "sha256:587d93681ae44936ae086b4b45486eb302e3853ba5af149aac3be9e9713998e9"
+                "sha256:dd104f949df7aff84b60901e0ba13f05e07d9ef51c9e6a91b50adad96d6b57d6",
+                "sha256:9cf18e9e21561fa99a6991f48c1c2c9841a083aeaa28f93be71c2c7876ae5d67",
+                "sha256:8af3e63ebb13289d3b24ba4718ed1990d45119bbf5376074c2f8a4c170517def",
+                "sha256:36cadb3c04f84986d250336b85160f553e2e65a5f1da17ce68675b717ffea00c",
+                "sha256:5a0690be83c0e55b19c0bb6dff18eef140c962b930dab8f7542f0ad4ebc1806b",
+                "sha256:f67bca3ff4791dd90f7555ead2e776227b02692c4a576bf7edcc257d3abf01e1",
+                "sha256:fe21c78b07977588b4e8c48127fbe5a6881752bcb5d31c09077bb6bf8c9fc3ff"
             ],
-            "version": "==0.9"
+            "version": "==1.0.1"
         },
         "pybloom-live": {
             "hashes": [
@@ -555,10 +561,10 @@
         },
         "pytest": {
             "hashes": [
-                "sha256:ae4a2d0bae1098bbe938ecd6c20a526d5d47a94dc42ad7331c9ad06d0efe4962",
-                "sha256:cf8436dc59d8695346fcd3ab296de46425ecab00d64096cebe79fb51ecb2eb93"
+                "sha256:b84878865558194630c6147f44bdaef27222a9f153bbd4a08908b16bf285e0b1",
+                "sha256:53548280ede7818f4dc2ad96608b9f08ae2cc2ca3874f2ceb6f97e3583f25bc4"
             ],
-            "version": "==3.3.1"
+            "version": "==3.3.2"
         },
         "six": {
             "hashes": [
