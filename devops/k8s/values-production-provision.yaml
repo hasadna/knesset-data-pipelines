@@ -20,9 +20,7 @@ app:
   pipelinesStorage:
     CLOUDSDK_CORE_PROJECT: hasadna-oknesset
     GS_BUCKET_NAME: knesset-data-pipelines
-  downloadCommitteesJob:
-    image: orihoch/knesset-data-pipelines@sha256:de69fb1b6e26470507a2f2363d1213e785a19993ae33a8310b38fe0177b19fee
-    schedule: "@daily"
+  downloadCommitteesJob: true
   committeeProtocolsJob: true
 committees:
   enabled: true

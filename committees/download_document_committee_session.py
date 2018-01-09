@@ -20,21 +20,20 @@ def file_exists(rel_filename):
 
 def get_resource(resource):
     for row in resource:
-        if stats["downloaded files"] < files_limit:
-            rel_filename = os.path.join("files", str(row["GroupTypeID"]),
-                                   str(row["DocumentCommitteeSessionID"])[0],
-                                   str(row["DocumentCommitteeSessionID"])[1],
-                                   str(row["DocumentCommitteeSessionID"]) + "." + row["ApplicationDesc"])
-            if not file_exists(rel_filename):
-                content = get_retry_response_content(row["FilePath"], None, None, None, retry_num=1, num_retries=10,
-                                                     seconds_between_retries=10)
-                filename = os.path.join(out_path, rel_filename)
-                os.makedirs(os.path.dirname(filename), exist_ok=True)
-                with open(filename, "wb") as f:
-                    f.write(content)
-                stats["downloaded files"] += 1
-                row["filename"] = rel_filename
-                yield row
+        rel_filename = os.path.join("files", str(row["GroupTypeID"]),
+                                    str(row["DocumentCommitteeSessionID"])[0],
+                                    str(row["DocumentCommitteeSessionID"])[1],
+                                    str(row["DocumentCommitteeSessionID"]) + "." + row["ApplicationDesc"])
+        if stats["downloaded files"] < files_limit and not file_exists(rel_filename):
+            content = get_retry_response_content(row["FilePath"], None, None, None, retry_num=1, num_retries=10,
+                                                 seconds_between_retries=10)
+            filename = os.path.join(out_path, rel_filename)
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
+            with open(filename, "wb") as f:
+                f.write(content)
+            stats["downloaded files"] += 1
+        row.update(filename=rel_filename)
+        yield row
 
 
 def get_resources():

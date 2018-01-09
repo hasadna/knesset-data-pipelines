@@ -6,7 +6,7 @@ kind: Job
 metadata:
   name: committees-download
 spec:
-#  schedule: {{ .Values.downloadCommitteesJob.schedule | quote }}
+#  schedule: "@daily"
 #  concurrencyPolicy: Forbid
 #  jobTemplate:
 #    spec:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: pipelines
-        image: {{ .Values.downloadCommitteesJob.image | quote }}
+        image: orihoch/knesset-data-pipelines@sha256:8f304e0e34d4c9cd1d4001f2913ff20115c046fa38a41637f580560c8fb49fb9
         command:
         - bash
         - "-c"

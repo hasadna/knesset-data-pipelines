@@ -1,64 +1,70 @@
 {{ if .Values.committeeProtocolsJob }}
-apiVersion: batch/v1
-kind: Job
-#apiVersion: batch/v1beta1
-#kind: CronJob
+#apiVersion: batch/v1
+#kind: Job
+apiVersion: batch/v1beta1
+kind: CronJob
 metadata:
   name: committees-protocols
 spec:
-#  schedule: "@daily"
-#  concurrencyPolicy: Forbid
-#  jobTemplate:
-#    spec:
-  template:
-    metadata:
-      name: committees-protocols
+  # m h dom mon dow
+  schedule: "* * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
     spec:
-      containers:
-      - name: pipelines
-        image: orihoch/knesset-data-pipelines@sha256:8f304e0e34d4c9cd1d4001f2913ff20115c046fa38a41637f580560c8fb49fb9
-        command:
-        - bash
-        - "-c"
-        - |
-          while ! [ -e /pipelines/data/synced ]; do sleep 5 && echo .; done && rm -f /pipelines/data/synced &&\
-          dpp run ./committees/download_document_committee_session &&\
-          rm -rf /pipelines/data/committees/kns_documentcommitteesession &&\
-          touch /pipelines/data/done
-        volumeMounts: [{"name": "data", "mountPath": "/pipelines/data"}]
-      - name: ops
-        image: orihoch/sk8sops:pipelines-gcs@sha256:c232fcbd4ffff456b9cb9312a4b7d62cec8c0fe6b36bf31e50625a618f129746
-        resources: {"requests": {"cpu": "0.01", "memory": "100Mi"}}
-        env:
-        - name: CLOUDSDK_CORE_PROJECT
-          value: hasadna-oknesset
-        - name: GS_BUCKET_NAME
-          value: knesset-data-pipelines
-        - name: OUTPUT_PATH_PREFIX
-          value: data/
-        - name: SYNC_ARGS
-          value: "-a public-read"
-        - name: DISABLE_TIMESTAMP
-          value: "1"
-        - name: FILES_LIMIT
-          value: "5"
-        - name: CHECK_REMOTE_STORAGE
-          value: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
-        - name: INITIAL_SYNC_SCRIPT
-          value: gsutil -m rsync -r gs://knesset-data-pipelines/data/committees/kns_documentcommitteesession /pipelines/data/committees/kns_documentcommitteesession
-        volumeMounts:
-        - name: data
-          mountPath: /pipelines/data
-        - name: k8s-ops
-          mountPath: /k8s-ops
-          readOnly: true
-      volumes:
-      # this is the k8s ops secret, see https://github.com/OriHoch/sk8s-ops/blob/master/README.md#secrets
-      - name: k8s-ops
-        secret:
-          secretName: ops
-      # empty dir is stored on host and shared between all container in pod, we use it to sync data between the pods
-      - name: data
-        emptyDir: {}
-      restartPolicy: Never
+      completions: 1
+      parallelism: 1
+      template:
+        metadata:
+          name: committees-protocols
+        spec:
+          containers:
+          - name: pipelines
+            image: orihoch/knesset-data-pipelines@sha256:8f304e0e34d4c9cd1d4001f2913ff20115c046fa38a41637f580560c8fb49fb9
+            command:
+            - bash
+            - "-c"
+            - |
+              while ! [ -e /pipelines/data/synced ]; do sleep 5 && echo .; done && rm -f /pipelines/data/synced &&\
+              dpp run ./committees/download_document_committee_session &&\
+              rm -rf /pipelines/data/committees/kns_documentcommitteesession/ &&\
+              touch /pipelines/data/done
+            env:
+            - name: FILES_LIMIT
+              value: "500"
+            - name: CHECK_REMOTE_STORAGE
+              value: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
+            volumeMounts: [{"name": "data", "mountPath": "/pipelines/data"}]
+          - name: ops
+            image: orihoch/sk8sops:pipelines-gcs@sha256:c232fcbd4ffff456b9cb9312a4b7d62cec8c0fe6b36bf31e50625a618f129746
+            resources: {"requests": {"cpu": "0.01", "memory": "100Mi"}}
+            env:
+            - name: CLOUDSDK_CORE_PROJECT
+              value: hasadna-oknesset
+            - name: GS_BUCKET_NAME
+              value: knesset-data-pipelines
+            - name: OUTPUT_PATH_PREFIX
+              value: data/
+            - name: SYNC_ARGS
+              value: "-a public-read"
+            - name: DISABLE_TIMESTAMP
+              value: "1"
+            - name: INITIAL_SYNC_SCRIPT
+              value: >
+                     mkdir -p /pipelines/data/committees/kns_documentcommitteesession &&
+                     gsutil -m rsync -r gs://knesset-data-pipelines/data/committees/kns_documentcommitteesession/ /pipelines/data/committees/kns_documentcommitteesession/
+            volumeMounts:
+            - name: data
+              mountPath: /pipelines/data
+            - name: k8s-ops
+              mountPath: /k8s-ops
+              readOnly: true
+          volumes:
+          # this is the k8s ops secret, see https://github.com/OriHoch/sk8s-ops/blob/master/README.md#secrets
+          - name: k8s-ops
+            secret:
+              secretName: ops
+          # empty dir is stored on host and shared between all container in pod, we use it to sync data between the pods
+          - name: data
+            emptyDir: {}
+          restartPolicy: Never
 {{ end }}
