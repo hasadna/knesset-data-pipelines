@@ -2,8 +2,8 @@ from datapackage_pipelines.wrapper import spew, ingest
 import time, logging, datetime
 
 
-DEFAULT_SLEEP_SECONDS = 1
-DEFAULT_LOG_INTERVAL_SECONDS = 60
+DEFAULT_SLEEP_SECONDS = .01
+DEFAULT_LOG_INTERVAL_SECONDS = 900
 DEFAULT_ROWS_PER_PAGE = 1
 
 
@@ -25,8 +25,8 @@ def filter_resource(resource, sleep_seconds, start_time, log_interval_seconds, r
 
 def filter_resources(datapackage, resources, parameters):
     input_resource_name = parameters.get("resource")
-    sleep_seconds = float(parameters.get("sleep-seconds", DEFAULT_SLEEP_SECONDS))  # sleep 2 seconds between rows
-    log_interval_seconds = int(parameters.get("log-interval-seconds", DEFAULT_LOG_INTERVAL_SECONDS))  # log every 60 seconds
+    sleep_seconds = float(parameters.get("sleep-seconds", DEFAULT_SLEEP_SECONDS))  # sleep between rows
+    log_interval_seconds = int(parameters.get("log-interval-seconds", DEFAULT_LOG_INTERVAL_SECONDS))  # log progress every X seconds
     rows_per_page = int(parameters.get("rows-per-page", DEFAULT_ROWS_PER_PAGE))
     start_time = datetime.datetime.now()
     for resource_descriptor, resource in zip(datapackage["resources"], resources):

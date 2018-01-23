@@ -1,0 +1,286 @@
+### kns dataservice tables
+
+kns_law:
+  pipeline-type: knesset dataservice
+  schemas-bucket: laws
+  dataservice-parameters:
+    resource-name: kns_law
+    service-name: api
+    method-name: "KNS_Law"
+    fields:
+      LawID:
+        source: "{name}"
+        type: integer
+        description: קוד החוק
+        primaryKey: true
+      TypeID:
+        source: "{name}"
+        type: integer
+        description: קוד סוג החוק
+      TypeDesc:
+        source: "{name}"
+        type: string
+        description: תיאור סוג החוק (תיקון טעות, חוקים אחרים)
+      SubTypeID:
+        source: "{name}"
+        type: integer
+        description: קוד סוג משנה (רק לחוקים אחרים)
+      SubTypeDesc:
+        source: "{name}"
+        type: string
+        description: >
+          תיאור סוג משנה (רק לחוקים אחרים)
+          (חוק בנוסח חדש, חוק בנוסח משולב, פקודות מועצת המדינה הזמנית, פקודות מנדטוריות, עות'מאני)
+      KnessetNum:
+        source: "{name}"
+        type: integer
+        description: מספר הכנסת
+      Name:
+        source: "{name}"
+        type: string
+        description: שם החוק
+      PublicationDate:
+        source: "{name}"
+        type: datetime
+        description: >
+          תאריך פרסום ברשומות
+          (או בסדרת הפרסום הרלוונטית בהתאם לסוג החוק, למשל עיתון רשמי לפקודות מועצת המדינה הזמנית)
+      PublicationSeriesID:
+        source: "{name}"
+        type: integer
+        description: קוד סדרת פרסום
+      PublicationSeriesDesc:
+        source: "{name}"
+        type: string
+        description: >
+          תיאור סדרת הפרסום
+          (ספר החוקים, דיני מדינת ישראל, עיתון רשמי - מועצת המדינה הזמנית, עיתון רשמי מנדטורי, חוקי ארץ ישראל, חוקי תקציב)
+      MagazineNumber:
+        source: "{name}"
+        type: string
+        description: מספר חוברת בסדרת הפרסום
+      PageNumber:
+        source: "{name}"
+        type: string
+        description: מספר עמוד
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון
+
+kns_law_binding:
+  pipeline-type: knesset dataservice
+  schemas-bucket: laws
+  dataservice-parameters:
+    resource-name: kns_law_binding
+    service-name: api
+    method-name: "KNS_LawBinding"
+    fields:
+      LawBindingID:
+        source: "{name}"
+        type: integer
+        description: מספר השורה בטבלה זו
+        primaryKey: true
+      LawID:
+        source: "{name}"
+        type: integer
+        description: קוד החוק
+      LawTypeID:
+        source: "{name}"
+        type: integer
+        description: קוד סוג החוק
+      IsraelLawID:
+        source: "{name}"
+        type: integer
+        description: קוד חוק האב
+      ParentLawID:
+        source: "{name}"
+        type: integer
+        description: >
+          קוד חוק האב, במקרה שהאב הוא בעצמו בן
+          (במילים אחרות, קישור של נכד לאבא שלו)
+      LawParentTypeID:
+        source: "{name}"
+        type: integer
+        description: >
+          קוד סוג חוק האב, במקרה שהאב הוא בעצמו בן
+          (במילים אחרות, קישור של נכד לאבא שלו)
+      BindingType:
+        source: "{name}"
+        type: integer
+        description: קוד סוג קשר
+      BindingTypeDesc:
+        source: "{name}"
+        type: string
+        description: תיאור סוג הקשר
+      PageNumber:
+        source: "{name}"
+        type: string
+        description: מספר עמוד
+      AmendmentType:
+        source: "{name}"
+        type: integer
+        description: קוד סוג תיקון
+      AmendmentTypeDesc:
+        source: "{name}"
+        type: string
+        description: תיאור סוג תיקון
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון
+
+kns_document_law:
+  pipeline-type: knesset dataservice
+  schemas-bucket: laws
+  dataservice-parameters:
+    resource-name: kns_document_law
+    service-name: api
+    method-name: "KNS_DocumentLaw"
+    fields:
+      DocumentLawID:
+        source: "{name}"
+        type: integer
+        description: קוד המסמך
+        primaryKey: true
+      LawID:
+        source: "{name}"
+        type: integer
+        description: קוד החוק
+      GroupTypeID:
+        source: "{name}"
+        type: integer
+        description: קוד סוג המסמך
+      GroupTypeDesc:
+        source: "{name}"
+        type: string
+        description: תיאור סוג המסמך
+      ApplicationID:
+        source: "{name}"
+        type: integer
+        description: קוד פורמט המסמך
+      ApplicationDesc:
+        source: "{name}"
+        type: string
+        description: תיאור פורמט המסמך (Word, PDF, TIFF)
+      FilePath:
+        source: "{name}"
+        type: string
+        description: הנתיב אל המסמך
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון
+
+kns_israel_law:
+  pipeline-type: knesset dataservice
+  schemas-bucket: laws
+  dataservice-parameters:
+    resource-name: kns_israel_law
+    service-name: api
+    method-name: "KNS_IsraelLaw"
+    fields:
+      IsraelLawID:
+        source: "{name}"
+        type: integer
+        description: קוד הפריט (חוק מדינת ישראל = חוק אב)
+        primaryKey: true
+      KnessetNum:
+        source: "{name}"
+        type: integer
+        description: מספר הכנסת
+      Name:
+        source: "{name}"
+        type: string
+        description: שם החוק
+      IsBasicLaw:
+        source: "{name}"
+        type: boolean
+        description: האם זהו חוק יסוד?
+      IsFavoriteLaw:
+        source: "{name}"
+        type: boolean
+        description: >
+          האם זהו חוק מפתח?
+          רשימת חוקים שמערכת המאגר סברה שהם מהווים מעין ארגז כלים למשפטן ולכן מוצגים במרוכז - למשל חוק הפרשנות, חוק העונשין וכדומה
+      IsBudgetLaw:
+        source: "{name}"
+        type: boolean
+        description: האם זהו חוק תקציב?
+      PublicationDate:
+        source: "{name}"
+        type: datetime
+        description: >
+          תאריך הפרסום לראשונה של חוק מדינת ישראל
+          כלומר הפעם הראשונה שבה פורסם החוק שיצר אותו בעיתון רשמי או ברשומות לפי העניין
+      LatestPublicationDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך הפרסום של התיקון האחרון שתיקן את חוק מדינת ישראל
+      LawValidityID:
+        source: "{name}"
+        type: integer
+        description: קוד תוקף
+      LawValidityDesc:
+        source: "{name}"
+        type: string
+        description: >
+          תיאור תוקף (תקף, בטל, פקע, נושן)
+          תקף - החוקים התקפים שלא נקבעה מגבלה בהוראות החוק באשר לתוקפם.
+          חוקים בטלים - חוקים שבוטלו על-ידי חוק אחר.
+          חוקים שפקעו - חוקים שנקבעה בהם מגבלת זמן, למשל חוקי הוראת שעה.
+          חוקים שנושנו - חוקים שמערכת מאגר החקיקה סברה שמילאו את תפקידם ואינם פעילים עוד למשל חוק להתפזרות הכנסת ה-18 או חוק להתפזרות הכנסת ה-19.
+      ValidityStartDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך תחילת תוקף
+      ValidityStartDateNotes:
+        source: "{name}"
+        type: string
+        description: הערה לתחילת התוקף
+      ValidityFinishDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך פקיעה
+      ValidityFinishDateNotes:
+        source: "{name}"
+        type: string
+        description: הערות לתאריך הפקיעה
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון
+
+kns_israel_law_name:
+  pipeline-type: knesset dataservice
+  schemas-bucket: laws
+  dataservice-parameters:
+    resource-name: kns_israel_law_name
+    service-name: api
+    method-name: "KNS_IsraelLawName"
+    fields:
+      IsraelLawNameID:
+        source: "{name}"
+        type: integer
+        description: מספר השורה בטבלה זו
+        primaryKey: true
+      IsraelLawID:
+        source: "{name}"
+        type: integer
+        description: קוד חוק האב
+      LawID:
+        source: "{name}"
+        type: integer
+        description: קוד החוק שיצר את השינוי בשם
+      LawTypeID:
+        source: "{name}"
+        type: integer
+        description: קוד סוג החוק שיצר את השינוי בשם
+      Name:
+        source: "{name}"
+        type: string
+        description: שם חוק האב שנוצר מהחוק
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון

@@ -11,12 +11,24 @@ app:
   dppWorkerConcurrency: 4
   dppWorkerReplicas: 2
   dppWorkersGkeNodePool: dpp-workers
-  enableAutoscaler: true
+  enableAutoscaler: false
   enableWorkers: false
   image: gcr.io/hasadna-oknesset/knesset-data-pipelines-production-app:v0.0.0-2017-12-13-14-23
   influxDb: dpp
   memoryRequests: 1800Mi
   sshSocksProxyUrl: socks5h://ssh-socks-proxy:8123
+  pipelinesStorage:
+    CLOUDSDK_CORE_PROJECT: hasadna-oknesset
+    GS_BUCKET_NAME: knesset-data-pipelines
+  downloadCommitteesJob: true
+  committeeProtocolsJob: true
+  committeeParseProtocolsJob: true
+  downloadBillsJob: true
+  downloadLawsJob: true
+  downloadMembersJob: true
+  downloadPlenumJob: true
+  downloadVotesJob: true
+
 committees:
   enabled: true
   image: gcr.io/hasadna-oknesset/knesset-data-pipelines-committees:v1.0.6-83-g8a136f6-2017-10-05-14-23
@@ -51,10 +63,10 @@ jobs:
   restoreDbServiceAccountKeySecret: db-backup-upload-google-key
   restoreDbZone: us-central1-a
 knesset-data-people:
-  committeeMeetingAttendeesJob:
-    bucket: knesset-data-people-committee-attendees
-    image: orihoch/knesset-data-people:committee-meeting-attendees@sha256:9a5ee3d2107add952a1b079e19bc53ef5499b8088c16ecc5ebd13a03ae994ca6
-    schedule: '@weekly'
+#  committeeMeetingAttendeesJob:
+#    bucket: knesset-data-people-committee-attendees
+#    image: orihoch/knesset-data-people:committee-meeting-attendees@sha256:9a5ee3d2107add952a1b079e19bc53ef5499b8088c16ecc5ebd13a03ae994ca6
+#    schedule: '@weekly'
   enabled: true
 letsencrypt:
   enabled: true
