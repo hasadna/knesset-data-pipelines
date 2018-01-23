@@ -36,7 +36,7 @@ class AddDataserviceCollectionResourceProcessor(BaseDataserviceProcessor):
                                 row[k] = int(row[k])
                 self._send_metric("filter_row", {}, {"fields": len(row)})
                 yield row
-                if resources_yielded%100 == 0:
+                if resources_yielded%10000 == 0:
                     logging.info("Loaded {} dataservice objects".format(resources_yielded))
         self._send_metric("filter_resource", {}, {"filtered_rows": resources_yielded})
 

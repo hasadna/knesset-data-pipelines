@@ -1,4 +1,4 @@
-FROM orihoch/sk8s-pipelines
+FROM orihoch/sk8s-pipelines:v0.0.3-b
 
 RUN apk --update add antiword
 
@@ -20,6 +20,8 @@ RUN pip install --upgrade https://github.com/OriHoch/datapackage-pipelines/archi
 COPY datapackage_pipelines_knesset /pipelines/datapackage_pipelines_knesset
 COPY setup.py /pipelines/
 RUN pip install .
+
+COPY --from=orihoch/sk8s-pipelines:v0.0.3-g /entrypoint.sh /entrypoint.sh
 
 COPY bills /pipelines/bills
 COPY committees /pipelines/committees
