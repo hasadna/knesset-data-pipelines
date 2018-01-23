@@ -38,7 +38,7 @@ def get_retry_response_content(url, params, timeout, proxies, retry_num, num_ret
     if response.status_code != 200:
         # http status_code is not 200 - retry won't help here
         if response.status_code == 404 and skip_not_found_errors:
-            return ""
+            return bytes("", "utf-8")
         else:
             raise InvalidStatusCodeException(response.status_code, response.content)
     else:
