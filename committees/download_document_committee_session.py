@@ -10,6 +10,7 @@ check_remote_storage = os.environ.get("CHECK_REMOTE_STORAGE", parameters.get("ch
 files_limit = int(os.environ.get("FILES_LIMIT", parameters.get("files-limit", "50")))
 out_path = parameters["out-path"]
 errors = []
+skip_not_found_errors = (os.environ.get("SKIP_NOT_FOUND_ERRORS") != "0")
 
 
 def file_exists(rel_filename):
@@ -29,7 +30,8 @@ def get_resource(resource):
                                         str(row["DocumentCommitteeSessionID"]) + "." + row["ApplicationDesc"])
             if stats["downloaded files"] < files_limit and not file_exists(rel_filename):
                 content = get_retry_response_content(row["FilePath"], None, None, None, retry_num=1, num_retries=10,
-                                                     seconds_between_retries=10)
+                                                     seconds_between_retries=10,
+                                                     skip_not_found_errors=skip_not_found_errors)
                 filename = os.path.join(out_path, rel_filename)
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
                 with open(filename, "wb") as f:

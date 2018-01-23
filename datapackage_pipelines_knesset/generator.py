@@ -51,7 +51,7 @@ class Generator(GeneratorBase):
     def get_knesset_dataservice_pipeline(cls, pipeline_id, pipeline):
         if os.environ.get("DATASERVICE_LOAD_FROM_URL"):
             pipeline_steps = [('load_resource',
-                               {"url": "http://storage.googleapis.com/knesset-data-pipelines/{}/{}/datapackage.json".format(pipeline['schemas-bucket'], pipeline_id),
+                               {"url": "http://storage.googleapis.com/knesset-data-pipelines/data/{}/{}/datapackage.json".format(pipeline['schemas-bucket'], pipeline_id),
                                 "resource": pipeline_id}),]
         else:
             pipeline_steps = [('..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource',

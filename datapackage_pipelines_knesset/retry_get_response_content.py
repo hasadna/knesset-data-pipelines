@@ -14,7 +14,8 @@ def is_blocked(content):
     return False
 
 
-def get_retry_response_content(url, params, timeout, proxies, retry_num, num_retries, seconds_between_retries):
+def get_retry_response_content(url, params, timeout, proxies, retry_num, num_retries, seconds_between_retries,
+                               skip_not_found_errors=False):
     proxies = proxies if proxies else {}
     if os.environ.get("DATASERVICE_HTTP_PROXY"):
         proxies["http"] = os.environ["DATASERVICE_HTTP_PROXY"]
@@ -36,7 +37,10 @@ def get_retry_response_content(url, params, timeout, proxies, retry_num, num_ret
             raise ReachedMaxRetries(e)
     if response.status_code != 200:
         # http status_code is not 200 - retry won't help here
-        raise InvalidStatusCodeException(response.status_code, response.content)
+        if response.status_code == 404 and skip_not_found_errors:
+            return ""
+        else:
+            raise InvalidStatusCodeException(response.status_code, response.content)
     else:
         try:
             response_text = response.content.decode('utf-8')
