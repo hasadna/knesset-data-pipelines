@@ -1,2 +1,0 @@
-datapackage-pipelines==1.2.1
-https://github.com/hasadna/knesset-data-python/archive/v2.0.0.zip

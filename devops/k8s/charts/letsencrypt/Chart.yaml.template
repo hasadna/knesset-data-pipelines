@@ -1,9 +1,0 @@
-#
-# {{COMMENT}}
-#
-#
-# Do not edit generated files directly, only edit the source file with .template extension
-#
-
-name: {{NAME}}
-version: {{VERSION}}

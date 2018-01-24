@@ -1,9 +1,0 @@
-#
-# {{COMMENT}}
-#
-#
-# Do not edit generated files directly, only edit the source file which is devops/k8s/Chart.yaml.template
-#
-
-name: {{NAME}}
-version: {{VERSION}}
