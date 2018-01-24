@@ -9,7 +9,7 @@ env:
   - PROJECT_NAME=knesset-data-pipelines
   - HELM_UPGRADE_CMD="./helm_upgrade_external_chart.sh pipelines-jobs"
   matrix:
-  - DEPLOY_ENVIRONMENT=production DEPLOY_BRANCH=master
+  - DEPLOY_ENVIRONMENT=production DEPLOY_BRANCH=master DEPLOY_TAGS=true
   - DEPLOY_ENVIRONMENT=production DEPLOY_BRANCH=upgrade-datapacage-pipelines-add-pipenv
 services:
 - docker
@@ -27,7 +27,7 @@ script:
       fi
       B64_UPDATE_VALUES=`echo '{"pipelines-jobs":{"image":"'${IMAGE_TAG}'"}}' | base64 -w0`
       wget https://raw.githubusercontent.com/OriHoch/sk8s-ops/master/run_docker_ops.sh
-      chmod +x run_docker_ops.sh bin/continuous_deployment.sh
+      chmod +x run_docker_ops.sh continuous_deployment.sh
       if ./run_docker_ops.sh "${DEPLOY_ENVIRONMENT}" "/pwd/continuous_deployment.sh" \
                             "orihoch/sk8s-ops" "${OPS_REPO_SLUG}" "${OPS_REPO_BRANCH}" "" "
                             -v `pwd`:/pwd
@@ -38,7 +38,8 @@ script:
                             -e B64_UPDATE_VALUES=${B64_UPDATE_VALUES}
                             -e IMAGE_TAG=${IMAGE_TAG}
                             -e CLOUDSDK_CORE_PROJECT=${CLOUDSDK_CORE_PROJECT}
-                            -e PROJECT_NAME=${PROJECT_NAME}"; then
+                            -e PROJECT_NAME=${PROJECT_NAME}
+                            -e HELM_UPGRADE_CMD=${HELM_UPGRADE_CMD}"; then
         true
       else
         echo "failed to run docker ops"
