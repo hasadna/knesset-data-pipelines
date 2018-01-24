@@ -7,7 +7,6 @@ env:
   - OPS_REPO_BRANCH=master
   - CLOUDSDK_CORE_PROJECT=hasadna-oknesset
   - PROJECT_NAME=knesset-data-pipelines
-  - HELM_UPGRADE_CMD="./helm_upgrade_external_chart.sh pipelines-jobs"
   matrix:
   - DEPLOY_ENVIRONMENT=production DEPLOY_BRANCH=master DEPLOY_TAGS=true
   - DEPLOY_ENVIRONMENT=production DEPLOY_BRANCH=upgrade-datapacage-pipelines-add-pipenv
@@ -38,8 +37,7 @@ script:
                             -e B64_UPDATE_VALUES=${B64_UPDATE_VALUES}
                             -e IMAGE_TAG=${IMAGE_TAG}
                             -e CLOUDSDK_CORE_PROJECT=${CLOUDSDK_CORE_PROJECT}
-                            -e PROJECT_NAME=${PROJECT_NAME}
-                            -e HELM_UPGRADE_CMD=${HELM_UPGRADE_CMD}"; then
+                            -e PROJECT_NAME=${PROJECT_NAME}"; then
         true
       else
         echo "failed to run docker ops"
