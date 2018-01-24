@@ -9,7 +9,6 @@ env:
   - PROJECT_NAME=knesset-data-pipelines
   matrix:
   - DEPLOY_ENVIRONMENT=production DEPLOY_BRANCH=master
-  - DEPLOY_ENVIRONMENT=production DEPLOY_BRANCH=upgrade-datapacage-pipelines-add-pipenv
 services:
 - docker
 script:
