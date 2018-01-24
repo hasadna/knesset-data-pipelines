@@ -4,8 +4,7 @@
 
 set -e
 
-mkdir -p data/table_schemas
-
-pip install -r requirements.txt
+pipenv install
 which antiword > /dev/null || sudo apt-get install antiword
-pip install -e .[develop]
+pipenv run pip install -e '.[develop]'
+pipenv shell

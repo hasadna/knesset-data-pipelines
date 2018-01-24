@@ -6,6 +6,7 @@ Knesset data scrapers and data sync
 
 Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines) to scrape Knesset data and aggregate to different data stores (PostgreSQL, Elasticsearch, Files)
 
+<!-- TODO: update
 ## Available Endpoints
 * public endpoints:
   * https://next.oknesset.org/pipelines/ - pipelines dashboard
@@ -33,10 +34,54 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
   * https://next.oknesset.org/grafana/ - Web UI for graphing metrics (via InfluxDB)
 * deployment of this environment was done using Kubernetes (K8S) on Google Container Engine (GKE)
   * [deployment details and devops documentation](https://github.com/hasadna/knesset-data-pipelines/blob/master/devops/k8s/)
+-->
 
 ## Contributing
 
 Looking to contribute? check out the [Help Wanted Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) or the [Noob Friendly Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22noob+friendly%22) for some ideas.
+
+
+## Running the pipelines locally
+
+Most pipelines are available to run locally with minimal infrastructure dependencies.
+
+Install some dependencies (following works for latest version of Ubuntu):
+
+```
+sudo apt-get install -y python3.6 python3-pip python3.6-dev libleveldb-dev libleveldb1v5
+sudo pip3 install pipenv
+```
+
+install the dependencies
+
+```
+pipenv install
+```
+
+activate the virtualenv
+
+```
+pipenv shell
+```
+
+Install `datapackage_pipelines_knesset`
+
+```
+pip install -e .
+```
+
+List the available pipelines
+
+```
+dpp
+```
+
+run a pipeline
+
+```
+dpp run <PIPELINE_ID>
+```
+
 
 ### Running the full pipelines environment using docker
 
