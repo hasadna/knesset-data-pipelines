@@ -1,14 +1,50 @@
-language: python
-python:
-  - 3.6
-install:
-  - true
-script:
-  - bin/travis_script.sh
-cache:
-  directories:
-  - "$HOME/.cache"
-  - "$HOME/google-cloud-sdk/"
+language: bash
 sudo: required
+env:
+  global:
+  - OPENSSL_CMD="openssl aes-256-cbc -K $encrypted_49943f1824d0_key -iv $encrypted_49943f1824d0_iv -in ./k8s-ops-secret.json.enc -out ./secret-k8s-ops.json -d"
+  - OPS_REPO_SLUG=OriHoch/knesset-data-k8s
+  - OPS_REPO_BRANCH=master
+  - CLOUDSDK_CORE_PROJECT=hasadna-oknesset
+  - PROJECT_NAME=knesset-data-pipelines
+  - HELM_UPGRADE_CMD="./helm_upgrade_external_chart.sh pipelines-jobs"
+  matrix:
+  - DEPLOY_ENVIRONMENT=production DEPLOY_BRANCH=master
+  - DEPLOY_ENVIRONMENT=production DEPLOY_BRANCH=upgrade-datapacage-pipelines-add-pipenv
 services:
-  - docker
+- docker
+script:
+- |
+  if [ "${DEPLOY_ENVIRONMENT}" != "" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] &&\
+     ([ "${TRAVIS_BRANCH}" == "${DEPLOY_BRANCH}" ] || ([ "${DEPLOY_TAGS}" == "true" ] && [ "${TRAVIS_TAG}" != "" ])) &&\
+     ! echo "${TRAVIS_COMMIT_MESSAGE}" | grep -- --no-deploy
+  then
+      $OPENSSL_CMD
+      if [ "${TRAVIS_TAG}" != "" ]; then
+          IMAGE_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/${PROJECT_NAME}-tag:${TRAVIS_TAG}"
+      else
+          IMAGE_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/${PROJECT_NAME}-cd:${TRAVIS_COMMIT}"
+      fi
+      B64_UPDATE_VALUES=`echo '{"pipelines-jobs":{"image":"'${IMAGE_TAG}'"}}' | base64 -w0`
+      wget https://raw.githubusercontent.com/OriHoch/sk8s-ops/master/run_docker_ops.sh
+      chmod +x run_docker_ops.sh bin/continuous_deployment.sh
+      if ./run_docker_ops.sh "${DEPLOY_ENVIRONMENT}" "/pwd/continuous_deployment.sh" \
+                            "orihoch/sk8s-ops" "${OPS_REPO_SLUG}" "${OPS_REPO_BRANCH}" "" "
+                            -v `pwd`:/pwd
+                            -e B64_UPDATE_VALUES=${B64_UPDATE_VALUES}
+                            -e K8S_OPS_GITHUB_REPO_TOKEN=${K8S_OPS_GITHUB_REPO_TOKEN}
+                            -e OPS_REPO_SLUG=${OPS_REPO_SLUG}
+                            -e OPS_REPO_BRANCH=${OPS_REPO_BRANCH}
+                            -e B64_UPDATE_VALUES=${B64_UPDATE_VALUES}
+                            -e IMAGE_TAG=${IMAGE_TAG}
+                            -e CLOUDSDK_CORE_PROJECT=${CLOUDSDK_CORE_PROJECT}
+                            -e PROJECT_NAME=${PROJECT_NAME}"; then
+        true
+      else
+        echo "failed to run docker ops"
+        false
+      fi
+  else
+    echo "skipping deployment"
+    true
+  fi

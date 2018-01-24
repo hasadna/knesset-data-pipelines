@@ -1,0 +1,20 @@
+steps:
+# comment this step on first build
+- name: gcr.io/cloud-builders/docker
+  entrypoint: bash
+  args:
+  - "-c"
+  - "docker pull gcr.io/${_CLOUDSDK_CORE_PROJECT}/${_PROJECT_NAME}-latest || true"
+- name: gcr.io/cloud-builders/docker
+  args:
+  - build
+  - "--cache-from"
+  - "gcr.io/${_CLOUDSDK_CORE_PROJECT}/${_PROJECT_NAME}-latest"
+  - "-t"
+  - "gcr.io/${_CLOUDSDK_CORE_PROJECT}/${_PROJECT_NAME}-latest"
+  - "-t"
+  - "${_IMAGE_TAG}"
+  - "."
+images:
+- "gcr.io/${_CLOUDSDK_CORE_PROJECT}/${_PROJECT_NAME}-latest"
+- "${_IMAGE_TAG}"
