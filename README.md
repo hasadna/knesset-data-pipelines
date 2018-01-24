@@ -6,6 +6,7 @@ Knesset data scrapers and data sync
 
 Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines) to scrape Knesset data and aggregate to different data stores (PostgreSQL, Elasticsearch, Files)
 
+<!-- TODO: update
 ## Available Endpoints
 * public endpoints:
   * https://next.oknesset.org/pipelines/ - pipelines dashboard
@@ -33,6 +34,7 @@ Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/d
   * https://next.oknesset.org/grafana/ - Web UI for graphing metrics (via InfluxDB)
 * deployment of this environment was done using Kubernetes (K8S) on Google Container Engine (GKE)
   * [deployment details and devops documentation](https://github.com/hasadna/knesset-data-pipelines/blob/master/devops/k8s/)
+-->
 
 ## Contributing
 
