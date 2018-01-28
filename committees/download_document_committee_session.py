@@ -1,5 +1,5 @@
 from datapackage_pipelines.wrapper import ingest, spew
-import logging, os, requests
+import logging, os, requests, time
 from datapackage_pipelines_knesset.retry_get_response_content import get_retry_response_content
 from copy import deepcopy
 
@@ -79,6 +79,7 @@ def get_resource():
             errors.append(row)
             # if len(errors) > 1000:
             #     raise Exception("Too many errors!")
+        time.sleep(0.01)
 
 
 def get_errors_resource():
