@@ -13,6 +13,8 @@ knesset-data = "*"
 botocore = "*"
 "boto3" = "*"
 python-dotenv = "*"
+"gcs-oauth2-boto-plugin" = "*"
+google-cloud-storage = "*"
 
 
 [dev-packages]

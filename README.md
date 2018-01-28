@@ -1,40 +1,9 @@
 # Knesset data pipelines
 
-[![Build Status](https://travis-ci.org/hasadna/knesset-data-pipelines.svg?branch=master)](https://travis-ci.org/hasadna/knesset-data-pipelines)
-
 Knesset data scrapers and data sync
 
-Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines) to scrape Knesset data and aggregate to different data stores (PostgreSQL, Elasticsearch, Files)
+Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines) to scrape Knesset data
 
-<!-- TODO: update
-## Available Endpoints
-* public endpoints:
-  * https://next.oknesset.org/pipelines/ - pipelines dashboard
-  * Metabase dashboards for quick friendly visualizations of the data in DB:
-    * [ועדות](http://next.oknesset.org/metabase/public/dashboard/57604bd2-73f3-4fbc-943f-53bf45287641)
-    * [חקיקה](http://next.oknesset.org/metabase/public/dashboard/edf65569-8ca3-41cb-a917-39951c80b9bc)
-    * [הצעות חוק](http://next.oknesset.org/metabase/public/dashboard/0c78c5f7-2d1b-4d99-9800-0c7495e2f7be)
-    * [מליאה](http://next.oknesset.org/metabase/public/dashboard/deb07e12-4a50-4023-b298-576af358c0ea)
-  * Data reference html pages:
-    * https://minio.oknesset.org/bills/aggregations/knesset_data_bills.html
-    * https://minio.oknesset.org/laws/aggregations/knesset_data_laws.html
-    * https://minio.oknesset.org/plenum/aggregations/knesset_data_plenum.html
-    * https://minio.oknesset.org/committees/aggregations/knesset_data_committees.html
-  * Graphana dashboards for metrics / analytics:
-    * [Knesset Dataservice Processors Metrics](https://next.oknesset.org/grafana/dashboard/db/knesset-dataservice-pipelines)
-* internal admin interfaces - password required
-  * https://next.oknesset.org/metabase/ - user friendly DB queries and dashboards
-  * https://minio.oknesset.org/ - object storage
-  * https://next.oknesset.org/adminer/ - for admin DB access
-    * in adminer UI login screen, you should choose:
-      * System: PostgreSQL
-      * Server: db
-      * Username, Password, Database: **secret**
-  * https://next.oknesset.org/flower/ - celery tasks management
-  * https://next.oknesset.org/grafana/ - Web UI for graphing metrics (via InfluxDB)
-* deployment of this environment was done using Kubernetes (K8S) on Google Container Engine (GKE)
-  * [deployment details and devops documentation](https://github.com/hasadna/knesset-data-pipelines/blob/master/devops/k8s/)
--->
 
 ## Contributing
 
@@ -52,7 +21,7 @@ sudo apt-get install -y python3.6 python3-pip python3.6-dev libleveldb-dev lible
 sudo pip3 install pipenv
 ```
 
-install the dependencies
+install the pipeline dependencies
 
 ```
 pipenv install
@@ -64,7 +33,7 @@ activate the virtualenv
 pipenv shell
 ```
 
-Install `datapackage_pipelines_knesset`
+Install the python module
 
 ```
 pip install -e .
@@ -81,6 +50,21 @@ run a pipeline
 ```
 dpp run <PIPELINE_ID>
 ```
+
+
+## downloading the dataservices knesset data
+
+The Knesset API is sometimes blocked / throttled from certain IPs.
+
+To overcome this we provide the core data available for download so pipelines that process the data don't need to call the Knesset API directly.
+
+You can set the `DATASERVICE_LOAD_FROM_URL=1` to enable download for pipelines that support it:
+
+```
+DATASERVICE_LOAD_FROM_URL=1 pipenv run dpp run ./committees/kns_committee
+```
+
+
 
 
 ### Running the full pipelines environment using docker
@@ -191,3 +175,11 @@ The db image is updated with new data from time to time, to recreate the DB from
 ```
 docker-compose stop db && sudo rm -rf .data-docker/postgresql/ && docker-compose up -d db
 ```
+
+
+### Using boto with google cloud storage
+
+* install gcloud SDK
+* get a google service account secret key file
+* `gcloud config set pass_credentials_to_gsutil false`
+* `gsutil config -e`
