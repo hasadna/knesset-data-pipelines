@@ -280,19 +280,19 @@ kns_documentcommitteesession:
         description: תאריך עדכון אחרון
 
 
-gcs_document_committee_session_files:
+gcs_list_files:
   pipeline:
-  - run: gcs_document_committee_session_files
+  - run: gcs_list_files
   - run: dump.to_path
     parameters:
-      out-path: ../data/committees/gcs_document_committee_session_files
+      out-path: ../data/committees/gcs_list_files
 
 
 download_document_committee_session:
   pipeline:
   - run: load_resource
     parameters:
-      url: ../data/committees/gcs_document_committee_session_files/datapackage.json
+      url: ../data/committees/gcs_list_files/datapackage.json
       resource: files
   - run: load_resource
     parameters:
@@ -310,10 +310,15 @@ parse_meeting_protocols_text:
   pipeline:
   - run: load_resource
     parameters:
-      url: ../data/committees/download_document_committee_session/datapackage.json
+      url: ../data/committees/gcs_list_files/datapackage.json
+      resource: files
+  - run: load_resource
+    parameters:
+      url: ../data/committees/kns_documentcommitteesession/datapackage.json
       resource: kns_documentcommitteesession
   - run: filter
     parameters:
+      resources: kns_documentcommitteesession
       in:
       - GroupTypeID: 23
   - run: parse_meeting_protocols
@@ -334,10 +339,15 @@ parse_meeting_protocols_parts:
   pipeline:
   - run: load_resource
     parameters:
-      url: ../data/committees/download_document_committee_session/datapackage.json
+      url: ../data/committees/gcs_list_files/datapackage.json
+      resource: files
+  - run: load_resource
+    parameters:
+      url: ../data/committees/kns_documentcommitteesession/datapackage.json
       resource: kns_documentcommitteesession
   - run: filter
     parameters:
+      resources: kns_documentcommitteesession
       in:
       - GroupTypeID: 23
   - run: parse_meeting_protocols
