@@ -363,6 +363,112 @@ parse_meeting_protocols_parts:
     parameters:
       out-path: ../data/committees/meeting_protocols_parts
 
+join-meetings:
+  description: join the committee meeting resources to form a single resource
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/committees/meeting_protocols_text/datapackage.json
+      resource: kns_documentcommitteesession
+  - run: rename_resource
+    parameters:
+      src: kns_documentcommitteesession
+      dst: meeting_protocols_text
+  - run: load_resource
+    parameters:
+      url: ../data/committees/meeting_protocols_parts/datapackage.json
+      resource: kns_documentcommitteesession
+  - run: rename_resource
+    parameters:
+      src: kns_documentcommitteesession
+      dst: meeting_protocols_parts
+  - run: load_resource
+    parameters:
+      url: ../data/committees/kns_cmtsessionitem/datapackage.json
+      resource: kns_cmtsessionitem
+  - run: load_resource
+    parameters:
+      url: ../data/committees/kns_committeesession/datapackage.json
+      resource: kns_committeesession
+  - run: join
+    parameters:
+      source:
+        name: meeting_protocols_text
+        key: ["CommitteeSessionID"]
+        delete: true
+      target:
+        name: kns_committeesession
+        key: ["CommitteeSessionID"]
+      fields:
+        protocol_extension:
+        text_filename:
+          name: parsed_filename
+  - run: join
+    parameters:
+      source:
+        name: meeting_protocols_parts
+        key: ["CommitteeSessionID"]
+        delete: true
+      target:
+        name: kns_committeesession
+        key: ["CommitteeSessionID"]
+      fields:
+        parts_filename:
+          name: parsed_filename
+  - run: join
+    parameters:
+      source:
+        name: kns_cmtsessionitem
+        key: ["CommitteeSessionID"]
+        delete: true
+      target:
+        name: kns_committeesession
+        key: ["CommitteeSessionID"]
+      fields:
+        topics:
+          name: Name
+          aggregate: array
+  - run: dump.to_path
+    parameters:
+      out-path: ../data/committees/joined-meetings
+
+meetings_datapackage_zip:
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/committees/gcs_list_files/datapackage.json
+      resource: files
+  - run: filter
+    parameters:
+      resources: ["files"]
+      in:
+      - file_type: parts
+  - run: load_resource
+    parameters:
+      url: ../data/committees/joined-meetings/datapackage.json
+      resource: kns_committeesession
+  - run: join
+    parameters:
+      source:
+        name: files
+        key: ["committee_session_id"]
+        delete: true
+      target:
+        name: kns_committeesession
+        key: ["CommitteeSessionID"]
+      fields:
+        parts_file_size:
+          name: size
+        parts_file_name:
+          name: name
+  - run: meetings_datapackage_zip
+    parameters:
+#      dry-run: true
+      out-file: ../data/committees/meetings_datapackage_files.zip
+  - run: dump.to_zip
+    parameters:
+      out-file: ../data/committees/meetings_datapackage.zip
+
 
 ### parse protocols
 
