@@ -469,6 +469,64 @@ meetings_datapackage_zip:
     parameters:
       out-file: ../data/committees/meetings_datapackage.zip
 
+all:
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/gcs_document_committee_session_files/datapackage.json
+      resource: files
+  - run: rename_resource
+    parameters:
+      src: files
+      dst: gcs_document_committee_session_files
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/gcs_list_files/datapackage.json
+      resource: files
+  - run: rename_resource
+    parameters:
+      src: files
+      dst: gcs_list_files
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/joined-meetings/datapackage.json
+      resource: kns_committeesession
+  - run: rename_resource
+    parameters:
+      src: kns_committeesession
+      dst: joined_meetings
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/kns_cmtsessionitem/datapackage.json
+      resource: kns_cmtsessionitem
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/kns_cmtsitecode/datapackage.json
+      resource: kns_cmtsitecode
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/kns_committee/datapackage.json
+      resource: kns_committee
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/kns_committeesession/datapackage.json
+      resource: kns_committeesession
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/kns_documentcommitteesession/datapackage.json
+      resource: kns_documentcommitteesession
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/kns_jointcommittee/datapackage.json
+      resource: kns_jointcommittee
+  - run: dump.to_path
+    parameters:
+      out-path: ../data/committees/all
+  - run: dump.to_zip
+    parameters:
+      out-file: ../data/committees/all/datapackage.zip
+
+
 
 ### parse protocols
 
