@@ -30,3 +30,4 @@ COPY members /pipelines/members
 COPY plenum /pipelines/plenum
 COPY votes /pipelines/votes
 COPY bin /pipelines/bin
+COPY *.py /pipelines/
