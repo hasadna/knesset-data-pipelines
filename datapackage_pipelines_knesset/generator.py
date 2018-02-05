@@ -43,6 +43,8 @@ class Generator(GeneratorBase):
     def filter_pipeline(cls, pipeline_id, pipeline):
         if pipeline.get("pipeline-type") == "knesset dataservice":
             yield from cls.get_knesset_dataservice_pipeline(pipeline_id, pipeline)
+        elif pipeline.get("pipeline-type") == "all package":
+            yield from cls.get_all_package_pipeline(pipeline_id, pipeline)
         else:
             pipeline["pipeline"] = steps(*[(step["run"], step.get("parameters", {})) for step in pipeline["pipeline"]])
             yield pipeline_id, pipeline
@@ -60,4 +62,19 @@ class Generator(GeneratorBase):
                                {'rows-per-page': 50}),]
         pipeline_steps += [('dump.to_path',
                             {'out-path': '../data/{}/{}'.format(pipeline['schemas-bucket'], pipeline_id)})]
+        yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
+
+    @classmethod
+    def get_all_package_pipeline(cls, pipeline_id, pipeline):
+        pipeline_steps = []
+        for resource in pipeline["resources"]:
+            pipeline_steps += [("load_resource", {"url": pipeline["base-url"] + resource["name"] + "/datapackage.json",
+                                                  "resource": resource.get("resource", resource["name"])})]
+            if resource.get("resource"):
+                pipeline_steps += [("..rename_resource",
+                                    {"src": resource["resource"], "dst": resource["name"]})]
+        pipeline_steps += [('dump.to_path',
+                            {'out-path': pipeline["out-path"]})]
+        pipeline_steps += [('dump.to_zip',
+                            {'out-file': pipeline["out-path"] + "/datapackage.zip"})]
         yield pipeline_id, {'pipeline': steps(*pipeline_steps)}

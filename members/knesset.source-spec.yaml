@@ -214,6 +214,17 @@ mk_individual:
         source: "{name}"
         type: string
 
+all:
+  pipeline-type: all package
+  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/members/
+  resources:
+  - name: kns_person
+  - name: kns_position
+  - name: kns_persontoposition
+  - name: kns_mksitecode
+  - name: mk_individual
+  out-path: ../data/members/all
+
 #
 #
 #
