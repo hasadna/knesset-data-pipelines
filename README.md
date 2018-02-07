@@ -2,13 +2,21 @@
 
 Knesset data scrapers and data sync
 
-Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines) to scrape Knesset data
+Uses the [datapackage pipelines framework](https://github.com/frictionlessdata/datapackage-pipelines) to scrape Knesset data and produce JSON+CSV files for useful queries.
+
+This flow is executed periodically and resulting files are copied to Google Cloud Storage for use by the static web site generator and (in the future) oknesset APIs.
 
 
 ## Contributing
 
 Looking to contribute? check out the [Help Wanted Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) or the [Noob Friendly Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22noob+friendly%22) for some ideas.
 
+Useful resources for getting acquainted:
+* [DPP](https://github.com/frictionlessdata/datapackage-pipelines) documentation
+* [Code](https://github.com/OriHoch/knesset-data-k8s) for the periodic execution component
+* Pipelines developed in other repos: [People](https://github.com/OriHoch/knesset-data-people), [Committees](https://github.com/OriHoch/knesset-data-committees)
+* [Info](http://main.knesset.gov.il/Activity/Info/Pages/Databases.aspx) on available data from the Knesset site
+* Living [document](https://docs.google.com/document/d/1eeQRrpGYuEJKAAtShPbjFn6i2f_UmQgg1caMTEs93ic/edit) with short list of ongoing project activities
 
 ## Running the pipelines locally
 
