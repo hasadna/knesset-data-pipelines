@@ -32,6 +32,7 @@ COPY votes /pipelines/votes
 COPY bin /pipelines/bin
 COPY *.py /pipelines/
 COPY knesset /pipelines/knesset
+COPY *.sh /pipelines/
 
 ENV PIPELINES_SCRIPT="cd /pipelines && source ./pipelines_script.sh"
 ENV RUN_PIPELINE_CMD=run_pipeline
