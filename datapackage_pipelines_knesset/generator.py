@@ -45,6 +45,8 @@ class Generator(GeneratorBase):
             yield from cls.get_knesset_dataservice_pipeline(pipeline_id, pipeline)
         elif pipeline.get("pipeline-type") == "all package":
             yield from cls.get_all_package_pipeline(pipeline_id, pipeline)
+        elif pipeline.get("pipeline-type") == "db dump":
+            yield from cls.get_db_dump_pipeline(pipeline_id, pipeline)
         else:
             pipeline["pipeline"] = steps(*[(step["run"], step.get("parameters", {})) for step in pipeline["pipeline"]])
             yield pipeline_id, pipeline
@@ -77,4 +79,22 @@ class Generator(GeneratorBase):
                             {'out-path': pipeline["out-path"]})]
         pipeline_steps += [('dump.to_zip',
                             {'out-file': pipeline["out-path"] + "/datapackage.zip"})]
+        yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
+
+    @classmethod
+    def get_db_dump_pipeline(cls, pipeline_id, pipeline):
+        pipeline_steps = [
+            ("load_resource", {"url": "https://storage.googleapis.com/knesset-data-pipelines/data/committees/kns_committee/datapackage.json",
+                               "resource": "kns_committee"}),
+            ("load_resource", {"url": "https://storage.googleapis.com/knesset-data-pipelines/data/people/members/joined-mks/datapackage.json",
+                               "resource": "mk_individual"}),
+            ("load_resource", {"url": "https://storage.googleapis.com/knesset-data-pipelines/data/people/committees/meeting-attendees/datapackage.json",
+                               "resource": "kns_committeesession"}),
+            ("dump.to_sql", {"engine": "env://DPP_DB_ENGINE", "tables": {"next_kns_committee": {"resource-name": "kns_committee",
+                                                                                                "mode": "rewrite"},
+                                                                         "next_mk_individual": {"resource-name": "mk_individual",
+                                                                                                "mode": "rewrite"},
+                                                                         "next_meeting_attendees": {"resource-name": "kns_committeesession",
+                                                                                                    "mode": "rewrite"}}})
+        ]
         yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
