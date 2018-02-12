@@ -4,7 +4,24 @@ RUN_PIPELINE_CMD="${RUN_PIPELINE_CMD:-dpp run}"
 
 RES=0;
 
-if [ "${PIPELINES_BATCH_NAME}" == "dataservices1" ]; then
+if [ "${1}" == "--dump-to-db" ]; then
+    DB_USER="${DB_USER:-oknesset}"
+    DB_HOST="${DB_HOST:-localhost}"
+    DB_PORT="${DB_PORT:-5432}"
+    DB_NAME="${DB_NAME:-oknesset}"
+    ( [ -z "DB_USER" ] || [ -z "DB_PASS" ] || [ -z "DB_HOST" ] || [ -z "DB_PORT" ] || [ -z "DB_NAME" ] ) \
+        && echo "missing required env vars" && exit 1
+    export
+    ! DPP_DB_ENGINE="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}" dpp run ./knesset/dump_to_db \
+        && echo "failed to dump to db" && RES=1
+    ! PGPASSWORD="${DB_PASS}" psql -h $DB_HOST -U $DB_USER -p $DB_PORT -d $DB_NAME -c "
+        grant select on next_kns_committee to redash_reader;
+        grant select on next_mk_individual to redash_reader;
+        grant select on next_mk_attendance to redash_reader;
+    " && echo "failed to grant permissions to redash" && RES=1
+    echo Great Success!
+
+elif [ "${PIPELINES_BATCH_NAME}" == "dataservices1" ]; then
     ! $RUN_PIPELINE_CMD ./committees/kns_committee && RES=1
     ! $RUN_PIPELINE_CMD ./committees/kns_jointcommittee && RES=1
     ! $RUN_PIPELINE_CMD ./committees/kns_cmtsitecode && RES=1
@@ -37,6 +54,7 @@ elif [ "${PIPELINES_BATCH_NAME}" == "dataservices2" ]; then
     ! $RUN_PIPELINE_CMD ./laws/kns_document_law && RES=1
     ! $RUN_PIPELINE_CMD ./laws/kns_israel_law && RES=1
     ! $RUN_PIPELINE_CMD ./laws/kns_israel_law_name && RES=1
+
 fi
 
 exit $RES
