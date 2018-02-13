@@ -84,20 +84,30 @@ class Generator(GeneratorBase):
     @classmethod
     def get_db_dump_pipeline(cls, pipeline_id, pipeline):
         pipeline_steps = [
-            ("load_resource", {"url": "https://storage.googleapis.com/knesset-data-pipelines/data/committees/kns_committee/datapackage.json",
-                               "resource": "kns_committee"}),
-            ("load_resource", {"url": "https://storage.googleapis.com/knesset-data-pipelines/data/people/members/joined-mks/datapackage.json",
-                               "resource": "mk_individual"}),
+            ("load_resource", {
+                "url": "https://storage.googleapis.com/knesset-data-pipelines/data/votes/votes/datapackage.json",
+                "resource": "votes"
+            }),
+            ("load_resource", {
+                "url": "https://storage.googleapis.com/knesset-data-pipelines/data/committees/kns_committee/datapackage.json",
+                "resource": "kns_committee"
+            }),
+            ("load_resource", {
+                "url": "https://storage.googleapis.com/knesset-data-pipelines/data/people/members/joined-mks/datapackage.json",
+                "resource": "mk_individual"
+            }),
+            ("load_resource", {
+                "url": "https://storage.googleapis.com/knesset-data-pipelines/data/people/committees/committee-meeting-attendees-mks-stats/datapackage.json",
+                "resource": "mk_attendance"
+            }),
             # remove positions and altnames because oknesset DB doesn't support jsonb
             # TODO: normalize altnames and positions to mk_individual or other tables
             ("set_types", {"resources": "mk_individual", "types": {"positions": None, "altnames": None}}),
-            ("load_resource", {"url": "https://storage.googleapis.com/knesset-data-pipelines/data/people/committees/committee-meeting-attendees-mks-stats/datapackage.json",
-                               "resource": "mk_attendance"}),
-            ("dump.to_sql", {"engine": "env://DPP_DB_ENGINE", "tables": {"next_kns_committee": {"resource-name": "kns_committee",
-                                                                                                "mode": "rewrite"},
-                                                                         "next_mk_individual": {"resource-name": "mk_individual",
-                                                                                                "mode": "rewrite"},
-                                                                         "next_mk_attendance": {"resource-name": "mk_attendance",
-                                                                                                    "mode": "rewrite"}}})
+            ("dump.to_sql", {"engine": "env://DPP_DB_ENGINE", "tables": {
+                "next_votes": {"resource-name": "votes", "mode": "rewrite"},
+                "next_kns_committee": {"resource-name": "kns_committee", "mode": "rewrite"},
+                "next_mk_individual": {"resource-name": "mk_individual", "mode": "rewrite"},
+                "next_mk_attendance": {"resource-name": "mk_attendance", "mode": "rewrite"},
+            }})
         ]
         yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
