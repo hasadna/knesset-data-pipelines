@@ -2,6 +2,6 @@ tableschema-sql==0.9.0
 https://github.com/OriHoch/datapackage-pipelines/archive/add-raw-status-api-endpoint-backport-to-v1.2.1.zip
 knesset-data==2.0.2
 flower==0.9.2
-boto3==1.4.7
+boto3==1.5.33
 https://github.com/OriHoch/datapackage-pipelines-aws/archive/add-support-for-s3-compatible-apis.zip
 requests[socks]>=2.18.4,==2.*
