@@ -51,3 +51,27 @@ v_lobbyist:
         source: "{name}"
         type: boolean
         description: חבר בסיעה
+v_lobbyist_clients:
+  pipeline-type: knesset dataservice
+  schemas-bucket: "lobbyists"
+  dataservice-parameters:
+    resource-name: v_lobbyist_clients
+    service-name: lobbyists
+    method-name: "V_LobbyistsClients"
+    fields:
+      LobbyistID:
+        source: "{name}"
+        type: integer
+        description: קוד השדלן
+      ClientID:
+        source: "{name}"
+        type: integer
+        description: קוד הלקוח
+      Name:
+        source: "{name}"
+        type: string
+        description: שם
+      ClientsNames:
+        source: "{name}"
+        type: string
+        description: שמות הלקוחות
