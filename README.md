@@ -89,3 +89,13 @@ Run the dump to db pipeline:
 ```
 DPP_DB_ENGINE=postgresql://postgres:123456@localhost:5432/postgres dpp run ./knesset/dump_to_db
 ```
+
+
+## running using docker
+
+```
+docker pull orihoch/knesset-data-pipelines
+docker run -it --entrypoint bash -v `pwd`:/pipelines orihoch/knesset-data-pipelines
+```
+
+Continue with `Running the pipelines locally` section above
