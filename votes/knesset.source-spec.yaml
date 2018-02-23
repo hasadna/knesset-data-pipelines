@@ -133,3 +133,20 @@ view_vote_mk_individual:
         source: mk_individual_first_name_eng
         type: string
         description: First Name English
+
+vote_result_type:
+  pipeline-type: knesset dataservice
+  schemas-bucket: votes
+  dataservice-parameters:
+    resource-name: vote_result_type
+    service-name: votes
+    method-name: "vote_result_type"
+    fields:
+      result_type_id:
+        source: result_type_id
+        type: integer
+        description: id
+      result_type_name:
+        source: result_type_name
+        type: string
+        description: result name
