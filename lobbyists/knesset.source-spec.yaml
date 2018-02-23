@@ -1,0 +1,53 @@
+v_lobbyist:
+  pipeline-type: knesset dataservice
+  schemas-bucket: "lobbyists"
+  dataservice-parameters:
+    resource-name: v_lobbyist
+    service-name: lobbyists
+    method-name: "V_Lobbyists"
+    fields:
+      LobbyistID:
+        source: "{name}"
+        type: integer
+        description: קוד השדלן
+        primaryKey: true
+      IdentityNumber:
+        source: "{name}"
+        type: string
+        description: מספר זהות
+      FullName:
+        source: "{name}"
+        type: string
+        description: שם מלא
+      PermitTypeValue:
+        source: "{name}"
+        type: string
+        description: סוג היתר
+      Key:
+        source: "{name}"
+        type: number
+        description: מפתח
+      CorporationName:
+        source: "{name}"
+        type: string
+        description: שם חברה
+      IsIndependent:
+        source: "{name}"
+        type: boolean
+        description: האם עצמאי
+      CorpNumber:
+        source: "{name}"
+        type: number
+        description: מספר חברה
+      PracticeFramework:
+        source: "{name}"
+        type: string
+        description: מסגרת
+      IsMemberInFaction:
+        source: "{name}"
+        type: string
+        description: האם חבר בסיעה
+      MemberInFaction:
+        source: "{name}"
+        type: boolean
+        description: חבר בסיעה
