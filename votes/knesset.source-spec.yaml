@@ -150,3 +150,52 @@ vote_result_type:
         source: result_type_name
         type: string
         description: result name
+
+vote_rslts_kmmbr_shadow:
+  pipeline-type: knesset dataservice
+  schemas-bucket: votes
+  dataservice-parameters:
+    resource-name: vote_rslts_kmmbr_shadow
+    service-name: votes
+    method-name: "vote_rslts_kmmbr_shadow"
+    fields:
+      vote_id:
+        source: vote_id
+        type: integer
+        description: vote id
+      kmmbr_id:
+        source: kmmbr_id
+        type: string
+        description: knesset member id
+      kmmbr_name:
+        source: kmmbr_name
+        type: string
+        description: knesset member name
+      vote_result:
+        source: vote_result
+        type: integer
+        description: vote result fk for vote result type
+      knesset_num:
+        source: knesset_num
+        type: integer
+        description: knesset num
+      faction_id:
+        source: faction_id
+        type: integer
+        description: faction id
+      faction_name:
+        source: faction_name
+        type: string
+        description: faction name
+      reason:
+        source: reason
+        type: integer
+        description: reason
+      modifier:
+        source: modifier
+        type: string
+        description: modifier
+      remark:
+        source: remark
+        type: string
+        description: remark
