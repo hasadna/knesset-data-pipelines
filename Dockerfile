@@ -31,7 +31,7 @@ COPY lobbyists /pipelines/lobbyists
 COPY members /pipelines/members
 COPY plenum /pipelines/plenum
 COPY votes /pipelines/votes
-COPY votes_kmember /pipelines/votes
+COPY votes_kmember /pipelines/votes_kmember
 COPY bin /pipelines/bin
 COPY *.py /pipelines/
 COPY knesset /pipelines/knesset
