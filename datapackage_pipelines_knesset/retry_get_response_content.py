@@ -27,7 +27,6 @@ def get_retry_response_content(url, params, timeout, proxies, retry_num, num_ret
         headers['Cookie'] = os.environ['KNESET_DATASERVICE_COOKIE']
         headers['User-Agent'] = DEFAULT_USER_AGENT
     try:
-        logging.info("headers: %s", headers)
         response = requests.get(url, params=params, timeout=timeout, proxies=proxies, headers=headers)
     except requests.exceptions.InvalidSchema:
         # missing dependencies for SOCKS support
@@ -60,6 +59,7 @@ def get_retry_response_content(url, params, timeout, proxies, retry_num, num_ret
             raise Exception("seems your request is blocked, you should use the app ssh socks proxy\n"
                             "url={}\n"
                             "params={}\n"
-                            "proxies={}".format(url, params, proxies))
+                            "proxies={}\n"
+                            "headers={}".format(url, params, proxies, headers))
         else:
             return response.content
