@@ -1,0 +1,28 @@
+join_votes_shadow_mk:
+  description: join the votes sessions, the votes themselves, and the voters
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/people/members/joined-mks/datapackage.json
+      resource: mk_individual
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/votes/vote_rslts_kmmbr_shadow/datapackage.json
+      resource: vote_rslts_kmmbr_shadow
+
+  - run: join
+    parameters:
+      source:
+        name: mk_individual
+        key: "{mk_individual_first_name} {mk_individual_name}"
+      target:
+        name: vote_rslts_kmmbr_shadow
+        key: ["kmmbr_name"]
+      fields:
+        mk_individual_id:
+          name: mk_individual_id
+      full: true
+
+  - run: dump.to_path
+    parameters:
+      out-path: ../data/votes_kmember/joined-votes-kmember
