@@ -99,3 +99,5 @@ docker run -it --entrypoint bash -v `pwd`:/pipelines orihoch/knesset-data-pipeli
 ```
 
 Continue with `Running the pipelines locally` section above
+
+You can usually fix permissions problems on the files by running inside the docker `chown -R 1000:1000 .`
