@@ -45,7 +45,15 @@ elif [ "${PIPELINES_BATCH_NAME}" == "dataservices1" ]; then
     ! $RUN_PIPELINE_CMD ./bills/kns_billunion && RES=1
 
 elif [ "${PIPELINES_BATCH_NAME}" == "dataservices2" ]; then
-    ! $RUN_PIPELINE_CMD ./votes/votes && RES=1
+    ! $RUN_PIPELINE_CMD ./lobbyists/v_lobbyist && RES=1
+    ! $RUN_PIPELINE_CMD ./lobbyists/v_lobbyist_clients && RES=1
+
+    ! $RUN_PIPELINE_CMD ./votes/view_vote_rslts_hdr_approved && RES=1
+    ! $RUN_PIPELINE_CMD ./votes/view_vote_mk_individual && RES=1
+    ! $RUN_PIPELINE_CMD ./votes/vote_result_type && RES=1
+    ! $RUN_PIPELINE_CMD ./votes/vote_rslts_kmmbr_shadow && RES=1
+    ! $RUN_PIPELINE_CMD ./votes/join-votes && RES=1
+    ! $RUN_PIPELINE_CMD ./votes/join_votes_shadow_mk && RES=1
 
     ! $RUN_PIPELINE_CMD ./plenum/kns_plenumsession && RES=1
     ! $RUN_PIPELINE_CMD ./plenum/kns_plmsessionitem && RES=1

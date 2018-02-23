@@ -120,3 +120,4 @@ devops/k8s/charts/*/Chart.yaml
 devops/k8s/secrets.env.production
 *.secret.env
 secret*
+.dpp

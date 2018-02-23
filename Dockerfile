@@ -25,10 +25,13 @@ COPY --from=orihoch/sk8s-pipelines:v0.0.3-g /entrypoint.sh /entrypoint.sh
 
 COPY bills /pipelines/bills
 COPY committees /pipelines/committees
+COPY knesset /pipelines/knesset
 COPY laws /pipelines/laws
+COPY lobbyists /pipelines/lobbyists
 COPY members /pipelines/members
 COPY plenum /pipelines/plenum
 COPY votes /pipelines/votes
+COPY votes_kmember /pipelines/votes
 COPY bin /pipelines/bin
 COPY *.py /pipelines/
 COPY knesset /pipelines/knesset
