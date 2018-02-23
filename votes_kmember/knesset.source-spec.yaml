@@ -3,11 +3,11 @@ join_votes_shadow_mk:
   pipeline:
   - run: load_resource
     parameters:
-      url: ../data/people/members/joined-mks/datapackage.json
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/people/members/joined-mks/datapackage.json
       resource: mk_individual
   - run: load_resource
     parameters:
-      url: ../data/votes/vote_rslts_kmmbr_shadow/datapackage.json  # TODO convert back to google storage
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/votes/vote_rslts_kmmbr_shadow/datapackage.json
       resource: vote_rslts_kmmbr_shadow
 
   - run: join
