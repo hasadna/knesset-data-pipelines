@@ -6,6 +6,8 @@ import requests
 
 from datapackage_pipelines_knesset.dataservice.exceptions import ReachedMaxRetries, InvalidStatusCodeException
 
+DEFAULT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36'
+
 
 def is_blocked(content):
     for str in ['if(u82222.w(u82222.O', 'window.rbzid=', '<html><head><meta charset="utf-8"><script>']:
@@ -19,8 +21,14 @@ def get_retry_response_content(url, params, timeout, proxies, retry_num, num_ret
     proxies = proxies if proxies else {}
     if os.environ.get("DATASERVICE_HTTP_PROXY"):
         proxies["http"] = os.environ["DATASERVICE_HTTP_PROXY"]
+
+    headers = {}
+    if os.environ.get("KNESET_DATASERVICE_COOKIE"):
+        headers['Cookie'] = os.environ['KNESET_DATASERVICE_COOKIE']
+        headers['User-Agent'] = DEFAULT_USER_AGENT
     try:
-        response = requests.get(url, params=params, timeout=timeout, proxies=proxies)
+        logging.info("headers: %s", headers)
+        response = requests.get(url, params=params, timeout=timeout, proxies=proxies, headers=headers)
     except requests.exceptions.InvalidSchema:
         # missing dependencies for SOCKS support
         raise
@@ -32,7 +40,8 @@ def get_retry_response_content(url, params, timeout, proxies, retry_num, num_ret
                                                                                        num_retries,
                                                                                        seconds_between_retries))
             time.sleep(seconds_between_retries)
-            return get_retry_response_content(url, params, timeout, proxies, retry_num + 1, num_retries, seconds_between_retries)
+            return get_retry_response_content(url, params, timeout, proxies, retry_num + 1, num_retries,
+                                              seconds_between_retries)
         else:
             raise ReachedMaxRetries(e)
     if response.status_code != 200:
