@@ -35,6 +35,7 @@ elif [ "${PIPELINES_BATCH_NAME}" == "dataservices1" ]; then
     ! $RUN_PIPELINE_CMD ./members/kns_persontoposition && RES=1
     ! $RUN_PIPELINE_CMD ./members/kns_mksitecode && RES=1
     ! $RUN_PIPELINE_CMD ./members/mk_individual && RES=1
+    ! $RUN_PIPELINE_CMD ./members/presence && RES=1
 
     ! $RUN_PIPELINE_CMD ./bills/kns_bill && RES=1
     ! $RUN_PIPELINE_CMD ./bills/kns_billname && RES=1
