@@ -85,6 +85,10 @@ class Generator(GeneratorBase):
     def get_db_dump_pipeline(cls, pipeline_id, pipeline):
         pipeline_steps = [
             ("load_resource", {
+                "url": "https://storage.googleapis.com/knesset-data-pipelines/data/knesset/kns_knessetdates/datapackage.json",
+                "resource": "kns_knessetdates"
+            }),
+            ("load_resource", {
                 "url": "https://storage.googleapis.com/knesset-data-pipelines/data/votes/view_vote_mk_individual/datapackage.json",
                 "resource": "view_vote_mk_individual"
             }),
@@ -116,6 +120,7 @@ class Generator(GeneratorBase):
             # TODO: normalize altnames and positions to mk_individual or other tables
             ("set_types", {"resources": "mk_individual", "types": {"positions": None, "altnames": None}}),
             ("dump.to_sql", {"engine": "env://DPP_DB_ENGINE", "tables": {
+                "next_kns_knessetdates": {"resource-name": "kns_knessetdates", "mode": "rewrite"},
                 "next_view_vote_mk_individual": {"resource-name": "view_vote_mk_individual", "mode": "rewrite"},
                 "next_view_vote_rslts_hdr_approved": {"resource-name": "view_vote_rslts_hdr_approved", "mode": "rewrite"},
                 "next_vote_result_type": {"resource-name": "vote_result_type", "mode": "rewrite"},

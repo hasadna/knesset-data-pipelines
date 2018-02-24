@@ -1,2 +1,48 @@
 dump_to_db:
   pipeline-type: db dump
+
+
+kns_knessetdates:
+  pipeline-type: knesset dataservice
+  schemas-bucket: "knesset"
+  dataservice-parameters:
+    resource-name: kns_knessetdates
+    service-name: api
+    method-name: "KNS_KnessetDates"
+    fields:
+      KnessetDateID:
+        source: "{name}"
+        type: integer
+        description: מספר השורה בטבלה זו
+      KnessetNum:
+        source: "{name}"
+        type: integer
+        description: מספר הכנסת
+      Name:
+        source: "{name}"
+        type: string
+        description: שם הכנסת
+      Assembly:
+        source: "{name}"
+        type: integer
+        description: מספר המושב
+      Plenum:
+        source: "{name}"
+        type: integer
+        description: מספר הכנס (קיץ, חורף)
+      PlenumStart:
+        source: "{name}"
+        type: datetime
+        description: תאריך תחילה
+      PlenumFinish:
+        source: "{name}"
+        type: datetime
+        description: תאריך סיום
+      IsCurrent:
+        source: "{name}"
+        type: boolean
+        description: האם זו הכנסת הנוכחית?
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון

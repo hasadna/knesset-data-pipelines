@@ -18,10 +18,11 @@ if [ "${1}" == "--dump-to-db" ]; then
         grant select on next_kns_committee to redash_reader;
         grant select on next_mk_individual to redash_reader;
         grant select on next_mk_attendance to redash_reader;
-        grant select on view_vote_mk_individual to redash_reader;
-        grant select on view_vote_rslts_hdr_approved to redash_reader;
-        grant select on vote_result_type to redash_reader;
-        grant select on vote_rslts_kmmbr_shadow to redash_reader;
+        grant select on next_view_vote_mk_individual to redash_reader;
+        grant select on next_view_vote_rslts_hdr_approved to redash_reader;
+        grant select on next_vote_result_type to redash_reader;
+        grant select on next_vote_rslts_kmmbr_shadow to redash_reader;
+        grant select on next_kns_knessetdates to redash_reader;
     " && echo "failed to grant permissions to redash" && RES=1
     echo Great Success!
 
@@ -48,6 +49,8 @@ elif [ "${PIPELINES_BATCH_NAME}" == "dataservices1" ]; then
     ! $RUN_PIPELINE_CMD ./bills/kns_billunion && RES=1
 
 elif [ "${PIPELINES_BATCH_NAME}" == "dataservices2" ]; then
+    ! $RUN_PIPELINE_CMD ./knesset/kns_knessetdates && RES=1
+
     ! $RUN_PIPELINE_CMD ./lobbyists/v_lobbyist && RES=1
     ! $RUN_PIPELINE_CMD ./lobbyists/v_lobbyist_clients && RES=1
 
