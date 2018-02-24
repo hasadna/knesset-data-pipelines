@@ -1,2 +1,20 @@
 dump_to_db:
   pipeline-type: db dump
+
+maya-directors-dump-to-db:
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/external-data/maya_directors_feb24_2018/datapackage.json
+      resource: .*
+  - run: join_maya_directors
+#  - run: dump.to_path
+#    parameters:
+#      out-path: ../data/maya_directors
+  - run: dump.to_sql
+    parameters:
+      engine: env://DPP_DB_ENGINE
+      tables:
+        maya_directors:
+          resource-name: maya_directors
+          mode: rewrite
