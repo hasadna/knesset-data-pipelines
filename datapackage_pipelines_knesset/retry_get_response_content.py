@@ -52,7 +52,6 @@ def get_retry_response_content(url, params, timeout, proxies, retry_num, num_ret
         if is_blocked(response_text) and 'Set-Cookie' in response.headers and 'Cookie' not in headers:
             # try again, but this time with the cookie we were given
             first_cookie = response.headers['Set-Cookie'].split(";")[0]
-            logging.info("setting cookie %s", first_cookie.split("=")[0])
             headers['Cookie'] = first_cookie
             return get_retry_response_content(url, params, timeout, proxies, retry_num, num_retries,
                                               seconds_between_retries, headers=headers)
