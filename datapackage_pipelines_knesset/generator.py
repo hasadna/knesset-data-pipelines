@@ -85,8 +85,20 @@ class Generator(GeneratorBase):
     def get_db_dump_pipeline(cls, pipeline_id, pipeline):
         pipeline_steps = [
             ("load_resource", {
-                "url": "https://storage.googleapis.com/knesset-data-pipelines/data/votes/votes/datapackage.json",
-                "resource": "votes"
+                "url": "https://storage.googleapis.com/knesset-data-pipelines/data/votes/view_vote_mk_individual/datapackage.json",
+                "resource": "view_vote_mk_individual"
+            }),
+            ("load_resource", {
+                "url": "https://storage.googleapis.com/knesset-data-pipelines/data/votes/view_vote_rslts_hdr_approved/datapackage.json",
+                "resource": "view_vote_rslts_hdr_approved"
+            }),
+            ("load_resource", {
+                "url": "https://storage.googleapis.com/knesset-data-pipelines/data/votes/vote_result_type/datapackage.json",
+                "resource": "vote_result_type"
+            }),
+            ("load_resource", {
+                "url": "https://storage.googleapis.com/knesset-data-pipelines/data/votes/vote_rslts_kmmbr_shadow/datapackage.json",
+                "resource": "vote_rslts_kmmbr_shadow"
             }),
             ("load_resource", {
                 "url": "https://storage.googleapis.com/knesset-data-pipelines/data/committees/kns_committee/datapackage.json",
@@ -104,7 +116,10 @@ class Generator(GeneratorBase):
             # TODO: normalize altnames and positions to mk_individual or other tables
             ("set_types", {"resources": "mk_individual", "types": {"positions": None, "altnames": None}}),
             ("dump.to_sql", {"engine": "env://DPP_DB_ENGINE", "tables": {
-                "next_votes": {"resource-name": "votes", "mode": "rewrite"},
+                "next_view_vote_mk_individual": {"resource-name": "view_vote_mk_individual", "mode": "rewrite"},
+                "next_view_vote_rslts_hdr_approved": {"resource-name": "view_vote_rslts_hdr_approved", "mode": "rewrite"},
+                "next_vote_result_type": {"resource-name": "vote_result_type", "mode": "rewrite"},
+                "next_vote_rslts_kmmbr_shadow": {"resource-name": "vote_rslts_kmmbr_shadow", "mode": "rewrite"},
                 "next_kns_committee": {"resource-name": "kns_committee", "mode": "rewrite"},
                 "next_mk_individual": {"resource-name": "mk_individual", "mode": "rewrite"},
                 "next_mk_attendance": {"resource-name": "mk_attendance", "mode": "rewrite"},

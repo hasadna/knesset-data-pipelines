@@ -18,7 +18,10 @@ if [ "${1}" == "--dump-to-db" ]; then
         grant select on next_kns_committee to redash_reader;
         grant select on next_mk_individual to redash_reader;
         grant select on next_mk_attendance to redash_reader;
-        grant select on next_votes to redash_reader;
+        grant select on view_vote_mk_individual to redash_reader;
+        grant select on view_vote_rslts_hdr_approved to redash_reader;
+        grant select on vote_result_type to redash_reader;
+        grant select on vote_rslts_kmmbr_shadow to redash_reader;
     " && echo "failed to grant permissions to redash" && RES=1
     echo Great Success!
 
