@@ -15,6 +15,7 @@ if [ "${1}" == "--dump-to-db" ]; then
     ! DPP_DB_ENGINE="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}" dpp run ./knesset/dump_to_db \
         && echo "failed to dump to db" && RES=1
     ! PGPASSWORD="${DB_PASS}" psql -h $DB_HOST -U $DB_USER -p $DB_PORT -d $DB_NAME -c "
+        grant select on next_members_presence to redash_reader;
         grant select on next_kns_committee to redash_reader;
         grant select on next_mk_individual to redash_reader;
         grant select on next_mk_attendance to redash_reader;

@@ -2,6 +2,23 @@ dump_to_db:
   pipeline-type: db dump
 
 
+dump-presence-to-db:
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/members/presence/datapackage.json
+      resource: presence
+  - run: dump.to_sql
+    parameters:
+      # set the following env var to connect to oknesset DB from oknesset-db1 server
+      # DPP_DB_ENGINE=postgresql://oknesset:${PGPASSWORD}@localhost:5432/oknesset
+      engine: env://DPP_DB_ENGINE
+      tables:
+        next_mks_presence:
+          resource-name: presence
+          mode: rewrite
+
+
 kns_knessetdates:
   pipeline-type: knesset dataservice
   schemas-bucket: "knesset"
