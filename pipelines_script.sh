@@ -27,6 +27,22 @@ if [ "${1}" == "--dump-to-db" ]; then
     " && echo "failed to grant permissions to redash" && RES=1
     echo Great Success!
 
+elif [ "${1}" == "--dump-maya-to-db" ]; then
+    DB_USER="${DB_USER:-oknesset}"
+    DB_HOST="${DB_HOST:-localhost}"
+    DB_PORT="${DB_PORT:-5432}"
+    DB_NAME="${DB_NAME:-oknesset}"
+    ( [ -z "DB_USER" ] || [ -z "DB_PASS" ] || [ -z "DB_HOST" ] || [ -z "DB_PORT" ] || [ -z "DB_NAME" ] ) \
+        && echo "missing required env vars" && exit 1
+    export
+    ! DPP_DB_ENGINE="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}" dpp run ./knesset/dump-maya-% \
+        && echo "failed to dump maya to db" && RES=1
+    ! PGPASSWORD="${DB_PASS}" psql -h $DB_HOST -U $DB_USER -p $DB_PORT -d $DB_NAME -c "
+        grant select on maya_slim_feb to redash_reader;
+        grant select on maya_full_feb to redash_reader;
+    " && echo "failed to grant permissions to redash" && RES=1
+    echo Great Success!
+
 elif [ "${PIPELINES_BATCH_NAME}" == "dataservices1" ]; then
     ! $RUN_PIPELINE_CMD ./committees/kns_committee && RES=1
     ! $RUN_PIPELINE_CMD ./committees/kns_jointcommittee && RES=1
