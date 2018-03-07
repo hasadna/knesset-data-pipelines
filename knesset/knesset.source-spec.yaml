@@ -63,3 +63,45 @@ kns_knessetdates:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
+
+
+dump-maya-slim-to-db:
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/external-data/maya_slim_feb25_18.zip
+      resource: .*
+  - run: join_maya_resources
+#  - run: dump.to_path
+#    parameters:
+#      out-path: mayaslim
+  - run: dump.to_sql
+    parameters:
+      # set the following env var to connect to oknesset DB from oknesset-db1 server
+      # DPP_DB_ENGINE=postgresql://oknesset:${PGPASSWORD}@localhost:5432/oknesset
+      engine: env://DPP_DB_ENGINE
+      tables:
+        maya_slim_feb:
+          resource-name: maya
+          mode: rewrite
+
+
+dump-maya-full-to-db:
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/external-data/maya_full_feb25_18.zip
+      resource: .*
+  - run: join_maya_resources
+#  - run: dump.to_path
+#    parameters:
+#      out-path: mayafull
+  - run: dump.to_sql
+    parameters:
+      # set the following env var to connect to oknesset DB from oknesset-db1 server
+      # DPP_DB_ENGINE=postgresql://oknesset:${PGPASSWORD}@localhost:5432/oknesset
+      engine: env://DPP_DB_ENGINE
+      tables:
+        maya_full_feb:
+          resource-name: maya
+          mode: rewrite
