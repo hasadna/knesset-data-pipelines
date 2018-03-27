@@ -239,6 +239,7 @@ all:
   - name: kns_mksitecode
   - name: mk_individual
   out-path: ../data/members/all
+  sql-tables-prefix: members
 
 #
 #

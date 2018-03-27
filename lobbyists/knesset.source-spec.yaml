@@ -51,6 +51,8 @@ v_lobbyist:
         source: "{name}"
         type: boolean
         description: חבר בסיעה
+
+
 v_lobbyist_clients:
   pipeline-type: knesset dataservice
   schemas-bucket: "lobbyists"
