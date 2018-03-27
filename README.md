@@ -86,7 +86,9 @@ docker run -d --rm --name postgresql -p 5432:5432 -e POSTGRES_PASSWORD=123456 po
 
 Run the all package with dump.to_sql enabled
 
-`DPP_DB_ENGINE=postgresql://postgres:123456@localhost:5432/postgres pipenv run dpp run ./committees/all`
+```
+DPP_DB_ENGINE=postgresql://postgres:123456@localhost:5432/postgres pipenv run dpp run ./committees/all
+```
 
 Run the dump to db pipeline:
 
@@ -94,6 +96,14 @@ Run the dump to db pipeline:
 DPP_DB_ENGINE=postgresql://postgres:123456@localhost:5432/postgres dpp run ./knesset/dump_to_db
 ```
 
+Start adminer to browse the data
+
+```
+docker run -d --name adminer -p 8080:8080 --link postgresql
+```
+
+* Adminer is available at http://localhost:8080
+  * system: postgresql, server: postgresql, username: postgres, password: 123456, database: postgres
 
 ## running using docker
 
@@ -105,3 +115,19 @@ docker run -it --entrypoint bash -v `pwd`:/pipelines orihoch/knesset-data-pipeli
 Continue with `Running the pipelines locally` section above
 
 You can usually fix permissions problems on the files by running inside the docker `chown -R 1000:1000 .`
+
+
+## testing docker build locally using google cloud
+
+this is similar to what the continuous deployment does
+
+Replace UNIQUE_TAG_NAME with a unique id for the image, e.g. the name of the branch you are testing
+
+```
+IMAGE_TAG="gcr.io/hasadna-oknesset/knesset-data-pipelines:UNIQUE_TAG_NAME"
+CLOUDSDK_CORE_PROJECT=hasadna-oknesset
+PROJECT_NAME=knesset-data-pipelines
+gcloud  --project ${CLOUDSDK_CORE_PROJECT} container builds submit \
+        --substitutions _IMAGE_TAG=${IMAGE_TAG},_CLOUDSDK_CORE_PROJECT=${CLOUDSDK_CORE_PROJECT},_PROJECT_NAME=${PROJECT_NAME} \
+        --config continuous_deployment_cloudbuild.yaml .
+```

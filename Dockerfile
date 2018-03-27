@@ -12,10 +12,7 @@ ENV FLOWER_PORT 5555
 COPY Pipfile /pipelines/
 COPY Pipfile.lock /pipelines/
 RUN pipenv install --system --deploy --ignore-pipfile && pipenv check
-
-# temporary fix for dpp not returning correct exit code
-# TODO: remove once datapackage-pipelines v1.5.4 is released
-RUN pip install --upgrade https://github.com/OriHoch/datapackage-pipelines/archive/fix-exit-code.zip
+RUN apk add --update --no-cache libpq postgresql-dev && pip install psycopg2-binary
 
 COPY datapackage_pipelines_knesset /pipelines/datapackage_pipelines_knesset
 COPY setup.py /pipelines/
