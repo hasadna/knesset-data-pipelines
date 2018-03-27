@@ -486,7 +486,7 @@ all:
   - name: kns_documentcommitteesession
   - name: kns_jointcommittee
   out-path: ../data/committees/all
-
+  sql-tables-prefix: committees
 
 
 ### parse protocols

@@ -74,15 +74,19 @@ DATASERVICE_LOAD_FROM_URL=1 pipenv run dpp run ./committees/kns_committee
 ```
 
 
-## running the knesset dump_to_db pipeline
+## dumping data to redash DB
 
-The dump to db pipeline is used to populate the obudget redash at http://data.obudget.org/
+This is used to populate the obudget redash at http://data.obudget.org/
 
 To test locally, start a postgresql server:
 
 ```
 docker run -d --rm --name postgresql -p 5432:5432 -e POSTGRES_PASSWORD=123456 postgres
 ```
+
+Run the all package with dump.to_sql enabled
+
+`DPP_DB_ENGINE=postgresql://postgres:123456@localhost:5432/postgres pipenv run dpp run ./committees/all`
 
 Run the dump to db pipeline:
 

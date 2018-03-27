@@ -79,6 +79,13 @@ class Generator(GeneratorBase):
                             {'out-path': pipeline["out-path"]})]
         pipeline_steps += [('dump.to_zip',
                             {'out-file': pipeline["out-path"] + "/datapackage.zip"})]
+        if os.environ.get('DPP_DB_ENGINE') and pipeline.get('sql-tables-prefix'):
+            pipeline_steps += [('dump.to_sql',
+                                {'engine': 'env://DPP_DB_ENGINE',
+                                 'tables': {'{}_{}'.format(pipeline['sql-tables-prefix'],
+                                                           resource['name']): {'resource-name': resource['name'],
+                                                                               'mode': 'rewrite',}
+                                            for resource in pipeline['resources']}})]
         yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
 
     @classmethod
