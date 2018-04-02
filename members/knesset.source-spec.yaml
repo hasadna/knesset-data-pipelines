@@ -233,6 +233,7 @@ all:
   pipeline-type: all package
   base-url: https://storage.googleapis.com/knesset-data-pipelines/data/members/
   resources:
+  - name: presence
   - name: kns_person
   - name: kns_position
   - name: kns_persontoposition
