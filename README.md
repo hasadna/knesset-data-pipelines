@@ -99,11 +99,17 @@ DPP_DB_ENGINE=postgresql://postgres:123456@localhost:5432/postgres dpp run ./kne
 Start adminer to browse the data
 
 ```
-docker run -d --name adminer -p 8080:8080 --link postgresql
+docker run -d --name adminer -p 8080:8080 --link postgresql adminer
 ```
 
 * Adminer is available at http://localhost:8080
   * system: postgresql, server: postgresql, username: postgres, password: 123456, database: postgres
+
+Remove the containers when done
+
+```
+docker rm --force adminer postgresql
+```
 
 ## running using docker
 

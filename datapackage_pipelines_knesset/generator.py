@@ -75,6 +75,10 @@ class Generator(GeneratorBase):
             if resource.get("resource"):
                 pipeline_steps += [("..rename_resource",
                                     {"src": resource["resource"], "dst": resource["name"]})]
+            if resource.get('set_types'):
+                pipeline_steps += [("set_types",
+                                    {"resources": resource["name"], "types": resource['set_types']})]
+
         pipeline_steps += [('dump.to_path',
                             {'out-path': pipeline["out-path"]})]
         pipeline_steps += [('dump.to_zip',
@@ -83,8 +87,8 @@ class Generator(GeneratorBase):
             pipeline_steps += [('dump.to_sql',
                                 {'engine': 'env://DPP_DB_ENGINE',
                                  'tables': {'{}_{}'.format(pipeline['sql-tables-prefix'],
-                                                           resource['name']): {'resource-name': resource['name'],
-                                                                               'mode': 'rewrite',}
+                                                           resource['name'].replace('-', '_')): {'resource-name': resource['name'],
+                                                                                                 'mode': 'rewrite',}
                                             for resource in pipeline['resources']}})]
         yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
 
