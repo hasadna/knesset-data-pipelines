@@ -73,7 +73,15 @@ elif [ "${PIPELINES_BATCH_NAME}" == "dataservices2" ]; then
     ! $RUN_PIPELINE_CMD ./laws/kns_israel_law_name && RES=1
 
 elif [ "${PIPELINES_BATCH_NAME}" == "datapublishers" ]; then
+    ! $RUN_PIPELINE_CMD ./bills/all && RES=1
+    ! $RUN_PIPELINE_CMD ./knesset/dump_knessetdates && RES=1
+    ! $RUN_PIPELINE_CMD ./lobbyists/all && RES=1
+    ! $RUN_PIPELINE_CMD ./votes/all && RES=1
+    ! $RUN_PIPELINE_CMD ./plenum/all && RES=1
+    ! $RUN_PIPELINE_CMD ./laws/all && RES=1
+
     ! $RUN_PIPELINE_CMD ./knesset/dump_people && RES=1
+
     ! $RUN_PIPELINE_CMD ./committees/all && RES=1
     ! $RUN_PIPELINE_CMD ./members/all && RES=1
 

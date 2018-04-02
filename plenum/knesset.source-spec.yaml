@@ -134,6 +134,18 @@ kns_documentplenumsession:
         type: datetime
         description: תאריך עדכון אחרון
 
+
+all:
+  pipeline-type: all package
+  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/plenum/
+  resources:
+  - name: kns_plenumsession
+  - name: kns_plmsessionitem
+  - name: kns_documentplenumsession
+  out-path: ../data/plenum/all
+  sql-tables-prefix: plenum
+
+
 ### parse protocols
 
 ## might consume too much memory

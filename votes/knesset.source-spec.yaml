@@ -249,3 +249,14 @@ join-votes:
   - run: dump.to_path
     parameters:
       out-path: ../data/votes/joined-votes
+
+all:
+  pipeline-type: all package
+  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/votes/
+  resources:
+  - name: view_vote_rslts_hdr_approved
+  - name: view_vote_mk_individual
+  - name: vote_result_type
+  - name: vote_rslts_kmmbr_shadow
+  out-path: ../data/votes/all
+  sql-tables-prefix: votes

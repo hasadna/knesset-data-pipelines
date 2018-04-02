@@ -101,3 +101,13 @@ dump_people:
           resource-name: committee_meeting_attendees_mks
         people_mk_attendance:
           resource-name: mk_attendance
+
+
+
+all:
+  pipeline-type: all package
+  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/knesset/
+  resources:
+  - name: kns_knessetdates
+  out-path: ../data/knesset/all
+  sql-tables-prefix: knesset
