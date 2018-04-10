@@ -70,6 +70,14 @@ dump_people:
   pipeline:
   - run: load_resource
     parameters:
+      url: https://storage.googleapis.com/knesset-data-pipelines/data/people/members/joined-mks/datapackage.json
+      resource: mk_individual
+  - run: ..rename_resource
+    parameters:
+      src: mk_individual
+      dst: joined_mks
+  - run: load_resource
+    parameters:
       url: https://storage.googleapis.com/knesset-data-pipelines/data/people/committees/meeting-attendees/datapackage.json
       resource: kns_committeesession
   - run: ..rename_resource
@@ -95,13 +103,14 @@ dump_people:
     parameters:
       engine: env://DPP_DB_ENGINE
       tables:
+        people_joined_mks:
+          resource-name: joined_mks
         people_committee_meeting_attendees:
           resource-name: committee_meeting_attendees
         people_committee_meeting_attendees_mks:
           resource-name: committee_meeting_attendees_mks
         people_mk_attendance:
           resource-name: mk_attendance
-
 
 
 all:
