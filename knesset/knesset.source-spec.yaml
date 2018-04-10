@@ -113,7 +113,6 @@ dump_people:
           resource-name: mk_attendance
 
 
-
 all:
   pipeline-type: all package
   base-url: https://storage.googleapis.com/knesset-data-pipelines/data/knesset/
