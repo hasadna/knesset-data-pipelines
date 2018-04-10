@@ -74,7 +74,7 @@ elif [ "${PIPELINES_BATCH_NAME}" == "dataservices2" ]; then
 
 elif [ "${PIPELINES_BATCH_NAME}" == "datapublishers" ]; then
     ! $RUN_PIPELINE_CMD ./bills/all && RES=1
-    ! $RUN_PIPELINE_CMD ./knesset/dump_knessetdates && RES=1
+    ! $RUN_PIPELINE_CMD ./knesset/all && RES=1
     ! $RUN_PIPELINE_CMD ./lobbyists/all && RES=1
     ! $RUN_PIPELINE_CMD ./votes/all && RES=1
     ! $RUN_PIPELINE_CMD ./plenum/all && RES=1
