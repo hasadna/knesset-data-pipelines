@@ -65,6 +65,102 @@ kns_knessetdates:
         description: תאריך עדכון אחרון
 
 
+kns_govministry:
+  pipeline-type: knesset dataservice
+  schemas-bucket: "knesset"
+  dataservice-parameters:
+    resource-name: kns_govministry
+    service-name: api
+    method-name: "KNS_GovMinistry"
+    fields:
+      GovMinistryID:
+        source: "{name}"
+        type: integer
+        description: קוד המשרד הממשלתי
+      Name:
+        source: "{name}"
+        type: string
+        description: שם המשרד הממשלתי
+      IsActive:
+        source: "{name}"
+        type: boolean
+        description: האם המשרד פעיל?
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון
+
+
+kns_itemtype:
+  pipeline-type: knesset dataservice
+  schemas-bucket: "knesset"
+  dataservice-parameters:
+    resource-name: kns_itemtype
+    service-name: api
+    method-name: "KNS_ItemType"
+    fields:
+      ItemTypeID:
+        source: "{name}"
+        type: integer
+        description: קוד סוג הפריט
+      Desc:
+        source: "{name}"
+        type: string
+        description: |
+          תיאור סוג הפריט
+          הצ"ח, הלס"י, הצעת אי אמון, שאילתה, ישיבת ועדה, ישיבת מליאה,
+          תיקון טעות, חוקים אחרים, חוק אב
+      TableName:
+        source: "{name}"
+        type: string
+        description: שם הטבלה הרלוונטית
+
+
+kns_status:
+  pipeline-type: knesset dataservice
+  schemas-bucket: "knesset"
+  dataservice-parameters:
+    resource-name: kns_status
+    service-name: api
+    method-name: "KNS_Status"
+    fields:
+      StatusID:
+        source: "{name}"
+        type: integer
+        description: קוד הסטטוס
+      Desc:
+        source: "{name}"
+        type: string
+        description: |
+          תיאור הסטטוס
+          (למשל - אושרה בוועדה לקריאה ראשונה, הונחה לקריאה ראשונה ועוד)
+      TypeID:
+        source: "{name}"
+        type: integer
+        description: קוד סוג הפריט הרלוונטי
+      TypeDesc:
+        source: "{name}"
+        type: string
+        description: שם סוג הפריט הרלוונטי
+      OrderTransition:
+        source: "{name}"
+        type: integer
+        description: |
+         סדר המעבר בין הסטטוסים
+         תיאור ראשוני בלבד.
+         מחזור חיי הפריט מאפשר לפעמים מעבר בין סטטוסים שונים)
+      IsActive:
+        source: "{name}"
+        type: boolean
+        description: |
+         האם הסטטוס נמצא עדיין בשימוש
+         קיימים סטטוסים שהשימוש בהם הופסק, אבל קיימים עדיין פריטים ישנים בסטטוס זה
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון
+
+
 dump_people:
   description: dump relevant data from https://github.com/orihoch/knesset-data-people
   pipeline:
@@ -118,5 +214,8 @@ all:
   base-url: https://storage.googleapis.com/knesset-data-pipelines/data/knesset/
   resources:
   - name: kns_knessetdates
+  - name: kns_govministry
+  - name: kns_itemtype
+  - name: kns_status
   out-path: ../data/knesset/all
   sql-tables-prefix: knesset
