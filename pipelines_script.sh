@@ -48,6 +48,7 @@ elif [ "${PIPELINES_BATCH_NAME}" == "dataservices1" ]; then
     ! $RUN_PIPELINE_CMD ./bills/kns_billhistoryinitiator && RES=1
     ! $RUN_PIPELINE_CMD ./bills/kns_billsplit && RES=1
     ! $RUN_PIPELINE_CMD ./bills/kns_billunion && RES=1
+    ! $RUN_PIPELINE_CMD ./bills/kns_documentbill && RES=1
 
 elif [ "${PIPELINES_BATCH_NAME}" == "dataservices2" ]; then
     ! $RUN_PIPELINE_CMD ./knesset/kns_govministry && RES=1
