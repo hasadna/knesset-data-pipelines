@@ -98,18 +98,22 @@ class Generator(GeneratorBase):
             if resource.get('set_types'):
                 pipeline_steps += [("set_types",
                                     {"resources": resource["name"], "types": resource['set_types']})]
-
         pipeline_steps += [('dump.to_path',
                             {'out-path': pipeline["out-path"]})]
         pipeline_steps += [('dump.to_zip',
                             {'out-file': pipeline["out-path"] + "/datapackage.zip"})]
-        if os.environ.get('DPP_DB_ENGINE') and pipeline.get('sql-tables-prefix'):
-            pipeline_steps += [('dump.to_sql',
-                                {'engine': 'env://DPP_DB_ENGINE',
-                                 'tables': {'{}_{}'.format(pipeline['sql-tables-prefix'],
-                                                           resource['name'].replace('-', '_')): {'resource-name': resource['name'],
-                                                                                                 'mode': 'rewrite',}
-                                            for resource in pipeline['resources']}})]
+        assert pipeline['base-url'].startswith('https://storage.googleapis.com/knesset-data-pipelines/')
+        storage_path = '{}all'.format(pipeline['base-url'].replace('https://storage.googleapis.com/knesset-data-pipelines/', ''))
+        storage_url = "http://storage.googleapis.com/knesset-data-pipelines/{}".format(storage_path)
+        if os.environ.get("DATASERVICE_DUMP_TO_STORAGE"):
+            dump_to_storage = '..datapackage_pipelines_knesset.common.processors.dump_to_storage'
+            pipeline_steps += [(dump_to_storage, {'storage-url': storage_url,
+                                                  'out-path': '../{}'.format(storage_path),
+                                                  'command': 'python2',
+                                                  'rsync-args': ['/gsutil/gsutil', '-m', 'rsync', '-a', 'public-read', '-r'],
+                                                  'ls-args': ['/gsutil/gsutil', 'ls', '-l']},)]
+        else:
+            pipeline_steps += [('dump.to_path', {'out-path': '../{}'.format(storage_path)})]
         yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
 
     @classmethod

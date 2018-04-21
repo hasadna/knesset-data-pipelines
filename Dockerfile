@@ -17,6 +17,8 @@ RUN apk add --update --no-cache libpq postgresql-dev openssl python && pip insta
 RUN cd / && wget -q https://storage.googleapis.com/pub/gsutil.tar.gz && tar xfz gsutil.tar.gz && rm gsutil.tar.gz
 COPY boto.config /root/.boto
 
+RUN pip install --upgrade https://github.com/OriHoch/datapackage-pipelines/archive/cli-support-list-of-pipeline-ids.zip
+
 COPY datapackage_pipelines_knesset /pipelines/datapackage_pipelines_knesset
 COPY setup.py /pipelines/
 RUN pip install .

@@ -4,91 +4,67 @@ RUN_PIPELINE_CMD="${RUN_PIPELINE_CMD:-dpp run}"
 
 RES=0;
 
-if [ "${1}" == "--dump-to-db" ]; then
-    DB_USER="${DB_USER:-oknesset}"
-    DB_HOST="${DB_HOST:-localhost}"
-    DB_PORT="${DB_PORT:-5432}"
-    DB_NAME="${DB_NAME:-oknesset}"
-    ( [ -z "DB_USER" ] || [ -z "DB_PASS" ] || [ -z "DB_HOST" ] || [ -z "DB_PORT" ] || [ -z "DB_NAME" ] ) \
-        && echo "missing required env vars" && exit 1
-    export
-    ! DPP_DB_ENGINE="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}" dpp run ./knesset/dump_to_db \
-        && echo "failed to dump to db" && RES=1
-    ! PGPASSWORD="${DB_PASS}" psql -h $DB_HOST -U $DB_USER -p $DB_PORT -d $DB_NAME -c "
-        grant select on next_members_presence to redash_reader;
-        grant select on next_kns_committee to redash_reader;
-        grant select on next_mk_individual to redash_reader;
-        grant select on next_mk_attendance to redash_reader;
-        grant select on next_view_vote_mk_individual to redash_reader;
-        grant select on next_view_vote_rslts_hdr_approved to redash_reader;
-        grant select on next_vote_result_type to redash_reader;
-        grant select on next_vote_rslts_kmmbr_shadow to redash_reader;
-        grant select on next_kns_knessetdates to redash_reader;
-    " && echo "failed to grant permissions to redash" && RES=1
-    echo Great Success!
+! $RUN_PIPELINE_CMD --concurrency ${DPP_CONCURRENCY:-4} $(echo `echo "
+    ./committees/kns_committee,
+    ./committees/kns_jointcommittee,
+    ./committees/kns_cmtsitecode,
+    ./committees/kns_committeesession,
+    ./committees/kns_cmtsessionitem,
+    ./committees/kns_documentcommitteesession,
 
-elif [ "${PIPELINES_BATCH_NAME}" == "dataservices1" ]; then
-    ! $RUN_PIPELINE_CMD ./committees/kns_committee && RES=1
-    ! $RUN_PIPELINE_CMD ./committees/kns_jointcommittee && RES=1
-    ! $RUN_PIPELINE_CMD ./committees/kns_cmtsitecode && RES=1
-    ! $RUN_PIPELINE_CMD ./committees/kns_committeesession && RES=1
-    ! $RUN_PIPELINE_CMD ./committees/kns_cmtsessionitem && RES=1
-    ! $RUN_PIPELINE_CMD ./committees/kns_documentcommitteesession && RES=1
+    ./members/kns_person,
+    ./members/kns_position,
+    ./members/kns_persontoposition,
+    ./members/kns_mksitecode,
+    ./members/mk_individual,
+    ./members/presence,
 
-    ! $RUN_PIPELINE_CMD ./members/kns_person && RES=1
-    ! $RUN_PIPELINE_CMD ./members/kns_position && RES=1
-    ! $RUN_PIPELINE_CMD ./members/kns_persontoposition && RES=1
-    ! $RUN_PIPELINE_CMD ./members/kns_mksitecode && RES=1
-    ! $RUN_PIPELINE_CMD ./members/mk_individual && RES=1
-    ! $RUN_PIPELINE_CMD ./members/presence && RES=1
+    ./bills/kns_bill,
+    ./bills/kns_billname,
+    ./bills/kns_billinitiator,
+    ./bills/kns_billhistoryinitiator,
+    ./bills/kns_billsplit,
+    ./bills/kns_billunion,
+    ./bills/kns_documentbill
 
-    ! $RUN_PIPELINE_CMD ./bills/kns_bill && RES=1
-    ! $RUN_PIPELINE_CMD ./bills/kns_billname && RES=1
-    ! $RUN_PIPELINE_CMD ./bills/kns_billinitiator && RES=1
-    ! $RUN_PIPELINE_CMD ./bills/kns_billhistoryinitiator && RES=1
-    ! $RUN_PIPELINE_CMD ./bills/kns_billsplit && RES=1
-    ! $RUN_PIPELINE_CMD ./bills/kns_billunion && RES=1
-    ! $RUN_PIPELINE_CMD ./bills/kns_documentbill && RES=1
+    ./knesset/kns_govministry,
+    ./knesset/kns_itemtype,
+    ./knesset/kns_status,
+    ./knesset/kns_knessetdates,
 
-elif [ "${PIPELINES_BATCH_NAME}" == "dataservices2" ]; then
-    ! $RUN_PIPELINE_CMD ./knesset/kns_govministry && RES=1
-    ! $RUN_PIPELINE_CMD ./knesset/kns_itemtype && RES=1
-    ! $RUN_PIPELINE_CMD ./knesset/kns_status && RES=1
-    ! $RUN_PIPELINE_CMD ./knesset/kns_knessetdates && RES=1
+    ./lobbyists/v_lobbyist,
+    ./lobbyists/v_lobbyist_clients,
 
-    ! $RUN_PIPELINE_CMD ./lobbyists/v_lobbyist && RES=1
-    ! $RUN_PIPELINE_CMD ./lobbyists/v_lobbyist_clients && RES=1
+    ./votes/view_vote_rslts_hdr_approved,
+    ./votes/view_vote_mk_individual,
+    ./votes/vote_result_type,
+    ./votes/vote_rslts_kmmbr_shadow,
+    ./votes/join-votes,
+    ./votes/join_votes_shadow_mk,
 
-    ! $RUN_PIPELINE_CMD ./votes/view_vote_rslts_hdr_approved && RES=1
-    ! $RUN_PIPELINE_CMD ./votes/view_vote_mk_individual && RES=1
-    ! $RUN_PIPELINE_CMD ./votes/vote_result_type && RES=1
-    ! $RUN_PIPELINE_CMD ./votes/vote_rslts_kmmbr_shadow && RES=1
-    ! $RUN_PIPELINE_CMD ./votes/join-votes && RES=1
-    ! $RUN_PIPELINE_CMD ./votes/join_votes_shadow_mk && RES=1
+    ./plenum/kns_plenumsession,
+    ./plenum/kns_plmsessionitem,
+    ./plenum/kns_documentplenumsession,
 
-    ! $RUN_PIPELINE_CMD ./plenum/kns_plenumsession && RES=1
-    ! $RUN_PIPELINE_CMD ./plenum/kns_plmsessionitem && RES=1
-    ! $RUN_PIPELINE_CMD ./plenum/kns_documentplenumsession && RES=1
+    ./laws/kns_law,
+    ./laws/kns_law_binding,
+    ./laws/kns_document_law,
+    ./laws/kns_israel_law,
+    ./laws/kns_israel_law_name
+"` | sed 's/ //g') && RES=1
 
-    ! $RUN_PIPELINE_CMD ./laws/kns_law && RES=1
-    ! $RUN_PIPELINE_CMD ./laws/kns_law_binding && RES=1
-    ! $RUN_PIPELINE_CMD ./laws/kns_document_law && RES=1
-    ! $RUN_PIPELINE_CMD ./laws/kns_israel_law && RES=1
-    ! $RUN_PIPELINE_CMD ./laws/kns_israel_law_name && RES=1
+! $RUN_PIPELINE_CMD --concurrency ${DPP_CONCURRENCY:-4} $(echo `echo "
+    ./bills/all,
+    ./knesset/all,
+    ./lobbyists/all,
+    ./votes/all,
+    ./plenum/all,
+    ./laws/all,
 
-elif [ "${PIPELINES_BATCH_NAME}" == "datapublishers" ]; then
-    ! $RUN_PIPELINE_CMD ./bills/all && RES=1
-    ! $RUN_PIPELINE_CMD ./knesset/all && RES=1
-    ! $RUN_PIPELINE_CMD ./lobbyists/all && RES=1
-    ! $RUN_PIPELINE_CMD ./votes/all && RES=1
-    ! $RUN_PIPELINE_CMD ./plenum/all && RES=1
-    ! $RUN_PIPELINE_CMD ./laws/all && RES=1
+    ./knesset/dump_people,
 
-    ! $RUN_PIPELINE_CMD ./knesset/dump_people && RES=1
-
-    ! $RUN_PIPELINE_CMD ./committees/all && RES=1
-    ! $RUN_PIPELINE_CMD ./members/all && RES=1
-
-fi
+    ./committees/all,
+    ./members/all
+"` | sed 's/ //g') && RES=1
 
 exit $RES
