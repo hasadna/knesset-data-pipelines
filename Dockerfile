@@ -18,6 +18,11 @@ COPY datapackage_pipelines_knesset /pipelines/datapackage_pipelines_knesset
 COPY setup.py /pipelines/
 RUN pip install .
 
+RUN apk --update add openssl python &&\
+    cd / && wget -q https://storage.googleapis.com/pub/gsutil.tar.gz &&\
+    tar xfz gsutil.tar.gz && rm gsutil.tar.gz
+COPY boto.config /root/.boto
+
 COPY --from=orihoch/sk8s-pipelines:v0.0.3-g /entrypoint.sh /entrypoint.sh
 
 COPY bills /pipelines/bills

@@ -53,17 +53,31 @@ class Generator(GeneratorBase):
 
     @classmethod
     def get_knesset_dataservice_pipeline(cls, pipeline_id, pipeline):
+        storage_path = "data/{}/{}".format(pipeline['schemas-bucket'], pipeline_id)
+        storage_url = "http://storage.googleapis.com/knesset-data-pipelines/{}".format(storage_path)
+        resource_name = pipeline_id
         if os.environ.get("DATASERVICE_LOAD_FROM_URL"):
-            pipeline_steps = [('load_resource',
-                               {"url": "http://storage.googleapis.com/knesset-data-pipelines/data/{}/{}/datapackage.json".format(pipeline['schemas-bucket'], pipeline_id),
-                                "resource": pipeline_id}),]
+            pipeline_steps = [('load_resource', {"url": "{}/datapackage.json".format(storage_url),
+                                                 "resource": resource_name}),]
         else:
             pipeline_steps = [('..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource',
                                pipeline["dataservice-parameters"]),
                               ('..datapackage_pipelines_knesset.common.processors.throttle',
                                {'rows-per-page': 50}),]
-        pipeline_steps += [('dump.to_path',
-                            {'out-path': '../data/{}/{}'.format(pipeline['schemas-bucket'], pipeline_id)})]
+        if os.environ.get("DATASERVICE_DUMP_TO_STORAGE"):
+            dump_to_storage = '..datapackage_pipelines_knesset.common.processors.dump_to_storage'
+            pipeline_steps += [(dump_to_storage, {'storage-url': storage_url,
+                                                  'out-path': '../{}'.format(storage_path),
+                                                  'command': 'python2',
+                                                  'rsync-args': ['/gsutil/gsutil', '-m', 'rsync', '-a', 'public-read', '-r'],
+                                                  'ls-args': ['/gsutil/gsutil', 'ls', '-l']},)]
+        else:
+            pipeline_steps += [('dump.to_path', {'out-path': '../{}'.format(storage_path)})]
+        if os.environ.get("DATASERVICE_DUMP_TO_SQL"):
+            table_name = '{}_{}'.format(pipeline['schemas-bucket'], pipeline_id.replace('-', '_'))
+            pipeline_steps += [('dump.to_sql',
+                                {'engine': 'env://DPP_DB_ENGINE',
+                                 'tables': {table_name: {'resource-name': pipeline_id, 'mode': 'rewrite', }}})]
         yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
 
     @classmethod
