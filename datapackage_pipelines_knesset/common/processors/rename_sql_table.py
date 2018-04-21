@@ -30,6 +30,10 @@ def get_resources():
     logging.info('renaming sql table {} --> {}'.format(parameters['temp-table'], parameters['table']))
     engine = get_engine()
     connection = engine.connect()
+    try:
+        connection.execute('drop table "{}"'.format(parameters['table']))
+    except Exception:
+        pass
     connection.execute('alter table "{}" rename to "{}"'.format(parameters['temp-table'], parameters['table']))
     connection.close()
 
