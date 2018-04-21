@@ -1,6 +1,6 @@
 from datapackage_pipelines.generators import GeneratorBase, steps
 from copy import deepcopy
-import logging, os, requests, codecs
+import logging, os, requests, codecs, uuid
 
 
 __escape_decoder = codecs.getdecoder('unicode_escape')
@@ -74,10 +74,16 @@ class Generator(GeneratorBase):
         else:
             pipeline_steps += [('dump.to_path', {'out-path': '../{}'.format(storage_path)})]
         if os.environ.get("DATASERVICE_DUMP_TO_SQL"):
-            table_name = '{}_{}'.format(pipeline['schemas-bucket'], pipeline_id.replace('-', '_'))
+            temp_table_name = str(uuid.uuid1()).replace('-', '')
             pipeline_steps += [('dump.to_sql',
                                 {'engine': 'env://DPP_DB_ENGINE',
-                                 'tables': {table_name: {'resource-name': pipeline_id, 'mode': 'rewrite', }}})]
+                                 'tables': {temp_table_name: {'resource-name': pipeline_id, 'mode': 'rewrite', }}})]
+            table_name = '{}_{}'.format(pipeline['schemas-bucket'], pipeline_id.replace('-', '_'))
+            rename_table = '..datapackage_pipelines_knesset.common.processors.rename_sql_table'
+            pipeline_steps += [(rename_table,
+                                {'engine': 'env://DPP_DB_ENGINE',
+                                 'table': table_name,
+                                 'temp-table': temp_table_name})]
         yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
 
     @classmethod
