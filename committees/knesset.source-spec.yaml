@@ -283,9 +283,16 @@ kns_documentcommitteesession:
 gcs_list_files:
   pipeline:
   - run: gcs_list_files
-  - run: dump.to_path
+  - run: knesset.dump_to_path
     parameters:
       out-path: ../data/committees/gcs_list_files
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        committees_gcs_list_files:
+          resource-name: files
+        committees_gcs_list_files_stats:
+          resource-name: stats
 
 
 download_document_committee_session:
@@ -301,9 +308,16 @@ download_document_committee_session:
   - run: download_document_committee_session
     parameters:
       out-path: ../data/committees/download_document_committee_session
-  - run: dump.to_path
+  - run: knesset.dump_to_path
     parameters:
       out-path: ../data/committees/download_document_committee_session
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        committees_download_document_committee_session:
+          resource-name: kns_documentcommitteesession
+        committees_download_document_committee_session_errors:
+          resource-name: errors
 
 
 parse_meeting_protocols_text:
@@ -330,9 +344,16 @@ parse_meeting_protocols_text:
       # download-from-path: ../data/committees/download_document_committee_session/
       download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
       out-path: ../data/committees/meeting_protocols_text
-  - run: dump.to_path
+  - run: knesset.dump_to_path
     parameters:
       out-path: ../data/committees/meeting_protocols_text
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        committees_meeting_protocols_text:
+          resource-name: kns_documentcommitteesession
+        committees_meeting_protocols_text:
+          resource-name: errors
 
 
 parse_meeting_protocols_parts:
@@ -359,9 +380,16 @@ parse_meeting_protocols_parts:
       # download-from-path: ../data/committees/download_document_committee_session/
       download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
       out-path: ../data/committees/meeting_protocols_parts
-  - run: dump.to_path
+  - run: knesset.dump_to_path
     parameters:
       out-path: ../data/committees/meeting_protocols_parts
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        committees_meeting_protocols_parts:
+          resource-name: kns_documentcommitteesession
+        committees_meeting_protocols_parts:
+          resource-name: errors
 
 join-meetings:
   description: join the committee meeting resources to form a single resource
@@ -428,9 +456,14 @@ join-meetings:
         topics:
           name: Name
           aggregate: array
-  - run: dump.to_path
+  - run: knesset.dump_to_path
     parameters:
       out-path: ../data/committees/joined-meetings
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        committees_joined_meetings:
+          resource-name: kns_committeesession
 
 meetings_datapackage_zip:
   pipeline:

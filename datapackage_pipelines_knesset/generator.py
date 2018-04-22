@@ -64,26 +64,12 @@ class Generator(GeneratorBase):
                                pipeline["dataservice-parameters"]),
                               ('..datapackage_pipelines_knesset.common.processors.throttle',
                                {'rows-per-page': 50}),]
-        if os.environ.get("DATASERVICE_DUMP_TO_STORAGE"):
-            dump_to_storage = '..datapackage_pipelines_knesset.common.processors.dump_to_storage'
-            pipeline_steps += [(dump_to_storage, {'storage-url': storage_url,
-                                                  'out-path': '../{}'.format(storage_path),
-                                                  'command': 'python2',
-                                                  'rsync-args': ['/gsutil/gsutil', '-m', 'rsync', '-a', 'public-read', '-r'],
-                                                  'ls-args': ['/gsutil/gsutil', 'ls', '-l']},)]
-        else:
-            pipeline_steps += [('dump.to_path', {'out-path': '../{}'.format(storage_path)})]
-        if os.environ.get("DATASERVICE_DUMP_TO_SQL"):
-            temp_table_name = str(uuid.uuid1()).replace('-', '')
-            pipeline_steps += [('dump.to_sql',
-                                {'engine': 'env://DPP_DB_ENGINE',
-                                 'tables': {temp_table_name: {'resource-name': pipeline_id, 'mode': 'rewrite', }}})]
-            table_name = '{}_{}'.format(pipeline['schemas-bucket'], pipeline_id.replace('-', '_'))
-            rename_table = '..datapackage_pipelines_knesset.common.processors.rename_sql_table'
-            pipeline_steps += [(rename_table,
-                                {'engine': 'env://DPP_DB_ENGINE',
-                                 'table': table_name,
-                                 'temp-table': temp_table_name})]
+        pipeline_steps += [('knesset.dump_to_path', {'storage-url': storage_url,
+                                                     'out-path': '../{}'.format(storage_path)},)]
+        dump_to_sql = 'knesset.dump_to_sql'
+        table_name = '{}_{}'.format(pipeline['schemas-bucket'], pipeline_id.replace('-', '_'))
+        pipeline_steps += [(dump_to_sql, {'engine': 'env://DPP_DB_ENGINE',
+                                          'tables': {table_name: {'resource-name': pipeline_id, 'mode': 'rewrite', }}},)]
         yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
 
     @classmethod
@@ -105,15 +91,8 @@ class Generator(GeneratorBase):
         assert pipeline['base-url'].startswith('https://storage.googleapis.com/knesset-data-pipelines/')
         storage_path = '{}all'.format(pipeline['base-url'].replace('https://storage.googleapis.com/knesset-data-pipelines/', ''))
         storage_url = "http://storage.googleapis.com/knesset-data-pipelines/{}".format(storage_path)
-        if os.environ.get("DATASERVICE_DUMP_TO_STORAGE"):
-            dump_to_storage = '..datapackage_pipelines_knesset.common.processors.dump_to_storage'
-            pipeline_steps += [(dump_to_storage, {'storage-url': storage_url,
-                                                  'out-path': '../{}'.format(storage_path),
-                                                  'command': 'python2',
-                                                  'rsync-args': ['/gsutil/gsutil', '-m', 'rsync', '-a', 'public-read', '-r'],
-                                                  'ls-args': ['/gsutil/gsutil', 'ls', '-l']},)]
-        else:
-            pipeline_steps += [('dump.to_path', {'out-path': '../{}'.format(storage_path)})]
+        pipeline_steps += [('knesset.dump_to_path', {'storage-url': storage_url,
+                                                     'out-path': '../{}'.format(storage_path)},)]
         yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
 
     @classmethod

@@ -1,70 +1,89 @@
 #!/usr/bin/env bash
 
+
 RUN_PIPELINE_CMD="${RUN_PIPELINE_CMD:-dpp run}"
+
 
 RES=0;
 
-! $RUN_PIPELINE_CMD --concurrency ${DPP_CONCURRENCY:-4} $(echo `echo "
-    ./committees/kns_committee,
-    ./committees/kns_jointcommittee,
-    ./committees/kns_cmtsitecode,
-    ./committees/kns_committeesession,
-    ./committees/kns_cmtsessionitem,
-    ./committees/kns_documentcommitteesession,
 
-    ./members/kns_person,
-    ./members/kns_position,
-    ./members/kns_persontoposition,
-    ./members/kns_mksitecode,
-    ./members/mk_individual,
-    ./members/presence,
+if [ "${1}" == "" ] || [ "${1}" == "dataservices" ]; then
+    ! $RUN_PIPELINE_CMD --concurrency ${DPP_CONCURRENCY:-4} $(echo `echo "
+        ./committees/kns_committee,
+        ./committees/kns_jointcommittee,
+        ./committees/kns_cmtsitecode,
+        ./committees/kns_committeesession,
+        ./committees/kns_cmtsessionitem,
+        ./committees/kns_documentcommitteesession,
 
-    ./bills/kns_bill,
-    ./bills/kns_billname,
-    ./bills/kns_billinitiator,
-    ./bills/kns_billhistoryinitiator,
-    ./bills/kns_billsplit,
-    ./bills/kns_billunion,
-    ./bills/kns_documentbill
+        ./members/kns_person,
+        ./members/kns_position,
+        ./members/kns_persontoposition,
+        ./members/kns_mksitecode,
+        ./members/mk_individual,
+        ./members/presence,
 
-    ./knesset/kns_govministry,
-    ./knesset/kns_itemtype,
-    ./knesset/kns_status,
-    ./knesset/kns_knessetdates,
+        ./bills/kns_bill,
+        ./bills/kns_billname,
+        ./bills/kns_billinitiator,
+        ./bills/kns_billhistoryinitiator,
+        ./bills/kns_billsplit,
+        ./bills/kns_billunion,
+        ./bills/kns_documentbill
 
-    ./lobbyists/v_lobbyist,
-    ./lobbyists/v_lobbyist_clients,
+        ./knesset/kns_govministry,
+        ./knesset/kns_itemtype,
+        ./knesset/kns_status,
+        ./knesset/kns_knessetdates,
 
-    ./votes/view_vote_rslts_hdr_approved,
-    ./votes/view_vote_mk_individual,
-    ./votes/vote_result_type,
-    ./votes/vote_rslts_kmmbr_shadow,
-    ./votes/join-votes,
-    ./votes/join_votes_shadow_mk,
+        ./lobbyists/v_lobbyist,
+        ./lobbyists/v_lobbyist_clients,
 
-    ./plenum/kns_plenumsession,
-    ./plenum/kns_plmsessionitem,
-    ./plenum/kns_documentplenumsession,
+        ./votes/view_vote_rslts_hdr_approved,
+        ./votes/view_vote_mk_individual,
+        ./votes/vote_result_type,
+        ./votes/vote_rslts_kmmbr_shadow,
+        ./votes/join-votes,
+        ./votes/join_votes_shadow_mk,
 
-    ./laws/kns_law,
-    ./laws/kns_law_binding,
-    ./laws/kns_document_law,
-    ./laws/kns_israel_law,
-    ./laws/kns_israel_law_name
-"` | sed 's/ //g') && RES=1
+        ./plenum/kns_plenumsession,
+        ./plenum/kns_plmsessionitem,
+        ./plenum/kns_documentplenumsession,
 
-! $RUN_PIPELINE_CMD --concurrency ${DPP_CONCURRENCY:-4} $(echo `echo "
-    ./bills/all,
-    ./knesset/all,
-    ./lobbyists/all,
-    ./votes/all,
-    ./plenum/all,
-    ./laws/all,
+        ./laws/kns_law,
+        ./laws/kns_law_binding,
+        ./laws/kns_document_law,
+        ./laws/kns_israel_law,
+        ./laws/kns_israel_law_name
+    "` | sed 's/ //g') && RES=1
+fi
 
-    ./knesset/dump_people,
 
-    ./committees/all,
-    ./members/all
-"` | sed 's/ //g') && RES=1
+if [ "${1}" == "" ] || [ "${1}" == "all" ]; then
+    ! $RUN_PIPELINE_CMD --concurrency ${DPP_CONCURRENCY:-4} $(echo `echo "
+        ./bills/all,
+        ./knesset/all,
+        ./lobbyists/all,
+        ./votes/all,
+        ./plenum/all,
+        ./laws/all,
+        ./committees/all,
+        ./members/all
+    "` | sed 's/ //g') && RES=1
+fi
+
+
+if [ "${1}" == "" ] || [ "${1}" == "protocols" ]; then
+    ! (
+        $RUN_PIPELINE_CMD ./committees/gcs_list_files &&\
+        $RUN_PIPELINE_CMD ./committees/download_document_committee_session &&\
+        $RUN_PIPELINE_CMD --concurrency ${DPP_CONCURRENCY:-4} $(echo `echo "
+            ./committees/parse_meeting_protocols_text,
+            ./committees/parse_meeting_protocols_parts
+        "` | sed 's/ //g') &&\
+        $RUN_PIPELINE_CMD ./committees/join-meetings
+    ) && RES=1
+fi
+
 
 exit $RES
