@@ -7,10 +7,10 @@ class StorageDumper(PathDumper):
     def initialize(self, params):
         super(StorageDumper, self).initialize(params)
         if os.environ.get('DUMP_TO_STORAGE'):
-            if self.out_path.startswith('../data/'):
+            self.storage_url = params.get('storage-url')
+            if not self.storage_url and self.out_path.startswith('../data/'):
                 self.storage_url = self.out_path.replace('../data/', 'http://storage.googleapis.com/knesset-data-pipelines/data/')
-            else:
-                self.storage_url = params.get['storage-url']
+            assert self.storage_url
             self.command = params.get('command', 'python2')
             self.rsync_args = params.get('rsync-args', ['/gsutil/gsutil', '-m', 'rsync', '-a', 'public-read', '-r'])
             self.ls_args = params.get('ls-args', ['/gsutil/gsutil', 'ls', '-l'])

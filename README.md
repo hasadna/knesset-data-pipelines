@@ -130,7 +130,7 @@ docker run -it --entrypoint bash \
            -e DUMP_TO_STORAGE=1 -e DUMP_TO_SQL=1 \
            -e RUN_PIPELINE_CMD="dpp run" \
            -e DPP_DB_ENGINE=postgresql://postgres:123456@postgresql:5432/postgres \
-           -v `pwd`/secret-k8s-ops.json:/secret_service_key \
+           -v /path/to/google/secret/key:/secret_service_key \
            --link postgresql \
            knesset-data-pipelines /pipelines/pipelines_script.sh
 ```
