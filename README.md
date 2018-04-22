@@ -122,6 +122,19 @@ Continue with `Running the pipelines locally` section above
 
 You can usually fix permissions problems on the files by running inside the docker `chown -R 1000:1000 .`
 
+If you have access to the required secrets and google cloud account, you can use the following command to run with all required dependencies:
+
+```
+docker build -t knesset-data-pipelines . &&\
+docker run -it --entrypoint bash \
+           -e DUMP_TO_STORAGE=1 -e DUMP_TO_SQL=1 \
+           -e RUN_PIPELINE_CMD="dpp run" \
+           -e DPP_DB_ENGINE=postgresql://postgres:123456@postgresql:5432/postgres \
+           -v /path/to/google/secret/key:/secret_service_key \
+           --link postgresql \
+           knesset-data-pipelines /pipelines/pipelines_script.sh
+```
+
 
 ## testing docker build locally using google cloud
 

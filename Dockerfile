@@ -12,7 +12,12 @@ ENV FLOWER_PORT 5555
 COPY Pipfile /pipelines/
 COPY Pipfile.lock /pipelines/
 RUN pipenv install --system --deploy --ignore-pipfile && pipenv check
-RUN apk add --update --no-cache libpq postgresql-dev && pip install psycopg2-binary
+RUN apk add --update --no-cache libpq postgresql-dev openssl python && pip install psycopg2-binary
+
+RUN cd / && wget -q https://storage.googleapis.com/pub/gsutil.tar.gz && tar xfz gsutil.tar.gz && rm gsutil.tar.gz
+COPY boto.config /root/.boto
+
+RUN pip install --upgrade https://github.com/OriHoch/datapackage-pipelines/archive/cli-support-list-of-pipeline-ids.zip
 
 COPY datapackage_pipelines_knesset /pipelines/datapackage_pipelines_knesset
 COPY setup.py /pipelines/

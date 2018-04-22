@@ -290,6 +290,52 @@ kns_billunion:
         source: "{name}"
         type: datetime
 
+kns_documentbill:
+  pipeline-type: knesset dataservice
+  schemas-bucket: bills
+  dataservice-parameters:
+    resource-name: kns_documentbill
+    service-name: api
+    method-name: "KNS_DocumentBill"
+    fields:
+      DocumentBillID:
+        source: "{name}"
+        type: integer
+        description: קוד המסמך
+      BillID:
+        source: "{name}"
+        type: integer
+        description: קוד הצעת החוק
+      GroupTypeID:
+        source: "{name}"
+        type: integer
+        description: קוד סוג המסמך
+      GroupTypeDesc:
+        source: "{name}"
+        type: string
+        description: |
+          תיאור סוג המסמך
+          (לדוגמה: נוסח לקריאה הראשונה, חוק - נוסח לא רשמי, חוק - פרסום ברשומות) שם המסמך מעיד על תוכנו. למשל המסמך חוק -
+           פרסום ברשומות ישויך לפריט הצעת חוק שהתקבלה בקריאה שלישית רק לאחר הפרסום
+           ברשומות ורק לאחר שנוצר הקשר בין הצעת החוק לחוק מדינת ישראל אותו היא מתקנת.
+      ApplicationID:
+        source: "{name}"
+        type: integer
+        description: קוד פורמט המסמך
+      ApplicationDesc:
+        source: "{name}"
+        type: string
+        description: תיאור פורמט המסמך (Word, PDF, TIFF)
+      FilePath:
+        source: "{name}"
+        type: string
+        description: הנתיב אל המסמך
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון
+
+
 all:
   pipeline-type: all package
   base-url: https://storage.googleapis.com/knesset-data-pipelines/data/bills/
@@ -302,5 +348,6 @@ all:
       StartDate: null
   - name: kns_billsplit
   - name: kns_billunion
+  - name: kns_documentbill
   out-path: ../data/bills/all
   sql-tables-prefix: bills
