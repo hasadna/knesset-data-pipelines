@@ -12,6 +12,8 @@ botocore = "*"
 python-dotenv = "*"
 google-cloud-storage = "*"
 sh = "*"
+datapackage-pipelines-metrics = "*"
+psutil = "*"
 
 [dev-packages]
 tox = "*"

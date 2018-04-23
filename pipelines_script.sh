@@ -7,6 +7,15 @@ RUN_PIPELINE_CMD="${RUN_PIPELINE_CMD:-dpp run}"
 RES=0;
 
 
+[ "${DPP_REDIS_HOST}" != "" ] && while ! \
+    python -c 'import redis;redis.StrictRedis(host="'"${DPP_REDIS_HOST}"'", db=5).ping()'
+    do sleep 1; done
+
+[ "${DPP_INFLUXDB_URL}" != "" ] && while ! \
+    curl "${DPP_INFLUXDB_URL}"
+    do sleep 1; done
+
+
 if [ "${1}" == "" ] || [ "${1}" == "dataservices" ]; then
     ! $RUN_PIPELINE_CMD --concurrency ${DPP_CONCURRENCY:-4} $(echo `echo "
         ./committees/kns_committee,
@@ -39,12 +48,8 @@ if [ "${1}" == "" ] || [ "${1}" == "dataservices" ]; then
         ./lobbyists/v_lobbyist,
         ./lobbyists/v_lobbyist_clients,
 
-        ./votes/view_vote_rslts_hdr_approved,
         ./votes/view_vote_mk_individual,
         ./votes/vote_result_type,
-        ./votes/vote_rslts_kmmbr_shadow,
-        ./votes/join-votes,
-        ./votes/join_votes_shadow_mk,
 
         ./plenum/kns_plenumsession,
         ./plenum/kns_plmsessionitem,
@@ -56,6 +61,12 @@ if [ "${1}" == "" ] || [ "${1}" == "dataservices" ]; then
         ./laws/kns_israel_law,
         ./laws/kns_israel_law_name
     "` | sed 's/ //g') && RES=1
+
+    # these pipelines consume too much RAM
+    # ./votes/view_vote_rslts_hdr_approved,
+    # ./votes/vote_rslts_kmmbr_shadow,
+    # ./votes/join-votes,
+    # ./votes/join_votes_shadow_mk,
 fi
 
 

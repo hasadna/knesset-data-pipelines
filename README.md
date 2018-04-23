@@ -125,16 +125,28 @@ You can usually fix permissions problems on the files by running inside the dock
 If you have access to the required secrets and google cloud account, you can use the following command to run with all required dependencies:
 
 ```
+docker run -d --rm --name postgresql -p 5432:5432 -e POSTGRES_PASSWORD=123456 postgres
+docker run -d --rm --name influxdb -p 8086:8086 influxdb
 docker build -t knesset-data-pipelines . &&\
-docker run -it --entrypoint bash \
-           -e DUMP_TO_STORAGE=1 -e DUMP_TO_SQL=1 \
-           -e RUN_PIPELINE_CMD="dpp run" \
+docker run -it -e DUMP_TO_STORAGE=1 -e DUMP_TO_SQL=1 \
            -e DPP_DB_ENGINE=postgresql://postgres:123456@postgresql:5432/postgres \
+           -e DPP_INFLUXDB_URL=http://influxdb:8086 \
            -v /path/to/google/secret/key:/secret_service_key \
            --link postgresql \
-           knesset-data-pipelines /pipelines/pipelines_script.sh
+           knesset-data-pipelines
 ```
 
+Run grafana to visualize metrics
+
+```
+docker run -d --rm --name grafana -p 3000:3000 --link influxdb grafana/grafana
+```
+
+* http://localhost:3000
+* Add data source: name=influxdb type=influxdb url=http://influxdb:8086 access=proxy database=dpp
+* Import dashboards from:
+  * https://github.com/OriHoch/datapackage-pipelines-metrics/blob/master/grafana-dashboard.json
+  * `dataservice_collection_grafana_dashboard.json`
 
 ## testing docker build locally using google cloud
 

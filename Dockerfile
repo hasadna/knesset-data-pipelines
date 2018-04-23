@@ -1,30 +1,18 @@
-FROM orihoch/sk8s-pipelines:v0.0.3-b
-
-RUN apk --update add antiword
-
-ENV PYTHONUNBUFFERED 1
-ENV PIPELINES_BIN_PATH /knesset/bin
-ENV RTF_EXTRACTOR_BIN /knesset/bin/rtf_extractor.py
-# this environment variable is set by k8s - so we force it to the default here
-# see the comments on https://github.com/puckel/docker-airflow/issues/46
-ENV FLOWER_PORT 5555
-
+FROM frictionlessdata/datapackage-pipelines
+RUN pip install --no-cache-dir pipenv pew
+RUN apk --update --no-cache add build-base python3-dev bash jq libxml2 libxml2-dev git libxslt libxslt-dev curl \
+                                libpq postgresql-dev openssl antiword
+RUN apk --update --no-cache add linux-headers
 COPY Pipfile /pipelines/
 COPY Pipfile.lock /pipelines/
-RUN pipenv install --system --deploy --ignore-pipfile && pipenv check
-RUN apk add --update --no-cache libpq postgresql-dev openssl python && pip install psycopg2-binary
-
+RUN pipenv install --system --deploy --ignore-pipfile
+RUN apk --update --no-cache add python && pip install psycopg2-binary
+RUN pip install --upgrade https://github.com/OriHoch/datapackage-pipelines/archive/cli-support-list-of-pipeline-ids.zip
 RUN cd / && wget -q https://storage.googleapis.com/pub/gsutil.tar.gz && tar xfz gsutil.tar.gz && rm gsutil.tar.gz
 COPY boto.config /root/.boto
-
-RUN pip install --upgrade https://github.com/OriHoch/datapackage-pipelines/archive/cli-support-list-of-pipeline-ids.zip
-
 COPY datapackage_pipelines_knesset /pipelines/datapackage_pipelines_knesset
 COPY setup.py /pipelines/
 RUN pip install .
-
-COPY --from=orihoch/sk8s-pipelines:v0.0.3-g /entrypoint.sh /entrypoint.sh
-
 COPY bills /pipelines/bills
 COPY committees /pipelines/committees
 COPY knesset /pipelines/knesset
@@ -38,6 +26,5 @@ COPY bin /pipelines/bin
 COPY *.py /pipelines/
 COPY knesset /pipelines/knesset
 COPY *.sh /pipelines/
-
-ENV PIPELINES_SCRIPT="cd /pipelines && (source ./pipelines_script.sh)"
-ENV RUN_PIPELINE_CMD=run_pipeline
+ENV RTF_EXTRACTOR_BIN /knesset/bin/rtf_extractor.py
+ENTRYPOINT ["/pipelines/pipelines_script.sh"]

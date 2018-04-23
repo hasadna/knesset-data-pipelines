@@ -1,6 +1,7 @@
 from datapackage_pipelines.generators import GeneratorBase, steps
 from copy import deepcopy
 import logging, os, requests, codecs, uuid
+from datapackage_pipelines_metrics import append_metrics
 
 
 __escape_decoder = codecs.getdecoder('unicode_escape')
@@ -37,7 +38,8 @@ class Generator(GeneratorBase):
     def generate_pipeline(cls, source):
         for pipeline_id, pipeline in source.items():
             if pipeline_id and pipeline:
-                yield from cls.filter_pipeline(pipeline_id, deepcopy(pipeline))
+                for output_pipeline_id, output_pipeline in cls.filter_pipeline(pipeline_id, deepcopy(pipeline)):
+                    yield output_pipeline_id, append_metrics(output_pipeline)
 
     @classmethod
     def filter_pipeline(cls, pipeline_id, pipeline):
