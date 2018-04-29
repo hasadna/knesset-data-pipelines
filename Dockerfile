@@ -1,6 +1,8 @@
 FROM frictionlessdata/datapackage-pipelines
 RUN pip install --no-cache-dir pipenv pew
-RUN apk --update --no-cache add build-base python3-dev bash jq libxml2 libxml2-dev git libxslt libxslt-dev curl \
+RUN echo "http://nl.alpinelinux.org/alpine/v3.4/main" > /etc/apk/repositories &&\
+    echo "http://nl.alpinelinux.org/alpine/v3.4/community" >> /etc/apk/repositories &&\
+    apk --update --no-cache add build-base python3-dev bash jq libxml2 libxml2-dev git libxslt libxslt-dev curl \
                                 libpq postgresql-dev openssl antiword
 RUN apk --update --no-cache add linux-headers
 COPY Pipfile /pipelines/

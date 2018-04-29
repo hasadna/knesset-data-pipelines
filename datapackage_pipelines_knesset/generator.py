@@ -39,7 +39,11 @@ class Generator(GeneratorBase):
         for pipeline_id, pipeline in source.items():
             if pipeline_id and pipeline:
                 for output_pipeline_id, output_pipeline in cls.filter_pipeline(pipeline_id, deepcopy(pipeline)):
-                    yield output_pipeline_id, append_metrics(output_pipeline)
+                    if os.environ.get('DPP_INFLUXDB_URL'):
+                        yield output_pipeline_id, append_metrics(output_pipeline)
+                    else:
+                        yield output_pipeline_id, output_pipeline
+
 
     @classmethod
     def filter_pipeline(cls, pipeline_id, pipeline):
