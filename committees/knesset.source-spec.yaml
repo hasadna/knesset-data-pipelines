@@ -352,7 +352,7 @@ parse_meeting_protocols_text:
       tables:
         committees_meeting_protocols_text:
           resource-name: kns_documentcommitteesession
-        committees_meeting_protocols_text:
+        committees_meeting_protocols_text_errors:
           resource-name: errors
 
 
@@ -388,7 +388,7 @@ parse_meeting_protocols_parts:
       tables:
         committees_meeting_protocols_parts:
           resource-name: kns_documentcommitteesession
-        committees_meeting_protocols_parts:
+        committees_meeting_protocols_parts_errors:
           resource-name: errors
 
 join-meetings:

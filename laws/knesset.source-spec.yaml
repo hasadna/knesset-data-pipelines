@@ -285,6 +285,96 @@ kns_israel_law_name:
         type: datetime
         description: תאריך עדכון אחרון
 
+kns_israel_law_ministry:
+  pipeline-type: knesset dataservice
+  schemas-bucket: laws
+  dataservice-parameters:
+    resource-name: kns_israel_law_ministry
+    service-name: api
+    method-name: "KNS_IsraelLawMinistry"
+    fields:
+      LawMinistryID:
+        source: "{name}"
+        type: integer
+        description: מספר השורה בטבלה זו
+        primaryKey: true
+      IsraelLawID:
+        source: "{name}"
+        type: integer
+        description: קוד חוק האב
+      GovMinistryID:
+        source: "{name}"
+        type: integer
+        description: קוד המשרד הממשלתי
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון
+
+kns_israel_law_classification:
+  pipeline-type: knesset dataservice
+  schemas-bucket: laws
+  dataservice-parameters:
+    resource-name: kns_israel_law_classification
+    service-name: api
+    method-name: "KNS_IsraelLawClassificiation"
+    fields:
+      LawClassificiationID:
+        source: "{name}"
+        type: integer
+        description: מספר השורה בטבלה זו
+        primaryKey: true
+      IsraelLawID:
+        source: "{name}"
+        type: integer
+        description: קוד חוק האב
+      ClassificiationID:
+        source: "{name}"
+        type: integer
+        description: קוד הנושא
+      ClassificiationDesc:
+        source: "{name}"
+        type: string
+        description: תיאור הנושא (בחירות, ביטחון, חינוך וכד')
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון
+
+kns_israel_law_binding:
+  pipeline-type: knesset dataservice
+  schemas-bucket: laws
+  dataservice-parameters:
+    resource-name: kns_israel_law_binding
+    service-name: api
+    method-name: "KNS_IsraelLawBinding"
+    fields:
+      IsraelLawBinding:
+        source: "{name}"
+        type: integer
+        description: מספר השורה בטבלה זו
+        primaryKey: true
+      IsraelLawID:
+        source: "{name}"
+        type: integer
+        description: קוד חוק האב
+      IsraelLawReplacedID:
+        source: "{name}"
+        type: integer
+        description: קוד חוק האב המוחלף
+      LawID:
+        source: "{name}"
+        type: integer
+        description: קוד חוק הבן שגרם להחלפה
+      LawTypeID:
+        source: "{name}"
+        type: integer
+        description: קוד סוג חוק הבן שגרם להחלפה
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון
+
 all:
   pipeline-type: all package
   base-url: https://storage.googleapis.com/knesset-data-pipelines/data/laws/
