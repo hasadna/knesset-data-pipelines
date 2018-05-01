@@ -3,9 +3,20 @@ import logging, os
 from google.cloud import storage
 import regex
 from datapackage_pipelines.utilities.resources import PROP_STREAMING
+from datapackage_pipelines_knesset.processors.load_resource import KnessetResourceLoader
+
+
+if os.environ.get("LOAD_FROM_RESOURCE"):
+    KnessetResourceLoader(url='../data/committees/gcs_list_files/datapackage.json',
+                          resource='files')()
+    exit()
+elif not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") or not os.path.exists(os.environ["GOOGLE_APPLICATION_CREDENTIALS"]):
+    raise Exception("integration with google storage is required, environment variable GOOGLE_APPLICATION_CREDENTIALS must point to a google credentials json file")
 
 
 parameters, datapackage, resources = ingest()
+
+
 stats = {"total matching files": 0, "invalid files": 0, "protocol parts": 0, "protocol texts": 0, "session documents": 0}
 
 
@@ -16,8 +27,6 @@ session_documents_regex = "data/committees/download_document_committee_session/f
 
 storage_client = None
 all_blobs = {}
-if not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") or not os.path.exists(os.environ["GOOGLE_APPLICATION_CREDENTIALS"]):
-    raise Exception("integration with google storage is required, environment variable GOOGLE_APPLICATION_CREDENTIALS must point to a google credentials json file")
 
 
 def get_row(blob, file_type, **kwargs):
@@ -56,6 +65,8 @@ def get_resource():
     prefix = "data/committees/"
     if parameters.get('type') == 'document':
         prefix += 'download_document_committee_session/files/'
+    elif parameters.get('type') == 'text':
+        prefix += 'meeting_protocols_text/files'
     for blob in storage_bucket.list_blobs(prefix=prefix):
         re_match_text = regex.match(protocol_text_regex, blob.name)
         re_match_parts = regex.match(protocol_parts_regex, blob.name)

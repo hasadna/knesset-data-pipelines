@@ -284,13 +284,15 @@ download_document_committee_session:
   dependencies:
   - pipeline: ./committees/kns_documentcommitteesession
   pipeline:
-  - run: gcs_list_files
-    parameters:
-      type: document
   - run: knesset.load_resource
     parameters:
       url: ../data/committees/kns_documentcommitteesession/datapackage.json
       resource: kns_documentcommitteesession
+  - run: filter
+    parameters:
+      in:
+      - GroupTypeID: 23
+      - ApplicationDesc: DOC
   - run: download_document_committee_session
     parameters:
       out-path: ../data/committees/download_document_committee_session
@@ -302,35 +304,29 @@ download_document_committee_session:
       tables:
         committees_download_document_committee_session:
           resource-name: kns_documentcommitteesession
-        committees_download_document_committee_session_errors:
-          resource-name: errors
 
 
 parse_meeting_protocols_text:
   dependencies:
   - pipeline: ./committees/download_document_committee_session
   pipeline:
-  - run: load_resource
-    parameters:
-      url: ../data/committees/gcs_list_files/datapackage.json
-      resource: files
-  - run: load_resource
+  - run: knesset.load_resource
     parameters:
       url: ../data/committees/kns_documentcommitteesession/datapackage.json
       resource: kns_documentcommitteesession
   - run: filter
     parameters:
-      resources: kns_documentcommitteesession
       in:
       - GroupTypeID: 23
+      - ApplicationDesc: DOC
   - run: parse_meeting_protocols
     parameters:
       check-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/meeting_protocols_text/
       type: text
       # FILES_LIMIT
       # files-limit: 5
-      # download-from-path: ../data/committees/download_document_committee_session/
-      download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
+      download-from-path: ../data/committees/download_document_committee_session/
+      # download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
       out-path: ../data/committees/meeting_protocols_text
   - run: knesset.dump_to_path
     parameters:
@@ -340,33 +336,29 @@ parse_meeting_protocols_text:
       tables:
         committees_meeting_protocols_text:
           resource-name: kns_documentcommitteesession
-        committees_meeting_protocols_text_errors:
-          resource-name: errors
 
 
 parse_meeting_protocols_parts:
+  dependencies:
+  - pipeline: ./committees/download_document_committee_session
   pipeline:
-  - run: load_resource
-    parameters:
-      url: ../data/committees/gcs_list_files/datapackage.json
-      resource: files
-  - run: load_resource
+  - run: knesset.load_resource
     parameters:
       url: ../data/committees/kns_documentcommitteesession/datapackage.json
       resource: kns_documentcommitteesession
   - run: filter
     parameters:
-      resources: kns_documentcommitteesession
       in:
       - GroupTypeID: 23
+      - ApplicationDesc: DOC
   - run: parse_meeting_protocols
     parameters:
       check-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/meeting_protocols_parts/
       type: parts
       # FILES_LIMIT
       # files-limit: 5
-      # download-from-path: ../data/committees/download_document_committee_session/
-      download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
+      download-from-path: ../data/committees/download_document_committee_session/
+      # download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
       out-path: ../data/committees/meeting_protocols_parts
   - run: knesset.dump_to_path
     parameters:
@@ -376,10 +368,14 @@ parse_meeting_protocols_parts:
       tables:
         committees_meeting_protocols_parts:
           resource-name: kns_documentcommitteesession
-        committees_meeting_protocols_parts_errors:
-          resource-name: errors
+
 
 join-meetings:
+  dependencies:
+  - pipeline: ./committees/parse_meeting_protocols_text
+  - pipeline: ./committees/parse_meeting_protocols_parts
+  - pipeline: ./committees/kns_cmtsessionitem
+  - pipeline: ./committees/kns_committeesession
   description: join the committee meeting resources to form a single resource
   pipeline:
   - run: load_resource
