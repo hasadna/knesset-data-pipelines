@@ -49,15 +49,14 @@ def get_retry_response_content(url, params, timeout, proxies, retry_num, num_ret
             response_text = response.content.decode('utf-8')
         except Exception:
             response_text = None
-        if is_blocked(response_text) and 'Set-Cookie' in response.headers and 'Cookie' not in headers:
+        if response_text and is_blocked(response_text) and 'Set-Cookie' in response.headers and 'Cookie' not in headers:
             # try again, but this time with the cookie we were given
             first_cookie = response.headers['Set-Cookie'].split(";")[0]
             headers['Cookie'] = first_cookie
             return get_retry_response_content(url, params, timeout, proxies, retry_num, num_retries,
                                               seconds_between_retries, headers=headers)
-
         if response_text and is_blocked(response_text):
-            logging.info(response.content.decode('utf-8'))
+            # logging.info(response.content.decode('utf-8'))
             raise Exception("seems your request is blocked, you should use the app ssh socks proxy\n"
                             "url={}\n"
                             "params={}\n"
