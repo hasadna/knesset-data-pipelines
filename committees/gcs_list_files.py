@@ -1,7 +1,5 @@
 from datapackage_pipelines.wrapper import ingest, spew
-import logging, os, requests
-from datapackage_pipelines_knesset.retry_get_response_content import get_retry_response_content
-from copy import deepcopy
+import logging, os
 from google.cloud import storage
 import regex
 from datapackage_pipelines.utilities.resources import PROP_STREAMING
@@ -42,19 +40,23 @@ def get_row(blob, file_type, **kwargs):
     else:
         raise Exception("Invalid file type {}".format(file_type))
     return {"file_type": file_type,
-           "committee_session_id": kwargs.get("committee_session_id"),
-           "document_committee_session_id": kwargs.get("document_committee_session_id"),
-           "group_type_id": kwargs.get("group_type_id"),
-           "application_desc": kwargs.get("application_desc"),
-           "extension": kwargs.get("extension"),
-           "name": blob.name, "size": blob.size}
+            "committee_session_id": kwargs.get("committee_session_id"),
+            "document_committee_session_id": kwargs.get("document_committee_session_id"),
+            "group_type_id": kwargs.get("group_type_id"),
+            "application_desc": kwargs.get("application_desc"),
+            "extension": kwargs.get("extension"),
+            "name": blob.name, "size": blob.size,
+            "crc32c": blob.crc32c}
 
 
 def get_resource():
     logging.info("Listing all existing blobs from google storage")
     storage_client = storage.Client()
     storage_bucket = storage_client.bucket(os.environ.get("KNESSET_DATA_PIPELINES_BUCKET", "knesset-data-pipelines"))
-    for blob in storage_bucket.list_blobs(prefix="data/committees/"):
+    prefix = "data/committees/"
+    if parameters.get('type') == 'document':
+        prefix += 'download_document_committee_session/files/'
+    for blob in storage_bucket.list_blobs(prefix=prefix):
         re_match_text = regex.match(protocol_text_regex, blob.name)
         re_match_parts = regex.match(protocol_parts_regex, blob.name)
         re_match_documents = regex.match(session_documents_regex, blob.name)
@@ -90,12 +92,21 @@ datapackage["resources"] = [{PROP_STREAMING: True,
                                                    {"name": "application_desc", "type": "string"},
                                                    {"name": "extension", "type": "string"},
                                                    {"name": "name", "type": "string"},
-                                                   {"name": "size", "type": "integer"}]}},
-                            {PROP_STREAMING: True,
-                             "name": "stats",
-                             "path": "stats.csv",
-                             "schema": {"fields": [{"name": "stat", "type": "string"},
-                                                   {"name": "value", "type": "integer"}]}}]
+                                                   {"name": "size", "type": "integer"},
+                                                   {"name": "crc32c", "type": "string"},]}},]
+
+output_resources = [get_resource()]
+
+if not parameters.get('type'):
+    output_resources.append(get_stats_resource())
+    datapackage["resources"].append({PROP_STREAMING: True,
+                                     "name": "stats",
+                                     "path": "stats.csv",
+                                     "schema": {"fields": [{"name": "stat", "type": "string"},
+                                                           {"name": "value", "type": "integer"}]}})
 
 
-spew(datapackage, [get_resource(), get_stats_resource()], stats)
+
+
+
+spew(datapackage, output_resources, stats)

@@ -14,6 +14,7 @@ google-cloud-storage = "*"
 sh = "*"
 datapackage-pipelines-metrics = "*"
 psutil = "*"
+crcmod = "*"
 
 [dev-packages]
 tox = "*"

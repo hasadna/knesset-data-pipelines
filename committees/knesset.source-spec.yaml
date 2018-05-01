@@ -280,28 +280,14 @@ kns_documentcommitteesession:
         description: תאריך עדכון אחרון
 
 
-gcs_list_files:
+download_document_committee_session:
+  dependencies:
+  - pipeline: ./committees/kns_documentcommitteesession
   pipeline:
   - run: gcs_list_files
-  - run: knesset.dump_to_path
     parameters:
-      out-path: ../data/committees/gcs_list_files
-  - run: knesset.dump_to_sql
-    parameters:
-      tables:
-        committees_gcs_list_files:
-          resource-name: files
-        committees_gcs_list_files_stats:
-          resource-name: stats
-
-
-download_document_committee_session:
-  pipeline:
-  - run: load_resource
-    parameters:
-      url: ../data/committees/gcs_list_files/datapackage.json
-      resource: files
-  - run: load_resource
+      type: document
+  - run: knesset.load_resource
     parameters:
       url: ../data/committees/kns_documentcommitteesession/datapackage.json
       resource: kns_documentcommitteesession
@@ -321,6 +307,8 @@ download_document_committee_session:
 
 
 parse_meeting_protocols_text:
+  dependencies:
+  - pipeline: ./committees/download_document_committee_session
   pipeline:
   - run: load_resource
     parameters:

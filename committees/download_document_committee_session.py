@@ -2,6 +2,29 @@ from datapackage_pipelines.wrapper import ingest, spew
 import logging, os, requests, time
 from datapackage_pipelines_knesset.retry_get_response_content import get_retry_response_content
 from copy import deepcopy
+import crcmod, base64
+
+
+def get_crc32c(filename):
+    with open(filename, 'rb') as f:
+        crc32c = crcmod.predefined.Crc('crc-32c')
+        crc32c.update(f.read())
+    return base64.b64encode(crc32c.digest()).decode()
+
+
+def download_document(row):
+    rel_filename = os.path.join("files", str(row["GroupTypeID"]),
+                                str(row["DocumentCommitteeSessionID"])[0],
+                                str(row["DocumentCommitteeSessionID"])[1],
+                                str(row["DocumentCommitteeSessionID"]) + "." + row["ApplicationDesc"])
+    content = get_retry_response_content(row["FilePath"], None, None, None, retry_num=1, num_retries=10,
+                                         seconds_between_retries=10,
+                                         skip_not_found_errors=skip_not_found_errors)
+    filename = os.path.join(out_path, rel_filename)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, "wb") as f:
+        f.write(content)
+    return rel_filename, os.path.getsize(filename), get_crc32c(filename)
 
 
 parameters, datapackage, resources = ingest()
@@ -26,59 +49,32 @@ all_blobs = {}
 if files_resource:
     rows_schema = datapackage["resources"][1]
     for file_row in files_resource:
-        all_blobs.setdefault(file_row["document_committee_session_id"], []).append(file_row)
+        document_id = "{}-{}-{}".format(file_row["group_type_id"],
+                                        file_row["document_committee_session_id"],
+                                        file_row["application_desc"])
+        assert document_id not in all_blobs, "duplicated document id: {}".format(document_id)
+        all_blobs[document_id] = file_row
 else:
     rows_schema = datapackage["resources"][0]
 
-all_rows = {}
-for row in rows_resource:
-    all_rows.setdefault(int(row["DocumentCommitteeSessionID"]), []).append(row)
-
-download_rows = []
-verify_rows = []
-for document_committee_session_id, rows in all_rows.items():
-    blobs = all_blobs.get(document_committee_session_id)
-    for row in rows:
-        if blobs:
-            has_blob = False
-            for blob_row in blobs:
-                if blob_row["group_type_id"] == row["GroupTypeID"] and blob_row["application_desc"] == row["ApplicationDesc"]:
-                    has_blob = True
-                    break
-            if has_blob:
-                verify_rows.append(row)
-            else:
-                download_rows.append(row)
-        else:
-            download_rows.append(row)
-
-logging.info("{} download rows, {} verify rows".format(len(download_rows), len(verify_rows)))
-
 
 def get_resource():
-    for action, row in [("download", row) for row in download_rows]:  #  + [("verify", row) for row in verify_rows]:
-        try:
-            rel_filename = os.path.join("files", str(row["GroupTypeID"]),
-                                        str(row["DocumentCommitteeSessionID"])[0],
-                                        str(row["DocumentCommitteeSessionID"])[1],
-                                        str(row["DocumentCommitteeSessionID"]) + "." + row["ApplicationDesc"])
-            if not files_limit or stats["downloaded files"]:
-                content = get_retry_response_content(row["FilePath"], None, None, None, retry_num=1, num_retries=10,
-                                                     seconds_between_retries=10,
-                                                     skip_not_found_errors=skip_not_found_errors)
-                filename = os.path.join(out_path, rel_filename)
-                os.makedirs(os.path.dirname(filename), exist_ok=True)
-                with open(filename, "wb") as f:
-                    f.write(content)
+    for row in rows_resource:
+        row.setdefault('filesize', 0)
+        row.setdefault('crc32c', None)
+        row.setdefault('error', None)
+        document_id = "{}-{}-{}".format(row["GroupTypeID"], row["DocumentCommitteeSessionID"], row["ApplicationDesc"])
+        blob = all_blobs.get(document_id)
+        if not blob or not blob['size'] or not blob['crc32c'] or row.get('crc32c') != blob['crc32c']:
+            try:
+                filename, filesize, crc32c = download_document(row)
+                row.update(filename=filename, filesize=filesize, crc32c=crc32c, error=None)
                 stats["downloaded files"] += 1
-            row.update(filename=rel_filename)
-            yield row
-        except Exception as e:
-            logging.exception("failed to parse CommitteeSessionID {}".format(row["CommitteeSessionID"]))
-            row.update(error=str(e))
-            errors.append(row)
-            # if len(errors) > 1000:
-            #     raise Exception("Too many errors!")
+            except Exception as e:
+                logging.exception('failed to download document id {}'.format(document_id))
+                errors.append({'error': str(e)})
+                row.update(filesize=None, crc32c=None, error=str(e))
+        yield row
         time.sleep(0.01)
 
 
@@ -93,7 +89,10 @@ def get_resources():
 
 
 datapackage["resources"] = [rows_schema, deepcopy(rows_schema)]
-datapackage["resources"][0]["schema"]["fields"].append({"name": "filename", "type": "string"})
+datapackage["resources"][0]["schema"]["fields"] += [{"name": "filename", "type": "string"},
+                                                    {"name": "filesize", "type": "integer"},
+                                                    {"name": "crc32c", "type": "string"},
+                                                    {"name": "error", "type": "string"}]
 datapackage["resources"][1].update(name="errors", path="errors.csv")
 datapackage["resources"][1]["schema"]["fields"] += [{"name": "error", "type": "string"}]
 
