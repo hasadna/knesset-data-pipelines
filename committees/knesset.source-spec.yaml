@@ -280,22 +280,64 @@ kns_documentcommitteesession:
         description: תאריך עדכון אחרון
 
 
-download_document_committee_session:
+prepare_document_committee_sessions_for_parsing:
   dependencies:
-  - pipeline: ./committees/kns_documentcommitteesession
+  - datapackage: data/committees/kns_documentcommitteesession/datapackage.json
+  - datapackage: data/committees/kns_committeesession/datapackage.json
   pipeline:
+  - run: knesset.load_resource
+    parameters:
+      url: ../data/committees/kns_committeesession/datapackage.json
+      resource: kns_committeesession
   - run: knesset.load_resource
     parameters:
       url: ../data/committees/kns_documentcommitteesession/datapackage.json
       resource: kns_documentcommitteesession
+  - run: join
+    parameters:
+      source:
+        name: kns_committeesession
+        key: ["CommitteeSessionID"]
+        delete: true
+      target:
+        name: kns_documentcommitteesession
+        key: ["CommitteeSessionID"]
+      fields:
+        KnessetNum:
+  - run: filter
+    parameters:
+      in:
+      - KnessetNum: 20
   - run: filter
     parameters:
       in:
       - GroupTypeID: 23
+  - run: filter
+    parameters:
+      in:
       - ApplicationDesc: DOC
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../data/committees/document_committee_sessions_for_parsing
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        committees_document_committee_sessions_for_parsing:
+          resource-name: kns_documentcommitteesession
+
+
+download_document_committee_sessions_for_parsing:
+  dependencies:
+  - pipeline: ./committees/prepare_document_committee_sessions_for_parsing
+  pipeline:
+  - run: knesset.load_resource
+    parameters:
+      url: ../data/committees/document_committee_sessions_for_parsing/datapackage.json
+      resource: kns_documentcommitteesession
   - run: download_document_committee_session
     parameters:
       out-path: ../data/committees/download_document_committee_session
+      limit-rows: 5
   - run: knesset.dump_to_path
     parameters:
       out-path: ../data/committees/download_document_committee_session
@@ -308,17 +350,17 @@ download_document_committee_session:
 
 parse_meeting_protocols_text:
   dependencies:
-  - pipeline: ./committees/download_document_committee_session
+  - pipeline: ./committees/download_document_committee_sessions_for_parsing
   pipeline:
   - run: knesset.load_resource
     parameters:
-      url: ../data/committees/kns_documentcommitteesession/datapackage.json
+      url: ../data/committees/document_committee_sessions_for_parsing/datapackage.json
       resource: kns_documentcommitteesession
   - run: filter
     parameters:
       in:
       - GroupTypeID: 23
-      - ApplicationDesc: DOC
+        ApplicationDesc: DOC
   - run: parse_meeting_protocols
     parameters:
       check-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/meeting_protocols_text/
@@ -340,17 +382,17 @@ parse_meeting_protocols_text:
 
 parse_meeting_protocols_parts:
   dependencies:
-  - pipeline: ./committees/download_document_committee_session
+  - pipeline: ./committees/download_document_committee_sessions_for_parsing
   pipeline:
   - run: knesset.load_resource
     parameters:
-      url: ../data/committees/kns_documentcommitteesession/datapackage.json
+      url: ../data/committees/document_committee_sessions_for_parsing/datapackage.json
       resource: kns_documentcommitteesession
   - run: filter
     parameters:
       in:
       - GroupTypeID: 23
-      - ApplicationDesc: DOC
+        ApplicationDesc: DOC
   - run: parse_meeting_protocols
     parameters:
       check-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/meeting_protocols_parts/

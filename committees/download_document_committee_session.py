@@ -46,10 +46,14 @@ skip_not_found_errors = (os.environ.get("SKIP_NOT_FOUND_ERRORS") != "0")
 def get_resource():
     for resource in resources:
         for row in resource:
+            if parameters.get('limit-rows') and stats["downloaded files"] >= parameters['limit-rows']:
+                continue
             row.setdefault('filesize', 0)
             row.setdefault('crc32c', None)
             row.setdefault('error', None)
             document_id = "{}-{}-{}".format(row["GroupTypeID"], row["DocumentCommitteeSessionID"], row["ApplicationDesc"])
+            if not row["FilePath"].lower().endswith('.doc') and not row["FilePath"].lower().endswith('.docx'):
+                continue
             try:
                 filename, filesize, crc32c = download_document(row)
                 row.update(filename=filename, filesize=filesize, crc32c=crc32c, error=None)

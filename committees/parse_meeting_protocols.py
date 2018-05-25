@@ -68,6 +68,8 @@ def parse_protocol(row):
 def get_resource():
     for resource in resources:
         for row in resource:
+            if not row["FilePath"].lower().endswith('.doc') and not row["FilePath"].lower().endswith('.docx'):
+                continue
             row.setdefault('protocol_extension', None)
             row.setdefault('parsed_filename', None)
             row.setdefault('filesize', 0)
