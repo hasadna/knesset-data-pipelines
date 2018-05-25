@@ -23,7 +23,7 @@ script:
       else
           IMAGE_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/${PROJECT_NAME}-cd:${TRAVIS_COMMIT}"
       fi
-      B64_UPDATE_VALUES=`echo '{"pipelines-jobs":{"image":"'${IMAGE_TAG}'"}}' | base64 -w0`
+      B64_UPDATE_VALUES=`echo '{"pipelines":{"image":"'${IMAGE_TAG}'"}}' | base64 -w0`
       wget https://raw.githubusercontent.com/OriHoch/sk8s-ops/master/run_docker_ops.sh
       chmod +x run_docker_ops.sh continuous_deployment.sh
       if ./run_docker_ops.sh "${DEPLOY_ENVIRONMENT}" "/pwd/continuous_deployment.sh" \
