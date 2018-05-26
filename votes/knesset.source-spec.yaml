@@ -203,6 +203,8 @@ vote_rslts_kmmbr_shadow:
 
 join-votes:
   description: join the votes sessions, the votes themselves, and the voters
+  schedule:
+    crontab: "10 1 * * *"
   pipeline:
   - run: load_resource
     parameters:

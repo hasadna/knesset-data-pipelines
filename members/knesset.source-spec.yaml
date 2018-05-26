@@ -216,6 +216,8 @@ mk_individual:
 
 
 presence:
+  schedule:
+    crontab: "10 1 * * *"
   pipeline:
   - run: load_resource
     parameters:

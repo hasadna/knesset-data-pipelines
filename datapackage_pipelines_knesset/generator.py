@@ -76,7 +76,7 @@ class Generator(GeneratorBase):
         table_name = '{}_{}'.format(pipeline['schemas-bucket'], pipeline_id.replace('-', '_'))
         pipeline_steps += [(dump_to_sql, {'engine': 'env://DPP_DB_ENGINE',
                                           'tables': {table_name: {'resource-name': pipeline_id, 'mode': 'rewrite', }}},)]
-        yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
+        yield pipeline_id, {'pipeline': steps(*pipeline_steps), 'schedule': {'crontab': '10 1 * * *'}}
 
     @classmethod
     def get_all_package_pipeline(cls, pipeline_id, pipeline):
@@ -99,7 +99,7 @@ class Generator(GeneratorBase):
         storage_url = "http://storage.googleapis.com/knesset-data-pipelines/{}".format(storage_path)
         pipeline_steps += [('knesset.dump_to_path', {'storage-url': storage_url,
                                                      'out-path': '../{}'.format(storage_path)},)]
-        yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
+        yield pipeline_id, {'pipeline': steps(*pipeline_steps), 'schedule': {'crontab': '10 1 * * *'}}
 
     @classmethod
     def get_db_dump_pipeline(cls, pipeline_id, pipeline):
@@ -155,4 +155,4 @@ class Generator(GeneratorBase):
                 "next_mk_attendance": {"resource-name": "mk_attendance", "mode": "rewrite"},
             }})
         ]
-        yield pipeline_id, {'pipeline': steps(*pipeline_steps)}
+        yield pipeline_id, {'pipeline': steps(*pipeline_steps), 'schedule': {'crontab': '10 1 * * *'}}

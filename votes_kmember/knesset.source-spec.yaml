@@ -1,5 +1,7 @@
 join_votes_shadow_mk:
   description: join the votes sessions, the votes themselves, and the voters
+  schedule:
+    crontab: "10 1 * * *"
   pipeline:
   - run: load_resource
     parameters:
