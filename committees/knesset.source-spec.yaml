@@ -341,7 +341,7 @@ download_document_committee_sessions_for_parsing:
   - run: download_document_committee_session
     parameters:
       out-path: ../data/committees/download_document_committee_session
-      limit-rows: 5
+      # limit-rows: 5
   - run: knesset.dump_to_path
     parameters:
       out-path: ../data/committees/download_document_committee_session
