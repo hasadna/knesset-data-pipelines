@@ -306,10 +306,10 @@ prepare_document_committee_sessions_for_parsing:
         key: ["CommitteeSessionID"]
       fields:
         KnessetNum:
-  - run: filter
-    parameters:
-      in:
-      - KnessetNum: 20
+#  - run: filter
+#    parameters:
+#      in:
+#      - KnessetNum: 20
   - run: filter
     parameters:
       in:
