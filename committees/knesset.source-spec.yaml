@@ -287,11 +287,11 @@ prepare_document_committee_sessions_for_parsing:
   - datapackage: data/committees/kns_documentcommitteesession/datapackage.json
   - datapackage: data/committees/kns_committeesession/datapackage.json
   pipeline:
-  - run: knesset.load_resource
+  - run: load_resource
     parameters:
       url: ../data/committees/kns_committeesession/datapackage.json
       resource: kns_committeesession
-  - run: knesset.load_resource
+  - run: load_resource
     parameters:
       url: ../data/committees/kns_documentcommitteesession/datapackage.json
       resource: kns_documentcommitteesession
@@ -334,7 +334,7 @@ download_document_committee_sessions_for_parsing:
   dependencies:
   - pipeline: ./committees/prepare_document_committee_sessions_for_parsing
   pipeline:
-  - run: knesset.load_resource
+  - run: load_resource
     parameters:
       url: ../data/committees/document_committee_sessions_for_parsing/datapackage.json
       resource: kns_documentcommitteesession
@@ -358,7 +358,7 @@ parse_meeting_protocols_text:
   dependencies:
   - pipeline: ./committees/download_document_committee_sessions_for_parsing
   pipeline:
-  - run: knesset.load_resource
+  - run: load_resource
     parameters:
       url: ../data/committees/document_committee_sessions_for_parsing/datapackage.json
       resource: kns_documentcommitteesession
@@ -392,7 +392,7 @@ parse_meeting_protocols_parts:
   dependencies:
   - pipeline: ./committees/download_document_committee_sessions_for_parsing
   pipeline:
-  - run: knesset.load_resource
+  - run: load_resource
     parameters:
       url: ../data/committees/document_committee_sessions_for_parsing/datapackage.json
       resource: kns_documentcommitteesession

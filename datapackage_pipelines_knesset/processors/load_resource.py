@@ -7,9 +7,24 @@ class KnessetResourceLoader(ResourceLoader):
     def __init__(self, **kwargs):
         super(KnessetResourceLoader, self).__init__()
         self.parameters.update(**kwargs)
-        if os.environ.get('LOAD_FROM_URL'):
-            if self.parameters.get('url', '').startswith('../data/'):
-                self.parameters['url'] = self.parameters['url'].replace('../data/', 'http://storage.googleapis.com/knesset-data-pipelines/data/')
+        if self.parameters.get('path'):
+            path = self.parameters.pop('path')
+            app = self.parameters.pop('app') if self.parameters.get('app') else 'pipelines'
+            if app == 'pipelines':
+                if os.environ.get('KNESSET_PIPELINES_DATA_PATH'):
+                    self.parameters['url'] = os.path.join(os.environ['KNESSET_PIPELINES_DATA_PATH'], path)
+                else:
+                    self.parameters['url'] = 'http://storage.googleapis.com/knesset-data-pipelines/data/{}'.format(path)
+            elif app == 'committees':
+                if os.environ.get('KNESSET_COMMITTEES_DATA_PATH'):
+                    self.parameters['url'] = os.path.join(os.environ['KNESSET_COMMITTEES_DATA_PATH'], path)
+                else:
+                    self.parameters['url'] = 'http://storage.googleapis.com/knesset-data-pipelines/data/committees-build/{}'.format(path)
+            elif app == 'people':
+                if os.environ.get('KNESSET_PEOPLE_DATA_PATH'):
+                    self.parameters['url'] = os.path.join(os.environ['KNESSET_PEOPLE_DATA_PATH'], path)
+                else:
+                    self.parameters['url'] = 'http://storage.googleapis.com/knesset-data-pipelines/data/people/{}'.format(path)
 
 
 if __name__ == '__main__':
