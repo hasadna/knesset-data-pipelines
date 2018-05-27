@@ -9,7 +9,6 @@ COPY Pipfile /pipelines/
 COPY Pipfile.lock /pipelines/
 RUN pipenv install --system --deploy --ignore-pipfile
 RUN apk --update --no-cache add python && pip install psycopg2-binary
-RUN pip install --upgrade https://github.com/OriHoch/datapackage-pipelines/archive/cli-support-list-of-pipeline-ids.zip
 RUN cd / && wget -q https://storage.googleapis.com/pub/gsutil.tar.gz && tar xfz gsutil.tar.gz && rm gsutil.tar.gz
 COPY boto.config /root/.boto
 COPY datapackage_pipelines_knesset /pipelines/datapackage_pipelines_knesset
