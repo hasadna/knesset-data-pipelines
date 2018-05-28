@@ -284,8 +284,8 @@ prepare_document_committee_sessions_for_parsing:
   schedule:
     crontab: "10 1 * * *"
   dependencies:
-  - datapackage: data/committees/kns_documentcommitteesession/datapackage.json
-  - datapackage: data/committees/kns_committeesession/datapackage.json
+  - pipeline: kns_documentcommitteesession
+  - pipeline: kns_committeesession
   pipeline:
   - run: load_resource
     parameters:
@@ -332,7 +332,7 @@ download_document_committee_sessions_for_parsing:
   schedule:
     crontab: "10 1 * * *"
   dependencies:
-  - pipeline: ./committees/prepare_document_committee_sessions_for_parsing
+  - pipeline: prepare_document_committee_sessions_for_parsing
   pipeline:
   - run: load_resource
     parameters:
@@ -356,7 +356,7 @@ parse_meeting_protocols_text:
   schedule:
     crontab: "10 1 * * *"
   dependencies:
-  - pipeline: ./committees/download_document_committee_sessions_for_parsing
+  - pipeline: download_document_committee_sessions_for_parsing
   pipeline:
   - run: load_resource
     parameters:
@@ -390,7 +390,7 @@ parse_meeting_protocols_parts:
   schedule:
     crontab: "10 1 * * *"
   dependencies:
-  - pipeline: ./committees/download_document_committee_sessions_for_parsing
+  - pipeline: download_document_committee_sessions_for_parsing
   pipeline:
   - run: load_resource
     parameters:
@@ -424,10 +424,10 @@ join-meetings:
   schedule:
     crontab: "10 1 * * *"
   dependencies:
-  - pipeline: ./committees/parse_meeting_protocols_text
-  - pipeline: ./committees/parse_meeting_protocols_parts
-  - pipeline: ./committees/kns_cmtsessionitem
-  - pipeline: ./committees/kns_committeesession
+  - pipeline: parse_meeting_protocols_text
+  - pipeline: parse_meeting_protocols_parts
+  - pipeline: kns_cmtsessionitem
+  - pipeline: kns_committeesession
   description: join the committee meeting resources to form a single resource
   pipeline:
   - run: load_resource
