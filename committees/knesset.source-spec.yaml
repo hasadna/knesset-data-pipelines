@@ -432,7 +432,7 @@ join-meetings:
   pipeline:
   - run: load_resource
     parameters:
-      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/meeting_protocols_text/datapackage.json
+      url: ../data/committees/meeting_protocols_text/datapackage.json
       resource: kns_documentcommitteesession
   - run: ..rename_resource
     parameters:
@@ -440,7 +440,7 @@ join-meetings:
       dst: meeting_protocols_text
   - run: load_resource
     parameters:
-      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/meeting_protocols_parts/datapackage.json
+      url: ../data/committees/meeting_protocols_parts/datapackage.json
       resource: kns_documentcommitteesession
   - run: ..rename_resource
     parameters:
@@ -448,11 +448,11 @@ join-meetings:
       dst: meeting_protocols_parts
   - run: load_resource
     parameters:
-      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/kns_cmtsessionitem/datapackage.json
+      url: ../data/committees/kns_cmtsessionitem/datapackage.json
       resource: kns_cmtsessionitem
   - run: load_resource
     parameters:
-      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/kns_committeesession/datapackage.json
+      url: ../data/committees/kns_committeesession/datapackage.json
       resource: kns_committeesession
   - run: join
     parameters:
