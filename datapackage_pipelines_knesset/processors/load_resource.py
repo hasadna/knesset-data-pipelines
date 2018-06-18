@@ -1,5 +1,5 @@
 from datapackage_pipelines.lib.load_resource import ResourceLoader
-import os
+import os, logging
 
 
 class KnessetResourceLoader(ResourceLoader):
@@ -25,6 +25,7 @@ class KnessetResourceLoader(ResourceLoader):
                     self.parameters['url'] = os.path.join(os.environ['KNESSET_PEOPLE_DATA_PATH'], path)
                 else:
                     self.parameters['url'] = 'http://storage.googleapis.com/knesset-data-pipelines/data/people/{}'.format(path)
+        logging.info(self.parameters)
 
 
 if __name__ == '__main__':

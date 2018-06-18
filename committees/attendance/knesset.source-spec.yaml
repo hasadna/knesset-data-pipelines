@@ -1,0 +1,46 @@
+download:
+  description: download all the source committees data to allow quick building and aggregations from a local copy
+  pipeline:
+  - run: knesset.load_resource
+    parameters:
+      app: people
+      path: committees/joined-meeting-attendees-mks/datapackage.json
+      resource: kns_committeesession
+  - run: knesset.load_resource
+    parameters:
+      path: committees/kns_committee/datapackage.json
+      resource: kns_committee
+  - run: dump.to_path
+    parameters:
+      out-path: ../../data/committees/attendance/download
+
+download_members:
+  description: downloads members data
+  pipeline:
+  - run: knesset.load_resource
+    parameters:
+      app: people
+      path: members/joined-mks/datapackage.json
+      resource: mk_individual
+  - run: dump.to_path
+    parameters:
+      out-path: ../../data/committees/attendance/download_members
+
+knesset_20_mk_attendance_report:
+  description: mk attendance report for knesset 20
+#  dependencies:
+#  - pipeline: download
+#  - pipeline: download_members
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/attendance/download_members/datapackage.json
+      resource: mk_individual
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/attendance/download/datapackage.json
+      resource: kns_committeesession
+  - run: mk_attendance_report
+  - run: dump.to_path
+    parameters:
+      out-path: ../../data/committees/attendance/knesset_20_mk_attendance_report
