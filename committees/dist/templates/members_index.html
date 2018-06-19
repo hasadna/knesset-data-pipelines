@@ -1,0 +1,31 @@
+{% extends "site_base.html" %}
+
+{% block breadcrumbs %}
+    <li class="active">ח"כים וסיעות</li>
+{% endblock %}
+
+{% block divcontent %}
+    <div class="row">
+        <div class="cards span8">
+            <section class="card card-list">
+                <header>
+                    <h1><i class="fa fa-users"></i>כל הח"כים</h1>
+                </header>
+                <ul>
+                    {% for knesset_num in keys %}
+                        <li>
+                            <p class="item-title">
+                                <a href="{{ url | replace('{knesset_num}', knesset_num) }}">
+הכנסת ה-{{ knesset_num }}                                </a>
+                            </p>
+                            <p>סיעות {{knessets[knesset_num].factions}}, חברי כנסת {{knessets[knesset_num].mks}}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        </div>
+        <div class="span4">
+            <!-- stats -->
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" class="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Language" content="he">
+    <title>Open Knesset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <base href="/"/>
+    <link rel="stylesheet" type="text/css" href="static/css/app.css"/>
+    <link rel="stylesheet" type="text/css" href="static/css/responsive.css"/>
+    <link href="static/css/jquery.jgrowl.css" rel="stylesheet" type="text/css" media="screen"/>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link rel="shortcut icon" href="static/img/favicon.png"/>
+</head>
+<body>
+<header id="app-header" class="container">
+    <div class="row">
+        <div id="logo" class="span4 clearfix">
+            <h1><a href="/"><img src="static/img/oknesset-logo.png" alt="oknesset-logo"/><span>כנסת פתוחה</span></a></h1>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills">
+        <li id="nav-parties"><a href="/members/index.html">ח"כים וסיעות</a></li>
+        <li id="nav-committees"><a href="/committees/index.html">ועדות</a></li>
+    </ul>
+</header>
+<section class="container">
+    <ul class="breadcrumb">
+        <li><a class="home-icon"
+               href="/index.html">דף הבית</a> <span
+                class="divider">/</span>
+        </li>
+        {% block breadcrumbs %}{% endblock %}
+    </ul>
+    <div id="content-main" class="main">
+        <div id="subnav">{% block subnav %} {% endblock %}</div>
+        {% block header %} {% endblock %}
+        <div>
+            {% block divcontent %}{% endblock %}
+        </div>
+    </div>
+</section>
+<p><a href="javascript:$('#dataSource').toggle();">קוד המקור של הנתונים</a></p>
+<div id="dataSource" style="display:none;">
+    {% block data_sources %}
+        <p>הנתונים מגיעים מ<a href="http://main.knesset.gov.il/Activity/Info/Pages/Databases.aspx">ממשק הנתונים של מידע פרלמנטרי נגיש</a>.</p>
+        <p>הנתונים נמשכים בתדירות יומית ומעודכנים באתר זה ובמסדי נתונים וקבצים אחרים באמצעות פרוייקט <a href="https://github.com/hasadna/knesset-data-pipelines">knesset-data-pipelines</a></p>
+        <p>דף הhtml הנוכחי נוצר בתאריך {{ create_date }} בשעה {{ create_time }} GMT ממחשב בשם {{ create_hostname }}</p>
+    {% endblock %}
+</div>
+<footer id="app-footer">
+    <div class="container">
+        <div class="row">
+            <nav class="span8">
+                <ul class="nav nav-pills">
+                    <li><a class="home-icon" href="/index.html">דף הבית</a></li>
+                    <li><a href="/members/index.html">ח"כים וסיעות</a></li>
+                    <li><a href="/committees/index.html">ועדות</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="row about">
+            <div class="span4">
+                <div class="about-oknesset">
+                    <h3>כנסת פתוחה הוא פרוייקט שמטרתו לחשוף את פעילות הכנסת לציבור</h3>
+                </div>
+            </div>
+            <div class="span4 offset4 hasadna">
+                <h3>
+                    <img src="static/img/sadna30x30.png" alt="הסדנא לידע ציבורי">
+                    <span>פרוייקט של</span><a href="http://www.hasadna.org.il">הסדנא לידע ציבורי</a>
+                </h3>
+                <ul>
+                    <li><a href="http://www.obudget.org/" target="_blank">מפתח התקציב</a></li>
+                    <li><a href="http://kikar.org/" target="_blank">כיכר המדינה</a></li>
+                    <li><a href="http://www.anyway.co.il/" target="_blank">ANYWAY</a></li>
+                    <li><a href="http://www.openpension.org.il/" target="_blank">פנסיה פתוחה</a></li>
+                </ul>
+                <form method="post" action="https://www.paypal.com/cgi-bin/webscr">
+                    <input type="hidden" value="_s-xclick" name="cmd">
+                    <input type="hidden" value="K7X4FWYPBR7H4" name="hosted_button_id">
+                    <input type="submit" name="submit" value="תרמו לסדנא" class="btn  btn-big btn-large btn-primary">
+                    <img width="1" height="1" border="0" src="https://www.paypalobjects.com/WEBSCR-640-20110306-1/he_IL/i/scr/pixel.gif" alt="">
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="span12">                חלק מהזכויות שמורות. שימוש בנתונים מהאתר בכפוף לקרדיט
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="static/js/jquery-1.8.3.min.js"></script>
+<script src="static/js/bootstrap-transition.js"></script>
+<script src="static/js/bootstrap-alert.js"></script>
+<script src="static/js/bootstrap-modal.js"></script>
+<script src="static/js/bootstrap-dropdown.js"></script>
+<script src="static/js/bootstrap-scrollspy.js"></script>
+<script src="static/js/bootstrap-tab.js"></script>
+<script src="static/js/bootstrap-tooltip.js"></script>
+<script src="static/js/bootstrap-popover.js"></script>
+<script src="static/js/bootstrap-button.js"></script>
+<script src="static/js/bootstrap-collapse.js"></script>
+<script src="static/js/bootstrap-carousel.js"></script>
+<script src="static/js/bootstrap-typeahead.js"></script>
+<script src="static/js/jquery.jgrowl.js"></script>
+<script src="static/js/okhelptexts.js"></script>
+<script src="static/js/togglehelpextended.js"></script>
+<script src="static/js/ok-toggle.js"></script>
+<script src="static/js/ok-more.js"></script>
+<script src="static/js/ok-search.js"></script>
+<script src="static/js/ok-suggest.js"></script>
+
+</body>
+</html>
+

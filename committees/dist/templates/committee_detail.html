@@ -1,0 +1,80 @@
+{% extends "site_base.html" %}
+
+{% block breadcrumbs %}
+    <li><a href="{{committeelist_url}}">ועדות</a> <span class="divider">/</span></li>
+    <li><a href="{{committeelist_knesset_url}}">הכנסת ה-{{knesset_num}}</a> <span class="divider">/</span></li>
+    <li class="active">{{name}}</li>
+{% endblock %}
+
+{% block divcontent %}
+    <section class="card card-main">
+        <div class="row">
+            <div class="span6 card-details">
+                <div class="spacer fill">
+                    <h2>ועדה של הכנסת ה-{{knesset_num}}</h2>
+                    <h1>{{name}}</h1>
+                </div>
+            </div>
+            <div class="span6 social-details">
+                <div class="spacer fill">
+                    <div class="card-party-members committee-members">
+                    {% for mk in mks %}
+                        <div class="party-member-photo">
+                            <a href="{{member_url | replace('{member_id}', mk.mk_individual_id)}}">
+                                <img src="{{mk.mk_individual_photo}}">
+                                <span class="party-member-name ">{{mk.mk_individual_first_name}} {{mk.mk_individual_name}}</span>
+                            </a>
+                            <div class="party-member-extra">
+                                {% if mk.committee_position == "chairperson" %}<p>
+                                    יו"ר הועדה
+                                </p>{% elif mk.committee_position == "replacement" %}<p>
+                                    ממלא מקום
+                                </p>{% elif mk.committee_position == "watcher" %}<p>
+                                    משקיפה
+                                </p>{% elif mk.committee_position == "other" %}<p>
+                                    תפקיד אחד
+                                </p>{% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <div class="row">
+        <div class="cards span8">
+            <section class="card card-list">
+                <header><h2><i class="fa fa-calendar"></i>כל ישיבות הועדה</h2></header>
+                <ul>
+                    {% for meeting in meetings %}
+                        <li>
+                        <div class="item-context"><span class="label">{{meeting.date_string}}</span></div>
+                            <p class="item-title underline">
+                                 <a class="no-underline" href="{{meeting.url}}">{{meeting.title}}</a></p>
+                            {% if not meeting.has_protocol %}
+                                <p><b>אין פרוטוקול</b></p>
+                            {% endif %}
+                        </li>
+
+                    {% endfor %}
+                </ul>
+            </section>
+        </div>
+        <div class="span4">
+            <!-- stats about the committee -->
+        </div>
+    </div>
+{% endblock %}
+
+{% block data_sources %}
+    {{ super() }}
+    <p>להלן נתוני המקור כפי שהם מופיעים במאגרי המידע של הכנסת באמצעות ממשק מידע פרלמנטרי זמין - </p>
+    <p style="font-size:130%;"><u><b>ועדה</b></u></p>
+    {% for field in source_committee_schema.fields %}
+        {% if field.description and source_committee_row[field.name] %}
+            <b>{{field.description}}</b>: <p>{{source_committee_row[field.name]}}</p>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

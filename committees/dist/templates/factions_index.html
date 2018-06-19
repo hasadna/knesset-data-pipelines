@@ -1,0 +1,37 @@
+{% extends "site_base.html" %}
+
+{% block breadcrumbs %}
+    <li>ח"כים וסיעות כנסת {{knesset_num}}</li>
+{% endblock %}
+
+{% block divcontent %}
+    <div class="row">
+        <div class="span4">
+            <h1>כנסת {{knesset_num}}</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="cards span12">
+            <section class="card card-list card-list-latest compact" style="display:inline-block;width:100%;">
+                {% for faction in factions %}
+                    <div class="span1">
+                        <h4 style="height: 5em;">
+                            <a href="{{faction_url | replace('{faction_id}', faction.faction_num)}}">{{faction.faction_name}}</a>
+                        </h4>
+                        <div class="card-party-members">
+                            {% for mk in faction.mks %}
+                                <div class="party-member-photo">
+                                    <a href="{{member_url | replace('{member_id}', mk.mk_individual_id)}}">
+                                        <img src="{{mk.mk_individual_photo}}">
+                                        <span class="party-member-name">{{mk.LastName}} {{mk.FirstName}}</span>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </section>
+        </div>
+    </div>
+    
+{% endblock %}

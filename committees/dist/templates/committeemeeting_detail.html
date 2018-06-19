@@ -1,0 +1,89 @@
+{% extends "site_base.html" %}
+
+{% block breadcrumbs %}
+    <li><a href="{{committeelist_url}}">ועדות</a> <span class="divider">/</span></li>
+    <li><a href="{{committeelist_knesset_url}}">הכנסת ה-{{knesset_num}}</a> <span class="divider">/</span></li>
+    <li><a href="{{committee_url}}">{{committee_name}}</a> <span class="divider">/</span></li>
+    <li>ישיבת ועדה מתאריך {{meeting_datestring}}</li>
+{% endblock %}
+
+{% block divcontent %}
+    <section class="card card-main">
+        <div class="row">
+            <div class="span6 card-details">
+                <div class="spacer fill">
+                    <h2>ישיבת ועדה של הכנסת ה-{{knesset_num}} מתאריך {{meeting_datestring}}</h2>
+                    {% if topics %}
+                    <h1>{{topics|join(', ')}}</h1>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="span6 social-details">
+                <div class="spacer fill">
+                    <h2>ח"כים נוכחים</h2>
+                    <div class="card-party-members committee-members">
+                    {% for attended_mk in attended_mks %}
+                        {# {% if person.mk_individual %} #}
+                            <div class="party-member-photo">
+                                <a href="{{member_url | replace('{member_id}', attended_mk.mk_individual_id)}}">
+                                    <img src="{{attended_mk.mk_individual_photo}}">
+                                    <span class="party-member-name ">{{attended_mk.mk_individual_first_name}} {{attended_mk.mk_individual_name}}</span>
+                                </a>
+                            </div>
+                        {# {% else %}
+                            <div class="party-member-photo">
+                                <span class="party-member-name ">{{attended_mk.FirstName}} {{attended_mk.LastName}}</span>
+                            </div>
+                        {% endif %} #}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        </div>
+    </section>
+    <div class="row">
+        <div class="span9 cards">
+            <section class="card card-list">
+                <header><h2><i class="fa fa-list"></i>פרוטוקול</h2></header>
+                {% if speech_parts %}
+                    {% for speech_part in speech_parts %}
+                        <div class="speech-{{meeting_id}} speech-container row" id="speech-{{meeting_id}}-{{ speech_part.order }}">
+                            <div class="text-speaker span9" {% if speech_part.header %}style="background-color:#d4d4d4" {% endif %}>
+                                {% if speech_part.header %}{{ speech_part.header }}{% else %}&nbsp;{% endif %}
+                                {% if speech_part.order != 1 %}
+                                     <a href="#speech-{{meeting_id}}-{{ speech_part.order }}" class="permalink">¶</a>
+                                {% endif %}
+                            </div>
+                            <div class="text-content span6" id="annotations-{{ speech_part.id }}_content">
+                                <blockquote cite="{{ session_document_url }}" id="annotationtext_{{ speech_part.id }}" class="entry-content" style="background-color:white">{{ speech_part_body(speech_part)|safe }}</blockquote>
+                            </div>
+                            <div class="span3">
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <ul data-noprotocol="yes">
+                      <li>מצטערים! אין לנו את הפרוטוקול.</li>
+                    </ul>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+{% endblock %}
+
+{% block data_sources %}
+    {{ super() }}
+    <p>להלן נתוני המקור כפי שהם מופיעים במאגרי המידע של הכנסת באמצעות ממשק מידע פרלמנטרי זמין - </p>
+    <p style="font-size:130%;"><u><b>ישיבה</b></u></p>
+    {% for field in source_meeting_schema.fields %}
+        {% if field.description and source_meeting_row[field.name] %}
+            <b>{{field.description}}</b>: <p>{{source_meeting_row[field.name]}}</p>
+        {% endif %}
+    {% endfor %}
+    <p style="font-size:130%;"><u><b>ועדה</b></u></p>
+    {% for field in source_committee_schema.fields %}
+        {% if field.description and source_committee_row[field.name] %}
+            <b>{{field.description}}</b>: <p>{{source_committee_row[field.name]}}</p>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

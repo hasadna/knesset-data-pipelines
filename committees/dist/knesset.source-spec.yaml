@@ -1,0 +1,200 @@
+download:
+  description: download all the source committees data to allow quick building and aggregations from a local copy
+  schedule:
+    crontab: "10 1 * * *"
+  pipeline:
+  - run: knesset.load_resource
+    parameters:
+      app: people
+      path: committees/joined-meeting-attendees-mks/datapackage.json
+      resource: kns_committeesession
+  - run: knesset.load_resource
+    parameters:
+      path: committees/kns_committee/datapackage.json
+      resource: kns_committee
+  - run: dump.to_path
+    parameters:
+      out-path: ../../data/committees/dist/committees
+
+download_members:
+  description: downloads members data
+  schedule:
+    crontab: "10 1 * * *"
+  pipeline:
+  - run: knesset.load_resource
+    parameters:
+      app: people
+      path: members/joined-mks/datapackage.json
+      resource: mk_individual
+  - run: dump.to_path
+    parameters:
+      out-path: ../../data/committees/dist/members
+
+build:
+  description: prepare the data for rendering, allows to limit rendering to subset of items
+  schedule:
+    crontab: "10 1 * * *"
+  dependencies:
+  - pipeline: download
+  - pipeline: download_members
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/committees/datapackage.json
+      resource: kns_committee
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/members/datapackage.json
+      resource: mk_individual
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/committees/datapackage.json
+      resource: kns_committeesession
+#  - run: filter
+#    parameters:
+#      resources: kns_committeesession
+#      in:
+#      - CommitteeSessionID: 2068104
+#      - CommitteeSessionID: 2068105
+#      - CommitteeID: 922
+  - run: build_meetings
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../../data/committees/dist/build_meetings
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/committees-build/build_meetings
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        committees_build_build_meetings:
+          resource-name: kns_committeesession
+
+render_meetings:
+  schedule:
+    crontab: "10 1 * * *"
+  dependencies:
+  - pipeline: build
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/build_meetings/datapackage.json
+      resource: kns_committee
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/build_meetings/datapackage.json
+      resource: mk_individual
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/build_meetings/datapackage.json
+      resource: kns_committeesession
+  - run: render_meetings
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../../data/committees/dist/rendered_meetings_stats
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/committees-build/rendered_meetings_stats
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        committees_build_rendered_meetings_stats:
+          resource-name: meetings_stats
+
+render_committees:
+  schedule:
+    crontab: "10 1 * * *"
+  dependencies:
+  - pipeline: render_meetings
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/build_meetings/datapackage.json
+      resource: kns_committee
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/build_meetings/datapackage.json
+      resource: mk_individual
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/build_meetings/datapackage.json
+      resource: kns_committeesession
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/rendered_meetings_stats/datapackage.json
+      resource: meetings_stats
+  - run: render_committees
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../../data/committees/dist/render_committees_stats
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/committees-build/render_committees_stats
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        committees_build_render_committees_stats:
+          resource-name: committees_stats
+
+create_members:
+  schedule:
+    crontab: "10 1 * * *"
+  dependencies:
+  - pipeline: ./download
+  - pipeline: ./download_members
+  pipeline:
+  # all these tables are loaded into memory
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/members/datapackage.json
+      resource: mk_individual
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/committees/datapackage.json
+      resource: kns_committeesession
+  - run: build_members
+
+build_positions:
+  schedule:
+    crontab: "10 1 * * *"
+  dependencies:
+  - pipeline: ./download_members
+  pipeline:
+  # all these tables are loaded into memory
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/members/datapackage.json
+      resource: mk_individual
+  - run: build_positions
+  - run: dump.to_path
+    parameters:
+      out-path: ../../data/committees/dist/positions_aggr
+
+create_factions:
+  schedule:
+    crontab: "10 1 * * *"
+  dependencies:
+  - pipeline: build_positions
+  pipeline:
+  # all these tables are loaded into memory
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/positions_aggr/datapackage.json
+      resource: members
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/positions_aggr/datapackage.json
+      resource: positions
+  - run: load_resource
+    parameters:
+      url: ../../data/committees/dist/positions_aggr/datapackage.json
+      resource: knessets
+  - run: build_factions
+
+sync:
+  schedule:
+    crontab: "10 1 * * *"
+  dependencies:
+  - pipeline: render_meetings
+  - pipeline: render_committees
+  - pipeline: create_members
+  - pipeline: create_factions
+  pipeline:
+  - run: sync
+    parameters:
+      source: "../../data/committees/dist/dist"
+      target: "gs://knesset-data-pipelines/data/dist"

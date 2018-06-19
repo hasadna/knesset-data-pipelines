@@ -1,0 +1,42 @@
+{% extends "site_base.html" %}
+
+{% block breadcrumbs %}
+    <li>
+        <a href="{{faction_home_url}}">כנסת {{knesset_num}}</a>
+        <span class="divider">/</span>
+    </li>
+    <li class="active">{{faction_name}} בכנסת ה־{{knesset_num}}</li>
+{% endblock %}
+
+{% block divcontent %}
+<div class="card card-main with-min-height">
+    <div class="row">
+        <div class="span3 card-details">
+            <div class="spacer fill">
+                    <header>
+                        <h1>{{faction_name}}</h1>
+                    </header>
+                    <div class="social-links">
+                        <h5>יש עתיד ברשת:</h5>
+                        <ul class="text-center">
+                        </ul>
+                    </div>
+                </div>
+        </div>
+        <div class="span9 social-details">
+            <div>
+                <div class="card-party-members">
+                    {% for mk in mks %}
+                        <div class="party-member-photo">
+                            <a href="{{member_url | replace('{member_id}', mk.mk_individual_id)}}">
+                                <img src="{{mk.mk_individual_photo}}">
+                                <span class="party-member-name">{{mk.LastName}} {{mk.FirstName}}</span>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

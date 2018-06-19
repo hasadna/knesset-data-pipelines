@@ -1,0 +1,47 @@
+.hideme{
+    display:block;
+    position:absolute;
+    top:-999em;
+}
+
+blockquote {
+    padding:0.25em;
+    font-size: 12pt;
+    line-height:16pt;
+    margin: 0 0 0.5em 0;;
+    -moz-border-radius:0em 0em 0.5em 0.5em;
+    -webkit-border-radius:0em 0em 0.5em 0.5em;
+    border-radius:0em 0em 0.5em 0.5em;
+    border:0 none;
+}
+
+.text-content .selectableText {
+    font-family:Helvetica;
+    font-size: 12pt;
+    overflow-y:hidden;
+    outline:none;
+    border:0;
+    display:block;
+    width:99%;
+    margin:2px;
+    background:#ddf;
+    border:1px solid #dd0;
+    padding:1px 0px;
+    resize: none;
+    line-height:16pt;
+    cursor: text;
+}
+
+
+a.annotation_meta, a.annotation_meta:hover {
+    font-weight:normal;
+    text-decoration:none;
+    color:#000;
+}
+
+
+.selectionhint {
+    padding:2px;
+    background:#ccc;
+}
+.semannotation { position: relative; }

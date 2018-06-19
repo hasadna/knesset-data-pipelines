@@ -1,0 +1,28 @@
+{% extends "site_base.html" %}
+
+{% block breadcrumbs %}
+    <li><a href="{{committeelist_url}}">ועדות</a> <span class="divider">/</span></li>
+    <li class="active">הכנסת ה-{{knesset_num}}</li>
+{% endblock %}
+
+{% block divcontent %}
+    <div class="row">
+        <div class="cards span8">
+            <section class="card card-list">
+                <header>
+                    <h1><i class="fa fa-users"></i>ועדות הכנסת ה-{{knesset_num}}</h1>
+                </header>
+                <ul>
+                    {% for committee in committees %}
+                        <li><p class="item-title">
+                            <a id="detail-{{ committee.id }}" href="{{ committee.url }}">{{ committee.name }}</a> ({{committee.num_meetings}} ישיבות)
+                        </p></li>
+                    {% endfor %}
+                </ul>
+            </section>
+        </div>
+        <div class="span4">
+            <!-- stats -->
+        </div>
+    </div>
+{% endblock %}
