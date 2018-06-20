@@ -2,47 +2,26 @@ language: bash
 sudo: required
 env:
   global:
-  - OPENSSL_CMD="openssl aes-256-cbc -K $encrypted_49943f1824d0_key -iv $encrypted_49943f1824d0_iv -in ./k8s-ops-secret.json.enc -out ./secret-k8s-ops.json -d"
-  - OPS_REPO_SLUG=OriHoch/knesset-data-k8s
-  - OPS_REPO_BRANCH=master
-  - CLOUDSDK_CORE_PROJECT=hasadna-oknesset
-  - PROJECT_NAME=knesset-data-pipelines
-  matrix:
-  - DEPLOY_ENVIRONMENT=production DEPLOY_BRANCH=master
+    - secure: "KjC7DLApDGabngmfrR8BdQgk2aAvEuoHOduy0R/AAIRPuo6WN+0RAOLZWvNWDGSnltavKUcoHLwUDpt4gb/lmt42mLyyLpLJndkCIZsaA6f/nekVD+1mvKk2afmzJYNwaw0QdP/Bt9gmmm6iYQDHq7FuD46WS+4p02KR2hRhZA5JM+LiEzUs11eUQB+fOwKj2Kcnu5Qr/HdLaNu8bgpKMuCJ4zqPkY99q3GiLoyZz+Y+BTpuoCiBDczf3KegPRelbG6I2f6inA/5r13z43OK8RqG1yZAu4lL/4+qVzerdLZveckdBZW0tYdSaQZlfUrNqfVO5GX+vzVuFU/DkTLZLT9ZNKlMxI+FSzs9IQdQhKMOgPLGhB8m8GG23TOZCNggUnh9+UjLXtx31x8bt/0kuVLYcxRisCoobLjtF3EJ6HeV+iuxWcmPCtJjTM3/N8g3oRPDcbKU6ML5VHyE05d+7RmVHgjzANI9XG97t+PuMLSs/lOjFbhXGKvrmXpb0pJDD7A7/dIur2zf5VsC2qPkUIaeihAlarnTqTyVHOfOApmXlTZ8LZAwatM8dc8SzXxXROZuqhdD72e+RNWx5aLi52uP7xyDNth6w2863H1e4kw+SJHrH4pYgUifY8nVF+sz1TD/ewZRE8g/Awi2ZG3+eb0oRaG6WTmxMZj76wYFesI="
+    - secure: "WGNyZlRS971hZRTRpoeMl7JGJfqacDR2z1f67xc5P8BxEryiARftUuNisz89urG3NnoC39QwRzzNExLHZNUQ0yV+L08qaF4z7Y5akW8uHcoOhO/wfyRNLayfZ7xXASkKIJ0RFuFHT9O5UbL3ZIFhAUKbDP56qDFLl5UoMbrgfLwRNTVL/3ntrqYpgiHvQZHK4cWnkj9cQp0be/gCQU+SdaN8atII8YNqHHNPhg0k9/RYUSkf3iL1YN/uAtgY6a/FaIqXh0dw3Nhey9eZl9flKAZwzl6CLEAI8JLfhQTtpO5JP8XVm/phDaWpoyWeetTcXFQP42K6VQz5BjXhlZ7TgMFPk/toxfHDV8bHuwj3254wDjVCmV4HbvVzr+Ntwr49fjChkjHC8ABpnQlAxl/N3xzv/3XacEO1bQ0Lge2aMGQEBSMC0Vmhy7lLhOUMakv/Ap5HAmwquToolOyvu8AfQ9WzFTU21GwsnmitTh7jDoVgDl0An6SSKOe8/1h2Ut9+o46tETWn+I0Lo2AUMTPePIF5ACSjg+qji8w02wTVmSoHKCijPSVEitd0BiOglMDfAz6qr/8wbhj9JSyFqjyyYD4xhcq992wy704dUHJy2KYa95aJK3XDtD0KTusRX208e6nUyeYbw2HJXJl4pYYgypqgy/KGigDYEuSdUzWeM5I="
+    - secure: "qISMoIcHa1MNfAJYdX5BiklnH0kyuU+bKyuPEIiKwmbNfUSsWnkhCHatLUNi2X29GVHbU8kEYoDYhsCnDNqCmcL8GgUT2JxxSoi8J/fVJ3VKabZALA74xs8aWuyTfo47yysy3o64xMaM00Q+Jo9qg8bYfHkKwNBqIilJ4kF0auefkfmPTdHgJy+iD+mDficNST3VEjk6103xCPlU7Szb0jFfRNBawBq31NP8lTq6ggl2lHSJWuAyC7BXE0/LhlTcY1v0mozBXFMpNacailuebOy378JeIWqvtnj/B8Z6mb5rBEqL7inCaB1bY79UJHAmOvMpbnC4dDVK5sl/AIgjaFx+1lp72KNbjrRxyUVDuxaQoDEkm6v41PfvsVxKb0Fz6WtvDZ9du7IZXxMZyDL2jBlqDbxm+dwlbJY3UG2RQtBBKZgn9qhBJnkJgRkfsRh0tCbxNnDYc1AijqgikZK2FQg/8YaFBw6oLLEEHpueAH4VjLgPdcbf2j+BKsDndw+9r9OoHI4BV0FZqv7mCvbYL1Wm0FKNP019jDpX048unGTVHfP3H56GnyRWzpfcLpMaaqRB1b772rzrgKLQIpD63xi7WDm6DIUTAmGdgdtpAYmKuqcgQ5u7RWWUoRyYZhcAaL6KXeL5W4CEd8gqxV3LDLngL/DXuPb2WKhNEQDlguQ="
+    - K8S_OPS_REPO_BRANCH=master
+    - K8S_OPS_REPO_SLUG=OriHoch/knesset-data-k8s
+    - DOCKER_IMAGE=orihoch/knesset-data-pipelines
+    - DEPLOY_YAML_UPDATE_FILE=environments/production/values.auto-updated.yaml
+    - DEPLOY_VALUES_CHART_NAME=pipelines
+    - DEPLOY_VALUES_IMAGE_PROP=image
+    - DEPLOY_COMMIT_MESSAGE="automatic update of knesset-data-pipelines"
+    - DEPLOY_GIT_EMAIL=knesset-data-deployer@null.void
+    - DEPLOY_GIT_USER=knesset-data-deployer
 services:
-- docker
+  - docker
 script:
-- |
-  if [ "${DEPLOY_ENVIRONMENT}" != "" ] && [ "${TRAVIS_PULL_REQUEST}" == "false" ] &&\
-     ([ "${TRAVIS_BRANCH}" == "${DEPLOY_BRANCH}" ] || ([ "${DEPLOY_TAGS}" == "true" ] && [ "${TRAVIS_TAG}" != "" ])) &&\
-     ! echo "${TRAVIS_COMMIT_MESSAGE}" | grep -- --no-deploy
-  then
-      $OPENSSL_CMD
-      if [ "${TRAVIS_TAG}" != "" ]; then
-          IMAGE_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/${PROJECT_NAME}-tag:${TRAVIS_TAG}"
-      else
-          IMAGE_TAG="gcr.io/${CLOUDSDK_CORE_PROJECT}/${PROJECT_NAME}-cd:${TRAVIS_COMMIT}"
-      fi
-      B64_UPDATE_VALUES=`echo '{"pipelines":{"image":"'${IMAGE_TAG}'"}}' | base64 -w0`
-      wget https://raw.githubusercontent.com/OriHoch/sk8s-ops/master/run_docker_ops.sh
-      chmod +x run_docker_ops.sh continuous_deployment.sh
-      if ./run_docker_ops.sh "${DEPLOY_ENVIRONMENT}" "/pwd/continuous_deployment.sh" \
-                            "orihoch/sk8s-ops" "${OPS_REPO_SLUG}" "${OPS_REPO_BRANCH}" "" "
-                            -v `pwd`:/pwd
-                            -e B64_UPDATE_VALUES=${B64_UPDATE_VALUES}
-                            -e K8S_OPS_GITHUB_REPO_TOKEN=${K8S_OPS_GITHUB_REPO_TOKEN}
-                            -e OPS_REPO_SLUG=${OPS_REPO_SLUG}
-                            -e OPS_REPO_BRANCH=${OPS_REPO_BRANCH}
-                            -e B64_UPDATE_VALUES=${B64_UPDATE_VALUES}
-                            -e IMAGE_TAG=${IMAGE_TAG}
-                            -e CLOUDSDK_CORE_PROJECT=${CLOUDSDK_CORE_PROJECT}
-                            -e PROJECT_NAME=${PROJECT_NAME}"; then
-        true
-      else
-        echo "failed to run docker ops"
-        false
-      fi
-  else
-    echo "skipping deployment"
-    true
-  fi
+  - curl -s https://raw.githubusercontent.com/hasadna/hasadna-k8s/master/apps_travis_script.sh > .travis.sh
+  - bash .travis.sh script
+deploy:
+  skip_cleanup: true
+  provider: script
+  script: bash .travis.sh deploy
+  on:
+    branch: master

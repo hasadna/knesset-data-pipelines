@@ -20,12 +20,11 @@ COPY knesset /pipelines/knesset
 COPY laws /pipelines/laws
 COPY lobbyists /pipelines/lobbyists
 COPY members /pipelines/members
+COPY people /pipelines/people
 COPY plenum /pipelines/plenum
 COPY votes /pipelines/votes
 COPY votes_kmember /pipelines/votes_kmember
 COPY bin /pipelines/bin
 COPY *.py /pipelines/
-COPY knesset /pipelines/knesset
 COPY *.sh /pipelines/
 ENV RTF_EXTRACTOR_BIN /knesset/bin/rtf_extractor.py
-ENTRYPOINT ["/pipelines/pipelines_script.sh"]
