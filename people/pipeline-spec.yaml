@@ -1,164 +1,172 @@
-### parse people people
 
-people-committee-attendees:
-  description: >
-    <p>runs daily, based on committee_meeting_attendees table</p>
+join-members:
+  description: join the members resources
   schedule:
-    crontab: "10 0 * * *"
+    crontab: "10 1 * * *"
+  dependencies:
+  - pipeline: ./people/download/members
   pipeline:
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: people
-        resource-name: committee-meeting-attendees
-        table: committee_meeting_attendees
-        schema:
-          fields: [
-            {name: "committee_id", type: "integer"},
-            {name: "meeting_id", type: "integer"},
-            {name: "name", type: "string"},
-            {name: "role", type: "string"},
-            {name: "additional_information", type: "string"}
-          ]
-          primaryKey: ["committee_id"]
-    - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
-      parameters:
-        input-resource: committee-meeting-attendees
-        output-resource: people
-        schema:
-          fields: [
-            {name: "name", type: "string", from: "name"},
-            {name: "type_id", type: "integer", from: "meeting_id"},
-            {name: "type", type: "string", const: "attendees"}
-          ]
-          primaryKey: ["name", "type_id", "type"]
-    - run: dump.to_sql
-      parameters:
-        tables:
-          people:
-            resource-name: people
-            mode: update
+  - run: load_resource
+    parameters:
+      url: ../data/people/members/datapackage.json
+      resource: kns_mksitecode
+  - run: load_resource
+    parameters:
+      url: ../data/people/members/datapackage.json
+      resource: kns_persontoposition
+  - run: load_resource
+    parameters:
+      url: ../data/people/members/datapackage.json
+      resource: kns_position
+  - run: load_resource
+    parameters:
+      url: ../data/people/members/datapackage.json
+      resource: kns_person
+  # join_mks iterates over this resource, it must be the last one
+  - run: load_resource
+    parameters:
+      url: ../data/people/members/datapackage.json
+      resource: mk_individual
+  - run: join_mks
+#    parameters:
+#      filter-knesset-num: [20]
+#      filter-is-current: true
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../data/people/members/joined-mks
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/members/joined-mks
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        people_members_joined_mks:
+          resource-name: mk_individual
 
+#mk_positions:
+#  schedule:
+#    crontab: "10 1 * * *"
+#  pipeline:
+#  - run: load_resource
+#    parameters:
+#      url: ../data/people/members/joined-mks
+#  - run: mk_positions
 
-people-committee-speakers:
-  description: >
-    <p>runs daily, based on committee_meeting_speakers table</p>
+source-data-stats:
+  description: calculate some stats about the source data
   schedule:
-    crontab: "10 0 * * *"
+    crontab: "10 1 * * *"
+  dependencies:
+  - pipeline: ./people/download/committees
+  - pipeline: ./people/join-members
   pipeline:
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: people
-        resource-name: committee-meeting-speakers
-        table: committee_meeting_speakers
-        schema:
-          fields: [
-            {name: "committee_id", type: "integer"},
-            {name: "meeting_id", type: "integer"},
-            {name: "name", type: "string"}
-          ]
-          primaryKey: ["committee_id"]
-    - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
-      parameters:
-        input-resource: committee-meeting-speakers
-        output-resource: people
-        schema:
-          fields: [
-            {name: "name", type: "string", from: "name"},
-            {name: "type_id", type: "integer", from: "meeting_id"},
-            {name: "type", type: "string", const: "speakers"}
-          ]
-          primaryKey: ["name", "type_id", "type"]
-    - run: dump.to_sql
-      parameters:
-        tables:
-          people:
-            resource-name: people
-            mode: update
+  - run: load_resource
+    parameters:
+      url: ../data/people/committees/joined-meetings/datapackage.json
+      resource: kns_committeesession
+  - run: load_resource
+    parameters:
+      url: ../data/people/members/joined-mks/datapackage.json
+      resource: mk_individual
+  - run: source_data_stats
 
-people-aliases:
-  description: >
-    <p>runs daily, based on people_aliases table</p>
+committee-meeting-attendees:
+  description: extract all the attendee names from the meeting protocols
   schedule:
-    crontab: "10 0 * * *"
+    crontab: "10 1 * * *"
+  dependencies:
+  - pipeline: ./people/download/committees
   pipeline:
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: people
-        resource-name: people
-        table: people
-        schema:
-          fields: [
-            {name: "name", type: "string"},
-            {name: "type_id", type: "integer"},
-            {name: "type", type: "string"}
-          ]
-          primaryKey: ["name", "type_id", "type"]
-    - run: ..datapackage_pipelines_knesset.common.processors.dump_fields
-      parameters:
-        input-resource: people
-        output-resource: people-aliases
-        schema:
-          fields: [
-            {name: "name", type: "string", from: "name"}
-          ]
-          primaryKey: ["name"]
-        dump-fields: {
-          name: "name"
-        }
-    - run: dump.to_sql
-      parameters:
-        tables:
-          people_aliases:
-            resource-name: people-aliases
-            mode: update
+  - run: load_resource
+    parameters:
+      url: ../data/people/committees/joined-meetings/datapackage.json
+      resource: kns_committeesession
+#  - run: filter
+#    parameters:
+#      in:
+#      - CommitteeSessionID: 2068104
+  - run: committee_meeting_attendees
+#    parameters:
+#      filter-meeting-id: [2019698,2068132,2068104]
+#      filter-committee-id: [198]
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../data/people/committees/meeting-attendees
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/committees/meeting-attendees
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        people_committees_meeting_attendees:
+          resource-name: kns_committeesession
 
-all:
-  description: >
-    <p>runs daily, aggregates data from all relevant DB tables to a datapackage zip file</p>
+#committee-meeting-speakers:
+#  description: extract all the spearker names from the meeting protocols
+#  piepline:
+#  - run: load_resource
+#    parameters:
+#      url: data/committees/joined-meetings/datapackage.json
+#      resource: kns_committeesession
+#  - run: committee_meeting_speakers
+#    parameters: {}
+##      filter-meeting-id: [247987]
+##      filter-committee-id: [198]
+#  - run: dump.to_path
+#    parameters:
+#      out-path: data/committees/meeting-speakers
+
+join-committee-meeting-attendees-mks:
+  description: join the meeting attendees with related mk_individual data
   schedule:
-    crontab: "10 2 * * *"
+    crontab: "10 1 * * *"
+  dependencies:
+  - pipeline: ./people/committee-meeting-attendees
+  - pipeline: ./people/join-members
   pipeline:
-    - run: add_metadata
-      parameters:
-        name: knesset_people
-        description: Knesset people
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: people
-        resource-name: people-committee-attendees
-        table: people
-        schema:
-          fields: [
-            {name: "name", type: "string"},
-            {name: "type_id", type: "integer"},
-            {name: "type", type: "string"}
-          ]
-          primaryKey: ["name", "type_id", "type"]
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: people
-        resource-name: people-committee-speakers
-        table: people
-        schema:
-          fields: [
-            {name: "name", type: "string"},
-            {name: "type_id", type: "integer"},
-            {name: "type", type: "string"}
-          ]
-          primaryKey: ["name", "type_id", "type"]
-    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-      parameters:
-        schema-bucket: people
-        resource-name: people-aliases
-        table: people-aliases
-        schema:
-          fields: [
-            {name: "name", type: "string", from: "name"}
-          ]
-          primaryKey: ["name"]
-    - run: aws.dump.to_s3
-      parameters:
-        bucket: people
-    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_html
-      parameters:
-        bucket: people
+  - run: load_resource
+    parameters:
+      url: ../data/people/members/joined-mks/datapackage.json
+      resource: mk_individual
+  - run: load_resource
+    parameters:
+      url: ../data/people/committees/meeting-attendees/datapackage.json
+      resource: kns_committeesession
+  - run: join_committee_meeting_attendees_mks
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../data/people/committees/joined-meeting-attendees-mks
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/committees/joined-meeting-attendees-mks
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        people_committees_meeting_attendees_mks:
+          resource-name: kns_committeesession
+
+committee-meeting-attendees-mks-stats:
+  description: aggregate stats from the attendees / mk_individual data
+  schedule:
+    crontab: "10 1 * * *"
+  dependencies:
+  - pipeline: ./people/join-committee-meeting-attendees-mks
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/people/members/joined-mks/datapackage.json
+      resource: mk_individual
+  - run: load_resource
+    parameters:
+      url: ../data/people/committees/datapackage.json
+      resource: kns_committee
+  - run: load_large_csv_resource
+    parameters:
+      url: ../data/people/committees/joined-meeting-attendees-mks/datapackage.json
+      resource: kns_committeesession
+  - run: committee_meeting_attendees_mks_stats
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../data/people/committees/committee-meeting-attendees-mks-stats
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/committees/committee-meeting-attendees-mks-stats
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        people_committees_meeting_attendees_mks_stats:
+          resource-name: mk_attendance
+        people_committees_meeting_attendees_mks_stats_errors:
+          resource-name: errors

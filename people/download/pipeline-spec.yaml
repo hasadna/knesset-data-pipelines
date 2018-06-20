@@ -1,0 +1,23 @@
+committees:
+  schedule:
+    crontab: "10 1 * * *"
+  pipeline:
+  - run: knesset.load_resource
+    parameters:
+      path: committees/joined-meetings/datapackage.json
+      resource: kns_committeesession
+  - run: dump.to_path
+    parameters:
+      out-path: ../../data/people/committees/joined-meetings
+
+members:
+  schedule:
+    crontab: "10 1 * * *"
+  pipeline:
+  - run: knesset.load_resource
+    parameters:
+      path: members/all/datapackage.zip
+      resource: .*
+  - run: dump.to_path
+    parameters:
+      out-path: ../../data/people/members
