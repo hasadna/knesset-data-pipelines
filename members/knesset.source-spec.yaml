@@ -218,10 +218,12 @@ mk_individual:
 presence:
   schedule:
     crontab: "10 1 * * *"
+  dependencies:
+  - datapackage: data/members/mk_individual/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
-      url: https://storage.googleapis.com/knesset-data-pipelines/data/members/mk_individual/datapackage.json
+      url: ../data/members/mk_individual/datapackage.json
       resource: mk_individual
   - run: read_presence
     parameters:

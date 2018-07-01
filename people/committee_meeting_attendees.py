@@ -3,9 +3,6 @@ import logging, requests, os
 from knesset_data.protocols.committee import CommitteeMeetingProtocol
 
 
-OKNESSET_MINIO_URL_PREFIX = os.environ.get("OKNESSET_MINIO_URL_PREFIX", "https://minio.oknesset.org/committees/")
-
-
 parameters, datapackage, resources = ingest()
 aggregations = {"stats": {}}
 kns_committeesession_resource, kns_committeesession_descriptor = None, None
@@ -29,11 +26,19 @@ def get_kns_committeesession_resource():
             # text_file_name	                                            text_file_size
             # data/committees/meeting_protocols_text/files/5/7/570611.txt	72817
             if committeesession_row["text_filename"]:
-                protocol_text_url = "https://storage.googleapis.com/knesset-data-pipelines/data/committees/" \
-                                    "meeting_protocols_text/{}".format(committeesession_row["text_filename"])
-                res = requests.get(protocol_text_url)
-                if res.status_code == 200:
-                    text = requests.get(protocol_text_url).content.decode("utf-8")
+                text = None
+                if os.environ.get('KNESSET_PIPELINES_DATA_PATH'):
+                    protocol_text_path = os.path.join(os.environ['KNESSET_PIPELINES_DATA_PATH'],
+                                                      'committees/meeting_protocols_text/{}'.format(committeesession_row["text_filename"]))
+                    if os.path.exists(protocol_text_path) and os.path.getsize(protocol_text_path) > 0:
+                        with open(protocol_text_path) as f:
+                            text = f.read()
+                else:
+                    protocol_text_url = "https://storage.googleapis.com/knesset-data-pipelines/data/committees/meeting_protocols_text/{}".format(committeesession_row["text_filename"])
+                    res = requests.get(protocol_text_url)
+                    if res.status_code == 200:
+                        text = requests.get(protocol_text_url).content.decode("utf-8")
+                if text:
                     with CommitteeMeetingProtocol.get_from_text(text) as protocol:
                         committeesession_row.update(protocol.attendees)
                     yield committeesession_row

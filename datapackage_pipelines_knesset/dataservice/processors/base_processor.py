@@ -1,8 +1,7 @@
 from datapackage_pipelines_knesset.common.processors.base_processor import BaseProcessor
 from knesset_data.dataservice.base import KnessetDataServiceSimpleField
 from datapackage_pipelines_knesset.retry_get_response_content import get_retry_response_content
-
-
+import logging
 
 
 class BaseDataserviceProcessor(BaseProcessor):
@@ -48,6 +47,8 @@ class BaseDataserviceProcessor(BaseProcessor):
     def _filter_output_row(self, row):
         for field in self._schema["fields"]:
             value = row.get(field["name"], None)
+            if field['type'] == 'string' and field.get('force-type'):
+                value = str(value)
             row[field["name"]] = value
         return row
 

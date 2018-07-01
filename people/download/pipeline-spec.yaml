@@ -1,6 +1,6 @@
 committees:
-  schedule:
-    crontab: "10 1 * * *"
+  dependencies:
+  - datapackage: data/committees/joined-meetings/datapackage.json
   pipeline:
   - run: knesset.load_resource
     parameters:
@@ -11,12 +11,12 @@ committees:
       out-path: ../../data/people/committees/joined-meetings
 
 members:
-  schedule:
-    crontab: "10 1 * * *"
+  dependencies:
+  - datapackage: data/members/all/datapackage.json
   pipeline:
   - run: knesset.load_resource
     parameters:
-      path: members/all/datapackage.zip
+      path: members/all/datapackage.json
       resource: .*
   - run: dump.to_path
     parameters:

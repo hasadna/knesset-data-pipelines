@@ -209,8 +209,9 @@ kns_billhistoryinitiator:
         description: האם חבר הכנסת הוא ברשימת היוזמים (1=יוזם, 0=מצטרף)
       StartDate:
         source: "{name}"
-        type: datetime
+        type: string
         description: התאריך בו צורף חבר הכנסת לרשימת המציעים
+        force-type: true
       EndDate:
         source: "{name}"
         type: datetime

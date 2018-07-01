@@ -1,10 +1,8 @@
 
 join-members:
   description: join the members resources
-  schedule:
-    crontab: "10 1 * * *"
   dependencies:
-  - pipeline: ./people/download/members
+  - datapackage: data/people/members/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
@@ -52,11 +50,9 @@ join-members:
 
 source-data-stats:
   description: calculate some stats about the source data
-  schedule:
-    crontab: "10 1 * * *"
   dependencies:
-  - pipeline: ./people/download/committees
-  - pipeline: ./people/join-members
+  - datapackage: data/people/committees/joined-meetings/datapackage.json
+  - datapackage: data/people/members/joined-mks/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
@@ -70,10 +66,8 @@ source-data-stats:
 
 committee-meeting-attendees:
   description: extract all the attendee names from the meeting protocols
-  schedule:
-    crontab: "10 1 * * *"
   dependencies:
-  - pipeline: ./people/download/committees
+  - datapackage: data/people/committees/joined-meetings/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
@@ -114,11 +108,9 @@ committee-meeting-attendees:
 
 join-committee-meeting-attendees-mks:
   description: join the meeting attendees with related mk_individual data
-  schedule:
-    crontab: "10 1 * * *"
   dependencies:
-  - pipeline: ./people/committee-meeting-attendees
-  - pipeline: ./people/join-members
+  - datapackage: data/people/committees/meeting-attendees/datapackage.json
+  - datapackage: data/people/members/joined-mks/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
@@ -141,10 +133,10 @@ join-committee-meeting-attendees-mks:
 
 committee-meeting-attendees-mks-stats:
   description: aggregate stats from the attendees / mk_individual data
-  schedule:
-    crontab: "10 1 * * *"
   dependencies:
-  - pipeline: ./people/join-committee-meeting-attendees-mks
+  - datapackage: data/people/members/joined-mks/datapackage.json
+  - datapackage: data/committees/kns_committee/datapackage.json
+  - datapackage: data/people/committees/joined-meeting-attendees-mks/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
@@ -152,7 +144,7 @@ committee-meeting-attendees-mks-stats:
       resource: mk_individual
   - run: load_resource
     parameters:
-      url: ../data/people/committees/datapackage.json
+      url: ../data/committees/kns_committee/datapackage.json
       resource: kns_committee
   - run: load_large_csv_resource
     parameters:
@@ -168,5 +160,3 @@ committee-meeting-attendees-mks-stats:
       tables:
         people_committees_meeting_attendees_mks_stats:
           resource-name: mk_attendance
-        people_committees_meeting_attendees_mks_stats_errors:
-          resource-name: errors

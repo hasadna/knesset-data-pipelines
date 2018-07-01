@@ -1,6 +1,6 @@
 from datapackage_pipelines.generators import GeneratorBase, steps
 from copy import deepcopy
-import logging, os, requests, codecs, uuid
+import logging, os, requests, codecs, uuid, datetime
 from datapackage_pipelines_metrics import append_metrics
 
 
@@ -62,14 +62,15 @@ class Generator(GeneratorBase):
         storage_path = "data/{}/{}".format(pipeline['schemas-bucket'], pipeline_id)
         storage_url = "http://storage.googleapis.com/knesset-data-pipelines/{}".format(storage_path)
         resource_name = pipeline_id
+        pipeline_steps = []
         if os.environ.get("DATASERVICE_LOAD_FROM_URL"):
-            pipeline_steps = [('load_resource', {"url": "{}/datapackage.json".format(storage_url),
-                                                 "resource": resource_name}),]
+            pipeline_steps += [('load_resource', {"url": "{}/datapackage.json".format(storage_url),
+                                                  "resource": resource_name}),]
         else:
-            pipeline_steps = [('..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource',
-                               pipeline["dataservice-parameters"]),
-                              ('..datapackage_pipelines_knesset.common.processors.throttle',
-                               {'rows-per-page': 50}),]
+            pipeline_steps += [('..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource',
+                                pipeline["dataservice-parameters"]),
+                               ('..datapackage_pipelines_knesset.common.processors.throttle',
+                                {'rows-per-page': 50}),]
         pipeline_steps += [('knesset.dump_to_path', {'storage-url': storage_url,
                                                      'out-path': '../{}'.format(storage_path)},)]
         dump_to_sql = 'knesset.dump_to_sql'
@@ -80,26 +81,32 @@ class Generator(GeneratorBase):
 
     @classmethod
     def get_all_package_pipeline(cls, pipeline_id, pipeline):
+        assert pipeline['base-url'].startswith('https://storage.googleapis.com/knesset-data-pipelines/')
+        base_path = pipeline['base-url'].replace('https://storage.googleapis.com/knesset-data-pipelines/', '')
         pipeline_steps = []
+        dependencies = []
         for resource in pipeline["resources"]:
-            pipeline_steps += [("load_resource", {"url": pipeline["base-url"] + resource["name"] + "/datapackage.json",
+            pipeline_steps += [("load_resource", {"url": '../' + base_path + resource["name"] + "/datapackage.json",
                                                   "resource": resource.get("resource", resource["name"])})]
+            dependencies.append({'datapackage': base_path + resource["name"] + "/datapackage.json"})
             if resource.get("resource"):
                 pipeline_steps += [("..rename_resource",
                                     {"src": resource["resource"], "dst": resource["name"]})]
             if resource.get('set_types'):
                 pipeline_steps += [("set_types",
                                     {"resources": resource["name"], "types": resource['set_types']})]
-        pipeline_steps += [('dump.to_path',
-                            {'out-path': pipeline["out-path"]})]
+        # pipeline_steps += [('dump.to_path',
+        #                     {'out-path': pipeline["out-path"]})]
         pipeline_steps += [('dump.to_zip',
-                            {'out-file': pipeline["out-path"] + "/datapackage.zip"})]
-        assert pipeline['base-url'].startswith('https://storage.googleapis.com/knesset-data-pipelines/')
+                            {'out-file': pipeline["out-path"] + "/datapackage.zip",
+                             'pretty-descriptor': True})]
         storage_path = '{}all'.format(pipeline['base-url'].replace('https://storage.googleapis.com/knesset-data-pipelines/', ''))
         storage_url = "http://storage.googleapis.com/knesset-data-pipelines/{}".format(storage_path)
         pipeline_steps += [('knesset.dump_to_path', {'storage-url': storage_url,
                                                      'out-path': '../{}'.format(storage_path)},)]
-        yield pipeline_id, {'pipeline': steps(*pipeline_steps), 'schedule': {'crontab': '10 1 * * *'}}
+        yield pipeline_id, {'pipeline': steps(*pipeline_steps),
+                            'schedule': {'crontab': '10 1 * * *'},
+                            'dependencies': dependencies}
 
     @classmethod
     def get_db_dump_pipeline(cls, pipeline_id, pipeline):

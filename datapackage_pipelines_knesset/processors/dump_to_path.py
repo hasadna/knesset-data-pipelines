@@ -5,6 +5,7 @@ import logging, sh, os
 class StorageDumper(PathDumper):
 
     def initialize(self, params):
+        params['pretty-descriptor'] = True
         super(StorageDumper, self).initialize(params)
         if os.environ.get('DUMP_TO_STORAGE'):
             storage_url = params.get('storage-url')

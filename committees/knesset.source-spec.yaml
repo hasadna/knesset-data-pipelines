@@ -281,11 +281,9 @@ kns_documentcommitteesession:
 
 
 prepare_document_committee_sessions_for_parsing:
-  schedule:
-    crontab: "10 1 * * *"
   dependencies:
-  - pipeline: kns_documentcommitteesession
-  - pipeline: kns_committeesession
+  - datapackage: data/committees/kns_documentcommitteesession/datapackage.json
+  - datapackage: data/committees/kns_committeesession/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
@@ -329,10 +327,8 @@ prepare_document_committee_sessions_for_parsing:
 
 
 download_document_committee_sessions_for_parsing:
-  schedule:
-    crontab: "10 1 * * *"
   dependencies:
-  - pipeline: prepare_document_committee_sessions_for_parsing
+  - datapackage: data/committees/document_committee_sessions_for_parsing/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
@@ -353,10 +349,8 @@ download_document_committee_sessions_for_parsing:
 
 
 parse_meeting_protocols_text:
-  schedule:
-    crontab: "10 1 * * *"
   dependencies:
-  - pipeline: download_document_committee_sessions_for_parsing
+  - datapackage: data/committees/document_committee_sessions_for_parsing/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
@@ -369,7 +363,6 @@ parse_meeting_protocols_text:
         ApplicationDesc: DOC
   - run: parse_meeting_protocols
     parameters:
-      check-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/meeting_protocols_text/
       type: text
       # FILES_LIMIT
       # files-limit: 5
@@ -387,10 +380,8 @@ parse_meeting_protocols_text:
 
 
 parse_meeting_protocols_parts:
-  schedule:
-    crontab: "10 1 * * *"
   dependencies:
-  - pipeline: download_document_committee_sessions_for_parsing
+  - datapackage: data/committees/document_committee_sessions_for_parsing/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
@@ -403,7 +394,6 @@ parse_meeting_protocols_parts:
         ApplicationDesc: DOC
   - run: parse_meeting_protocols
     parameters:
-      check-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/meeting_protocols_parts/
       type: parts
       # FILES_LIMIT
       # files-limit: 5
@@ -421,13 +411,11 @@ parse_meeting_protocols_parts:
 
 
 join-meetings:
-  schedule:
-    crontab: "10 1 * * *"
   dependencies:
-  - pipeline: parse_meeting_protocols_text
-  - pipeline: parse_meeting_protocols_parts
-  - pipeline: kns_cmtsessionitem
-  - pipeline: kns_committeesession
+  - datapackage: data/committees/meeting_protocols_text/datapackage.json
+  - datapackage: data/committees/meeting_protocols_parts/datapackage.json
+  - datapackage: data/committees/kns_cmtsessionitem/datapackage.json
+  - datapackage: data/committees/kns_committeesession/datapackage.json
   description: join the committee meeting resources to form a single resource
   pipeline:
   - run: load_resource
@@ -501,44 +489,44 @@ join-meetings:
         committees_joined_meetings:
           resource-name: kns_committeesession
 
-meetings_datapackage_zip:
-  schedule:
-    crontab: "10 1 * * *"
-  pipeline:
-  - run: load_resource
-    parameters:
-      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/gcs_list_files/datapackage.json
-      resource: files
-  - run: filter
-    parameters:
-      resources: ["files"]
-      in:
-      - file_type: parts
-  - run: load_resource
-    parameters:
-      url: ../data/committees/joined-meetings/datapackage.json
-      resource: kns_committeesession
-  - run: join
-    parameters:
-      source:
-        name: files
-        key: ["committee_session_id"]
-        delete: true
-      target:
-        name: kns_committeesession
-        key: ["CommitteeSessionID"]
-      fields:
-        parts_file_size:
-          name: size
-        parts_file_name:
-          name: name
-  - run: meetings_datapackage_zip
-    parameters:
-#      dry-run: true
-      out-file: ../data/committees/meetings_datapackage_files.zip
-  - run: dump.to_zip
-    parameters:
-      out-file: ../data/committees/meetings_datapackage.zip
+#meetings_datapackage_zip:
+#  dependencies:
+#  - datapackage: data/committees/meeting_protocols_text/datapackage.json
+#  pipeline:
+#  - run: load_resource
+#    parameters:
+#      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/gcs_list_files/datapackage.json
+#      resource: files
+#  - run: filter
+#    parameters:
+#      resources: ["files"]
+#      in:
+#      - file_type: parts
+#  - run: load_resource
+#    parameters:
+#      url: ../data/committees/joined-meetings/datapackage.json
+#      resource: kns_committeesession
+#  - run: join
+#    parameters:
+#      source:
+#        name: files
+#        key: ["committee_session_id"]
+#        delete: true
+#      target:
+#        name: kns_committeesession
+#        key: ["CommitteeSessionID"]
+#      fields:
+#        parts_file_size:
+#          name: size
+#        parts_file_name:
+#          name: name
+#  - run: meetings_datapackage_zip
+#    parameters:
+##      dry-run: true
+#      out-file: ../data/committees/meetings_datapackage_files.zip
+#  - run: dump.to_zip
+#    parameters:
+#      out-file: ../data/committees/meetings_datapackage.zip
 
 all:
   pipeline-type: all package
