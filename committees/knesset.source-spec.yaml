@@ -219,18 +219,18 @@ kns_documentcommitteesession:
   - run: download_document_committee_session
     parameters:
       out-path: ../data/committees/download_document_committee_session
-      limit-rows: 5
+      # limit-rows: 5
   - run: parse_meeting_protocols
     parameters:
       type: text
-      files-limit: 5
+      # files-limit: 5
       download-from-path: ../data/committees/download_document_committee_session/
       # download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
       out-path: ../data/committees/meeting_protocols_text
   - run: parse_meeting_protocols
     parameters:
       type: parts
-      files-limit: 5
+      # files-limit: 5
       download-from-path: ../data/committees/download_document_committee_session/
       # download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
       out-path: ../data/committees/meeting_protocols_parts
