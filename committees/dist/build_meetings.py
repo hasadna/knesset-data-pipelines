@@ -1,5 +1,5 @@
 from datapackage_pipelines.wrapper import ingest, spew
-import os
+import os, logging
 
 
 parameters, datapackage, resources, stats = ingest() + ({},)
@@ -63,6 +63,11 @@ def get_meetings(resource):
                 stats["skipped meetings"] += 1
         else:
             stats["skipped meetings"] += 1
+            # this is usually due to edge case where a committee was just added
+            # so we get the id from meetings but don't have the corresponding committee
+            # it will be fixed when the committees package is updated on the next run
+            logging.info('skipped meeting {} - missing committee {}'.format(row['CommitteeSessionID'],
+                                                                            row['CommitteeID']))
 
 
 def get_resources():

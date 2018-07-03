@@ -54,7 +54,21 @@ class Generator(GeneratorBase):
         elif pipeline.get("pipeline-type") == "db dump":
             yield from cls.get_db_dump_pipeline(pipeline_id, pipeline, base)
         else:
-            # pipeline["pipeline"] = steps(*[(step["run"], step.get("parameters", {})) for step in pipeline["pipeline"]])
+            if os.environ.get('KNESSET_LOAD_FROM_URL') == '1':
+                del pipeline['dependencies']
+                url = None
+                out_path = None
+                for step in pipeline['pipeline']:
+                    if step.get('run') == 'knesset.dump_to_path':
+                        parameters = step.get('parameters', {})
+                        if parameters.get('storage-url') and parameters.get('out-path'):
+                            url, out_path = parameters['storage-url'], parameters['out-path']
+                if url and out_path:
+                    pipeline['pipeline'] = [{'run': 'load_resource',
+                                             'parameters': {'url': url + '/datapackage.json',
+                                                            'resource': '.*'}},
+                                            {'run': 'dump.to_path',
+                                             'parameters': {'out-path': out_path}}]
             yield os.path.join(base, pipeline_id), pipeline
 
     @classmethod
