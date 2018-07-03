@@ -259,6 +259,10 @@ presence:
       resource: mk_individual
   - run: read_presence
     parameters:
+      # old presence data from oknesset
+      presence-oknesset-url: https://storage.googleapis.com/knesset-data-pipelines/data/members/presence/presence-oknesset.txt
+      # new presence data - continuously updated by presence container
+      # see https://github.com/OriHoch/knesset-data-k8s/tree/master/charts-external/pipelines/presence
       # curl https://storage.googleapis.com/knesset-data-pipelines/data/members/presence/presence.txt > data/members/presence/presence.txt
       presence-path: ../data/members/presence/presence.txt
   - run: knesset.dump_to_path
