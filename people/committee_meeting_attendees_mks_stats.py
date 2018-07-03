@@ -6,24 +6,20 @@ import logging, datetime, csv
 
 parameters, datapackage, resources = ingest()
 
+
 errors = []
 mk_attendance = []
+
 
 # full mks data, with positions
 mk_individuals = {}
 for mk_individual in next(resources):
     mk_individuals[mk_individual["mk_individual_id"]] = mk_individual
 
-# kns_committees
-committees = {}
-for committee in next(resources):
-    committees[committee["CommitteeID"]] = {"id": committee["CommitteeID"],
-                                            "Name": committee["Name"],
-                                            "KnessetNum": committee["KnessetNum"], }
 
 # document committee session with reated attended mk ids
 for meeting in next(resources):
-    committee_name = committees[meeting["CommitteeID"]]["Name"]
+    committee_name = meeting['committee_name']
     meeting_aggs = {"knesset_num": meeting["KnessetNum"],
                     "committee_id": meeting["CommitteeID"],
                     "committee_name": committee_name,
@@ -96,5 +92,4 @@ datapackage["resources"] += [{PROP_STREAMING: True,
                                                                           {"name": "mk_faction_name", "type": "string"},
                                                                           ]}}]
 
-spew(datapackage, [errors,
-                   mk_attendance])
+spew(datapackage, [errors, mk_attendance])

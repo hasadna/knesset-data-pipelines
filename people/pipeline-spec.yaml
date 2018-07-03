@@ -1,77 +1,40 @@
-
-join-members:
-  description: join the members resources
-  dependencies:
-  - datapackage: data/people/members/datapackage.json
-  pipeline:
-  - run: load_resource
-    parameters:
-      url: ../data/people/members/datapackage.json
-      resource: kns_mksitecode
-  - run: load_resource
-    parameters:
-      url: ../data/people/members/datapackage.json
-      resource: kns_persontoposition
-  - run: load_resource
-    parameters:
-      url: ../data/people/members/datapackage.json
-      resource: kns_position
-  - run: load_resource
-    parameters:
-      url: ../data/people/members/datapackage.json
-      resource: kns_person
-  # join_mks iterates over this resource, it must be the last one
-  - run: load_resource
-    parameters:
-      url: ../data/people/members/datapackage.json
-      resource: mk_individual
-  - run: join_mks
-#    parameters:
-#      filter-knesset-num: [20]
-#      filter-is-current: true
-  - run: knesset.dump_to_path
-    parameters:
-      out-path: ../data/people/members/joined-mks
-      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/members/joined-mks
-  - run: knesset.dump_to_sql
-    parameters:
-      tables:
-        people_members_joined_mks:
-          resource-name: mk_individual
-
-#mk_positions:
-#  schedule:
-#    crontab: "10 1 * * *"
-#  pipeline:
-#  - run: load_resource
-#    parameters:
-#      url: ../data/people/members/joined-mks
-#  - run: mk_positions
-
 source-data-stats:
   description: calculate some stats about the source data
   dependencies:
-  - datapackage: data/people/committees/joined-meetings/datapackage.json
-  - datapackage: data/people/members/joined-mks/datapackage.json
+  - pipeline: ./committees/kns_committeesession
+  - datapackage: data/committees/kns_committeesession/datapackage.json
+  - pipeline: ./members/mk_individual
+  - datapackage: data/members/mk_individual/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
-      url: ../data/people/committees/joined-meetings/datapackage.json
+      url: ../data/committees/kns_committeesession/datapackage.json
       resource: kns_committeesession
-  - run: load_resource
+  - run: knesset.load_large_csv_resource
     parameters:
-      url: ../data/people/members/joined-mks/datapackage.json
-      resource: mk_individual
+      url: ../data/members/mk_individual/datapackage.json
+      resource: mk_individual_positions
+  - run: knesset.rename_resource
+    parameters: {src: mk_individual_positions, dst: mk_individual}
   - run: source_data_stats
 
 committee-meeting-attendees:
   description: extract all the attendee names from the meeting protocols
   dependencies:
-  - datapackage: data/people/committees/joined-meetings/datapackage.json
+  - pipeline: ./committees/kns_committeesession
+  - datapackage: data/committees/kns_committeesession/datapackage.json
+  - pipeline: ./members/mk_individual
+  - datapackage: data/members/mk_individual/datapackage.json
   pipeline:
+  - run: knesset.load_large_csv_resource
+    parameters:
+      url: ../data/members/mk_individual/datapackage.json
+      resource: mk_individual_positions
+  - run: knesset.rename_resource
+    parameters: {src: mk_individual_positions, dst: mk_individual}
   - run: load_resource
     parameters:
-      url: ../data/people/committees/joined-meetings/datapackage.json
+      url: ../data/committees/kns_committeesession/datapackage.json
       resource: kns_committeesession
 #  - run: filter
 #    parameters:
@@ -81,6 +44,7 @@ committee-meeting-attendees:
 #    parameters:
 #      filter-meeting-id: [2019698,2068132,2068104]
 #      filter-committee-id: [198]
+  - run: join_committee_meeting_attendees_mks
   - run: knesset.dump_to_path
     parameters:
       out-path: ../data/people/committees/meeting-attendees
@@ -106,49 +70,23 @@ committee-meeting-attendees:
 #    parameters:
 #      out-path: data/committees/meeting-speakers
 
-join-committee-meeting-attendees-mks:
-  description: join the meeting attendees with related mk_individual data
-  dependencies:
-  - datapackage: data/people/committees/meeting-attendees/datapackage.json
-  - datapackage: data/people/members/joined-mks/datapackage.json
-  pipeline:
-  - run: load_resource
-    parameters:
-      url: ../data/people/members/joined-mks/datapackage.json
-      resource: mk_individual
-  - run: load_resource
-    parameters:
-      url: ../data/people/committees/meeting-attendees/datapackage.json
-      resource: kns_committeesession
-  - run: join_committee_meeting_attendees_mks
-  - run: knesset.dump_to_path
-    parameters:
-      out-path: ../data/people/committees/joined-meeting-attendees-mks
-      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/committees/joined-meeting-attendees-mks
-  - run: knesset.dump_to_sql
-    parameters:
-      tables:
-        people_committees_meeting_attendees_mks:
-          resource-name: kns_committeesession
-
 committee-meeting-attendees-mks-stats:
   description: aggregate stats from the attendees / mk_individual data
   dependencies:
-  - datapackage: data/people/members/joined-mks/datapackage.json
-  - datapackage: data/committees/kns_committee/datapackage.json
-  - datapackage: data/people/committees/joined-meeting-attendees-mks/datapackage.json
+  - pipeline: ./members/mk_individual
+  - datapackage: data/members/mk_individual/datapackage.json
+  - pipeline: ./people/committee-meeting-attendees
+  - datapackage: data/people/committees/meeting-attendees/datapackage.json
   pipeline:
+  - run: knesset.load_large_csv_resource
+    parameters:
+      url: ../data/members/mk_individual/datapackage.json
+      resource: mk_individual_positions
+  - run: knesset.rename_resource
+    parameters: {src: mk_individual_positions, dst: mk_individual}
   - run: load_resource
     parameters:
-      url: ../data/people/members/joined-mks/datapackage.json
-      resource: mk_individual
-  - run: load_resource
-    parameters:
-      url: ../data/committees/kns_committee/datapackage.json
-      resource: kns_committee
-  - run: load_large_csv_resource
-    parameters:
-      url: ../data/people/committees/joined-meeting-attendees-mks/datapackage.json
+      url: ../data/people/committees/meeting-attendees/datapackage.json
       resource: kns_committeesession
   - run: committee_meeting_attendees_mks_stats
   - run: knesset.dump_to_path

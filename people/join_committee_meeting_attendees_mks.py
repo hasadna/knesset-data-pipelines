@@ -28,13 +28,14 @@ def get_mk_individual(mk):
         for position in mk["positions"]:
             if position.get("position") in ["חברת הכנסת", "חבר הכנסת"] or position.get("position_id") in [61, 43]:
                 if not position.get("KnessetNum"):
-                    logging.warning("invalid position {}".format(position))
+                    logging.warning("invalid position - missing KnessetNum: {}".format(position))
                 else:
                     # start_date = datetime.datetime.strptime(position["start_date"], "%Y-%m-%d %H:%M:%S")
                     # finish_date = datetime.datetime.strptime(position["finish_date"], "%Y-%m-%d %H:%M:%S")
                     mk["knesset_nums"].add(position["KnessetNum"])
         mk["knesset_nums"] = list(mk["knesset_nums"])
     return mk
+
 
 def get_resource():
     for meeting in next(resources):

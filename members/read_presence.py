@@ -1,7 +1,6 @@
 from datapackage_pipelines.wrapper import ingest, spew
 from datapackage_pipelines.utilities.resources import PROP_STREAMING
-import logging, datetime, requests
-from datapackage_pipelines_knesset.common.utils import temp_file
+import datetime
 
 
 parameters, datapackage, resources = ingest()
@@ -27,16 +26,17 @@ def flush_day(current_day):
 
 def get_presence_resource():
     current_day = {}
-    for line in requests.get(parameters["presence-url"], stream=True).iter_lines(decode_unicode=True):
-        line = [field.strip() for field in line.split(",") if field and len(field.strip()) > 0]
-        dt = datetime.datetime.strptime(line.pop(0), '%Y-%m-%d %H:%M:%S')
-        if current_day.get("year") != dt.year or current_day.get("month") != dt.month or current_day.get("day") != dt.day:
-            # new day - flush previous day
-            yield from flush_day(current_day)
-            # reset current_day
-            current_day.update(year=dt.year, month=dt.month, day=dt.day, mk_ids_hours={})
-        for mk_id in map(int, line):
-            current_day["mk_ids_hours"].setdefault(mk_id, {})[dt.hour] = True
+    with open(parameters['presence-path']) as f:
+        for line in f:
+            line = [field.strip() for field in line.split(",") if field and len(field.strip()) > 0]
+            dt = datetime.datetime.strptime(line.pop(0), '%Y-%m-%d %H:%M:%S')
+            if current_day.get("year") != dt.year or current_day.get("month") != dt.month or current_day.get("day") != dt.day:
+                # new day - flush previous day
+                yield from flush_day(current_day)
+                # reset current_day
+                current_day.update(year=dt.year, month=dt.month, day=dt.day, mk_ids_hours={})
+            for mk_id in map(int, line):
+                current_day["mk_ids_hours"].setdefault(mk_id, {})[dt.hour] = True
     # flush the last current_day
     yield from flush_day(current_day)
 

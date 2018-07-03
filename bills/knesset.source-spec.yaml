@@ -333,18 +333,18 @@ kns_documentbill:
         description: תאריך עדכון אחרון
 
 
-all:
-  pipeline-type: all package
-  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/bills/
-  resources:
-  - name: kns_bill
-  - name: kns_billname
-  - name: kns_billinitiator
-  - name: kns_billhistoryinitiator
-    set_types:
-      StartDate: null
-  - name: kns_billsplit
-  - name: kns_billunion
-  - name: kns_documentbill
-  out-path: ../data/bills/all
-  sql-tables-prefix: bills
+#all:
+#  pipeline-type: all package
+#  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/bills/
+#  resources:
+#  - name: kns_bill
+#  - name: kns_billname
+#  - name: kns_billinitiator
+#  - name: kns_billhistoryinitiator
+#    set_types:
+#      StartDate: null
+#  - name: kns_billsplit
+#  - name: kns_billunion
+#  - name: kns_documentbill
+#  out-path: ../data/bills/all
+#  sql-tables-prefix: bills

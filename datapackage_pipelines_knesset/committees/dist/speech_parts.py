@@ -42,15 +42,15 @@ def get_speech_part_contexts(stream):
 
 def get_speech_parts(meeting):
     source_type, source = None, None
-    if meeting["parts_filename"]:
+    if meeting["parts_parsed_filename"]:
         if os.environ.get('KNESSET_PIPELINES_DATA_PATH'):
             parts_path = os.path.join(os.environ['KNESSET_PIPELINES_DATA_PATH'],
-                                      'committees/meeting_protocols_parts/{}'.format(meeting["parts_filename"]))
+                                      'committees/meeting_protocols_parts/{}'.format(meeting["parts_parsed_filename"]))
             if os.path.exists(parts_path):
                 source = parts_path
         else:
             source = "http://storage.googleapis.com/knesset-data-pipelines/data/" \
-                     "committees/meeting_protocols_parts/{}".format(meeting["parts_filename"])
+                     "committees/meeting_protocols_parts/{}".format(meeting["parts_parsed_filename"])
         if source:
             stream = get_speech_parts_stream(source=source, headers=1)
             if stream:

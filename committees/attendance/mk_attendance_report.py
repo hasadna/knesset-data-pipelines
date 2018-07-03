@@ -34,7 +34,7 @@ def get_resource():
             stats['relevant_mks'] += 1
     logging.info(stats)
     for meeting in next(resources):
-        if meeting['parts_filename'] and meeting['KnessetNum'] == 20:
+        if meeting['parts_parsed_filename'] and meeting['KnessetNum'] == 20:
             stats['relevant_meetings'] += 1
             for mk in mks:
                 if is_relevant_meeting(meeting, mk):

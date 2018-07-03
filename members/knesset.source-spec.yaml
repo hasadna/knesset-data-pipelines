@@ -181,6 +181,32 @@ kns_mksitecode:
 
 
 mk_individual:
+  dependencies:
+  - pipeline: ./members/kns_mksitecode
+  - datapackage: data/members/kns_mksitecode/datapackage.json
+  - pipeline: ./members/kns_persontoposition
+  - datapackage: data/members/kns_persontoposition/datapackage.json
+  - pipeline: ./members/kns_position
+  - datapackage: data/members/kns_position/datapackage.json
+  - pipeline: ./members/kns_person
+  - datapackage: data/members/kns_person/datapackage.json
+  pre-steps:
+  - run: load_resource
+    parameters:
+      url: ../data/members/kns_mksitecode/datapackage.json
+      resource: kns_mksitecode
+  - run: load_resource
+    parameters:
+      url: ../data/members/kns_persontoposition/datapackage.json
+      resource: kns_persontoposition
+  - run: load_resource
+    parameters:
+      url: ../data/members/kns_position/datapackage.json
+      resource: kns_position
+  - run: load_resource
+    parameters:
+      url: ../data/members/kns_person/datapackage.json
+      resource: kns_person
   pipeline-type: knesset dataservice
   schemas-bucket: members
   dataservice-parameters:
@@ -213,12 +239,18 @@ mk_individual:
       mk_individual_photo:
         source: "{name}"
         type: string
+  additional-steps:
+  - run: join_mks
+#    parameters:
+#      filter-knesset-num: [20]
+#      filter-is-current: true
 
 
 presence:
   schedule:
     crontab: "10 1 * * *"
   dependencies:
+  - pipeline: ./members/mk_individual
   - datapackage: data/members/mk_individual/datapackage.json
   pipeline:
   - run: load_resource
@@ -227,24 +259,31 @@ presence:
       resource: mk_individual
   - run: read_presence
     parameters:
-      presence-url: https://storage.googleapis.com/knesset-data-pipelines/data/members/presence/presence.txt
-  - run: dump.to_path
+      # curl https://storage.googleapis.com/knesset-data-pipelines/data/members/presence/presence.txt > data/members/presence/presence.txt
+      presence-path: ../data/members/presence/presence.txt
+  - run: knesset.dump_to_path
     parameters:
       out-path: ../data/members/presence
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/members/presence
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        members_presence:
+          resource-name: presence
 
 
-all:
-  pipeline-type: all package
-  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/members/
-  resources:
-  - name: presence
-  - name: kns_person
-  - name: kns_position
-  - name: kns_persontoposition
-  - name: kns_mksitecode
-  - name: mk_individual
-  out-path: ../data/members/all
-  sql-tables-prefix: members
+#all:
+#  pipeline-type: all package
+#  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/members/
+#  resources:
+#  - name: presence
+#  - name: kns_person
+#  - name: kns_position
+#  - name: kns_persontoposition
+#  - name: kns_mksitecode
+#  - name: mk_individual
+#  out-path: ../data/members/all
+#  sql-tables-prefix: members
 
 #
 #

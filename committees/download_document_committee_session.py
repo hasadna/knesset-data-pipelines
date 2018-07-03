@@ -1,11 +1,7 @@
-from datapackage_pipelines.wrapper import ingest, spew
-import logging, os, requests, time
+from datapackage_pipelines.wrapper import process
+import logging, os, time
 from datapackage_pipelines_knesset.retry_get_response_content import get_retry_response_content
-from copy import deepcopy
 import crcmod, base64
-
-
-stats = {"downloaded files": 0, "existing files": 0}
 
 
 def get_crc32c(filename):
@@ -15,60 +11,61 @@ def get_crc32c(filename):
     return base64.b64encode(crc32c.digest()).decode()
 
 
-def download_document(row):
-    rel_filename = os.path.join("files", str(row["GroupTypeID"]),
-                                str(row["DocumentCommitteeSessionID"])[0],
-                                str(row["DocumentCommitteeSessionID"])[1],
-                                str(row["DocumentCommitteeSessionID"]) + "." + row["ApplicationDesc"])
-    filename = os.path.join(out_path, rel_filename)
-    logging.info('downloading {}'.format(filename))
-    if os.path.exists(filename):
-        logging.info('file exists: {}'.format(filename))
-        stats["existing files"] += 1
-    else:
-        content = get_retry_response_content(row["FilePath"], None, None, None, retry_num=1, num_retries=10,
-                                             seconds_between_retries=10,
-                                             skip_not_found_errors=skip_not_found_errors)
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, "wb") as f:
-            f.write(content)
-        logging.info('downloaded file: {}'.format(filename))
-        stats["downloaded files"] += 1
-    return rel_filename, os.path.getsize(filename), get_crc32c(filename)
+def process_row(row, row_index, resource_descriptor, resource_index, parameters, stats):
+    if resource_descriptor['name'] == 'kns_documentcommitteesession':
+        row.update(download_filename=None, download_filesize=0, download_crc32c=None, download_error=None)
+        if (row['GroupTypeID'] == 23 and row['ApplicationDesc'] == 'DOC'
+            and (row["FilePath"].lower().endswith('.doc') or row["FilePath"].lower().endswith('.docx'))):
+                document_id = "{}-{}-{}".format(row["GroupTypeID"], row["DocumentCommitteeSessionID"], row["ApplicationDesc"])
+                rel_filename = os.path.join("files", str(row["GroupTypeID"]),
+                                            str(row["DocumentCommitteeSessionID"])[0],
+                                            str(row["DocumentCommitteeSessionID"])[1],
+                                            str(row["DocumentCommitteeSessionID"]) + "." + row["ApplicationDesc"])
+                filename = os.path.join(parameters["out-path"], rel_filename)
+                if os.path.exists(filename):
+                    stats["download: existing files"] += 1
+                    row.update(download_filename=rel_filename, download_filesize=os.path.getsize(filename),
+                               download_crc32c=get_crc32c(filename))
+                elif parameters.get('limit-rows') and stats["download: downloaded files"] >= parameters['limit-rows']:
+                    row.update(download_error='reached limit, skipping download')
+                    stats["download: skipped files"] += 1
+                else:
+                    error_string, content = None, ''
+                    try:
+                        content = get_retry_response_content(row["FilePath"], None, None, None, retry_num=1, num_retries=10,
+                                                             seconds_between_retries=10,
+                                                             skip_not_found_errors=True)
+                    except Exception as e:
+                        logging.exception('failed to download document id {}'.format(document_id))
+                        try:
+                            error_string = str(e)
+                        except Exception:
+                            error_string = 'unexpected exception'
+                    time.sleep(0.01)
+                    if error_string:
+                        row.update(download_error=error_string)
+                        stats['download: errored files'] += 1
+                    else:
+                        os.makedirs(os.path.dirname(filename), exist_ok=True)
+                        with open(filename, "wb") as f:
+                            f.write(content)
+                        stats["download: downloaded files"] += 1
+                        row.update(download_filename=rel_filename, download_filesize=os.path.getsize(filename),
+                                   download_crc32c=get_crc32c(filename))
+    return row
 
 
-parameters, datapackage, resources = ingest()
-out_path = parameters["out-path"]
-errors = []
-skip_not_found_errors = (os.environ.get("SKIP_NOT_FOUND_ERRORS") != "0")
+def modify_datapackage(datapackage, parameters, stats):
+    stats["download: downloaded files"] = 0
+    stats["download: existing files"] = 0
+    stats["download: skipped files"] = 0
+    stats["download: errored files"] = 0
+    datapackage['resources'][0]['schema']['fields'] += [{"name": "download_filename", "type": "string"},
+                                                        {"name": "download_filesize", "type": "integer"},
+                                                        {"name": "download_crc32c", "type": "string"},
+                                                        {"name": "download_error", "type": "string"}]
+    return datapackage
 
 
-def get_resource():
-    for resource in resources:
-        for row in resource:
-            if parameters.get('limit-rows') and stats["downloaded files"] >= parameters['limit-rows']:
-                continue
-            row.setdefault('filesize', 0)
-            row.setdefault('crc32c', None)
-            row.setdefault('error', None)
-            document_id = "{}-{}-{}".format(row["GroupTypeID"], row["DocumentCommitteeSessionID"], row["ApplicationDesc"])
-            if not row["FilePath"].lower().endswith('.doc') and not row["FilePath"].lower().endswith('.docx'):
-                continue
-            try:
-                filename, filesize, crc32c = download_document(row)
-                row.update(filename=filename, filesize=filesize, crc32c=crc32c, error=None)
-            except Exception as e:
-                logging.exception('failed to download document id {}'.format(document_id))
-                errors.append({'error': str(e)})
-                row.update(filesize=None, crc32c=None, error=str(e))
-            yield row
-            time.sleep(0.01)
-
-
-datapackage["resources"][0]["schema"]["fields"] += [{"name": "filename", "type": "string"},
-                                                    {"name": "filesize", "type": "integer"},
-                                                    {"name": "crc32c", "type": "string"},
-                                                    {"name": "error", "type": "string"}]
-
-
-spew(datapackage, [get_resource()], stats)
+if __name__ == '__main__':
+    process(modify_datapackage, process_row)

@@ -72,22 +72,22 @@ def main():
                 members[mkId]["ministries"] = member_ministries
 
         elif descriptor["name"] == "kns_committeesession":
-            for committee in resource:
+            for committeesession in resource:
                 # aggregate statistics only if there is a protocol and mks
-                if committee["text_filename"]:
-                    knessetNum = committee["KnessetNum"]
+                if committeesession["text_parsed_filename"]:
+                    knessetNum = committeesession["KnessetNum"]
 
                     if knessetNum not in committees:
                         committees[knessetNum] = 0
                     committees[knessetNum] += 1
 
-                    for mkId in committee["attended_mk_individual_ids"]:
+                    for mkId in committeesession["attended_mk_individual_ids"]:
                         if mkId not in members:
                             continue
 
                         positions = members[mkId]["factions"] + members[mkId]["committees"] + members[mkId][
                             "ministries"]
-                        if isMember(positions, committee["StartDate"]):
+                        if isMember(positions, committeesession["StartDate"]):
                             if "counts" not in members[mkId]:
                                 members[mkId]["counts"] = {}
                             if knessetNum not in members[mkId]["counts"]:

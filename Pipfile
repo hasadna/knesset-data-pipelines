@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"datapackage-pipelines[speedup]" = "<1.7.0"
+"datapackage-pipelines[speedup]" = "*"
 knesset-data = "*"
 "requests[socks]" = "*"
 botocore = "*"

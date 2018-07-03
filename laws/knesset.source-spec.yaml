@@ -375,14 +375,14 @@ kns_israel_law_binding:
         type: datetime
         description: תאריך עדכון אחרון
 
-all:
-  pipeline-type: all package
-  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/laws/
-  resources:
-  - name: kns_law
-  - name: kns_law_binding
-  - name: kns_document_law
-  - name: kns_israel_law
-  - name: kns_israel_law_name
-  out-path: ../data/laws/all
-  sql-tables-prefix: laws
+#all:
+#  pipeline-type: all package
+#  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/laws/
+#  resources:
+#  - name: kns_law
+#  - name: kns_law_binding
+#  - name: kns_document_law
+#  - name: kns_israel_law
+#  - name: kns_israel_law_name
+#  out-path: ../data/laws/all
+#  sql-tables-prefix: laws

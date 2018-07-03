@@ -1,4 +1,5 @@
 from datapackage_pipelines.wrapper import ingest, spew
+from datapackage_pipelines.utilities.resources import PROP_STREAMING
 import logging, yaml, json
 
 
@@ -78,7 +79,10 @@ def get_person_positions(person_id):
         yield {k: v for k, v in mk_position.items() if v}
 
 
-def get_mk_individual_resource(resource):
+mk_individuals = []
+
+
+def get_mk_individual_positions_resource(resource):
     with open('join_mks_extra_details.yaml') as f:
         mks_extra = yaml.load(f)
     for mk_individual_row in resource:
@@ -109,13 +113,31 @@ def get_mk_individual_resource(resource):
                     altnames.update(set(mk_extra['altnames']))
             mk_individual_row["altnames"] = list(altnames)
             yield mk_individual_row
+            del mk_individual_row['positions']
+            mk_individuals.append(mk_individual_row)
 
 
-mk_individual_descriptor["schema"]["fields"] += kns_person_descriptor["schema"]["fields"] \
-                                              + [{"name": "positions", "type": "array"},
-                                                 {"name": "altnames", "type": "array"}]
+def get_mk_individual_resource():
+    for row in mk_individuals:
+        yield row
 
 
-spew(dict(datapackage, resources=[mk_individual_descriptor]),
-     [get_mk_individual_resource(mk_individual_resource)],
+def get_mk_individual_resources(resource):
+    yield get_mk_individual_positions_resource(resource)
+    yield get_mk_individual_resource()
+
+
+mk_individual_descriptor["schema"]["fields"] += kns_person_descriptor["schema"]["fields"]
+mk_individual_descriptor["schema"]["fields"] += [{"name": "altnames", "type": "array"}]
+
+
+mk_individual_positions_descriptor = {PROP_STREAMING: True,
+                                      'name': 'mk_individual_positions',
+                                      'path': 'mk_individual_positions.csv',
+                                      'schema': {'fields': mk_individual_descriptor['schema']['fields'] + [
+                                          {"name": "positions", "type": "array"}
+                                      ]}}
+
+spew(dict(datapackage, resources=[mk_individual_positions_descriptor, mk_individual_descriptor]),
+     get_mk_individual_resources(mk_individual_resource),
      aggregations["stats"])

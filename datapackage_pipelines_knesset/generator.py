@@ -35,10 +35,10 @@ class Generator(GeneratorBase):
                 "properties": {}}
 
     @classmethod
-    def generate_pipeline(cls, source):
+    def generate_pipeline(cls, source, base):
         for pipeline_id, pipeline in source.items():
             if pipeline_id and pipeline:
-                for output_pipeline_id, output_pipeline in cls.filter_pipeline(pipeline_id, deepcopy(pipeline)):
+                for output_pipeline_id, output_pipeline in cls.filter_pipeline(pipeline_id, deepcopy(pipeline), base):
                     if os.environ.get('DPP_INFLUXDB_URL'):
                         yield output_pipeline_id, append_metrics(output_pipeline)
                     else:
@@ -46,23 +46,25 @@ class Generator(GeneratorBase):
 
 
     @classmethod
-    def filter_pipeline(cls, pipeline_id, pipeline):
+    def filter_pipeline(cls, pipeline_id, pipeline, base):
         if pipeline.get("pipeline-type") == "knesset dataservice":
-            yield from cls.get_knesset_dataservice_pipeline(pipeline_id, pipeline)
+            yield from cls.get_knesset_dataservice_pipeline(pipeline_id, pipeline, base)
         elif pipeline.get("pipeline-type") == "all package":
-            yield from cls.get_all_package_pipeline(pipeline_id, pipeline)
+            yield from cls.get_all_package_pipeline(pipeline_id, pipeline, base)
         elif pipeline.get("pipeline-type") == "db dump":
-            yield from cls.get_db_dump_pipeline(pipeline_id, pipeline)
+            yield from cls.get_db_dump_pipeline(pipeline_id, pipeline, base)
         else:
-            pipeline["pipeline"] = steps(*[(step["run"], step.get("parameters", {})) for step in pipeline["pipeline"]])
-            yield pipeline_id, pipeline
+            # pipeline["pipeline"] = steps(*[(step["run"], step.get("parameters", {})) for step in pipeline["pipeline"]])
+            yield os.path.join(base, pipeline_id), pipeline
 
     @classmethod
-    def get_knesset_dataservice_pipeline(cls, pipeline_id, pipeline):
+    def get_knesset_dataservice_pipeline(cls, pipeline_id, pipeline, base):
         storage_path = "data/{}/{}".format(pipeline['schemas-bucket'], pipeline_id)
         storage_url = "http://storage.googleapis.com/knesset-data-pipelines/{}".format(storage_path)
         resource_name = pipeline_id
         pipeline_steps = []
+        for pre_step in pipeline.get('pre-steps', []):
+            pipeline_steps.append((pre_step['run'], pre_step.get('parameters', {})))
         if os.environ.get("DATASERVICE_LOAD_FROM_URL"):
             pipeline_steps += [('load_resource', {"url": "{}/datapackage.json".format(storage_url),
                                                   "resource": resource_name}),]
@@ -71,16 +73,24 @@ class Generator(GeneratorBase):
                                 pipeline["dataservice-parameters"]),
                                ('..datapackage_pipelines_knesset.common.processors.throttle',
                                 {'rows-per-page': 50}),]
+        for additional_step in pipeline.get('additional-steps', []):
+            pipeline_steps.append((additional_step['run'], additional_step.get('parameters', {})))
         pipeline_steps += [('knesset.dump_to_path', {'storage-url': storage_url,
                                                      'out-path': '../{}'.format(storage_path)},)]
         dump_to_sql = 'knesset.dump_to_sql'
         table_name = '{}_{}'.format(pipeline['schemas-bucket'], pipeline_id.replace('-', '_'))
         pipeline_steps += [(dump_to_sql, {'engine': 'env://DPP_DB_ENGINE',
                                           'tables': {table_name: {'resource-name': pipeline_id, 'mode': 'rewrite', }}},)]
-        yield pipeline_id, {'pipeline': steps(*pipeline_steps), 'schedule': {'crontab': '10 1 * * *'}}
+        output_pipeline = {'pipeline': steps(*pipeline_steps),
+                           'dependencies': pipeline.get('dependencies', [])}
+        if pipeline.get('dependencies'):
+            output_pipeline['dependencies'] = pipeline['dependencies']
+        else:
+            output_pipeline['schedule'] = {'crontab': '10 1 * * *'}
+        yield os.path.join(base, pipeline_id), output_pipeline
 
     @classmethod
-    def get_all_package_pipeline(cls, pipeline_id, pipeline):
+    def get_all_package_pipeline(cls, pipeline_id, pipeline, base):
         assert pipeline['base-url'].startswith('https://storage.googleapis.com/knesset-data-pipelines/')
         base_path = pipeline['base-url'].replace('https://storage.googleapis.com/knesset-data-pipelines/', '')
         pipeline_steps = []
@@ -104,12 +114,12 @@ class Generator(GeneratorBase):
         storage_url = "http://storage.googleapis.com/knesset-data-pipelines/{}".format(storage_path)
         pipeline_steps += [('knesset.dump_to_path', {'storage-url': storage_url,
                                                      'out-path': '../{}'.format(storage_path)},)]
-        yield pipeline_id, {'pipeline': steps(*pipeline_steps),
-                            'schedule': {'crontab': '10 1 * * *'},
-                            'dependencies': dependencies}
+        yield os.path.join(base, pipeline_id), {'pipeline': steps(*pipeline_steps),
+                                                'schedule': {'crontab': '10 1 * * *'},
+                                                'dependencies': dependencies}
 
     @classmethod
-    def get_db_dump_pipeline(cls, pipeline_id, pipeline):
+    def get_db_dump_pipeline(cls, pipeline_id, pipeline, base):
         pipeline_steps = [
             ("load_resource", {
                 "url": "https://storage.googleapis.com/knesset-data-pipelines/data/members/presence/datapackage.json",
@@ -162,4 +172,4 @@ class Generator(GeneratorBase):
                 "next_mk_attendance": {"resource-name": "mk_attendance", "mode": "rewrite"},
             }})
         ]
-        yield pipeline_id, {'pipeline': steps(*pipeline_steps), 'schedule': {'crontab': '10 1 * * *'}}
+        yield os.path.join(base, pipeline_id), {'pipeline': steps(*pipeline_steps), 'schedule': {'crontab': '10 1 * * *'}}

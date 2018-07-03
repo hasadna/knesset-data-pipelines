@@ -22,10 +22,10 @@ def get_committee_session_resource(resource):
     for committee_session in resource:
         incr_stat('committee sessions')
         incr_stat('committee sessions KnessetNum = {}'.format(committee_session['KnessetNum']))
-        if committee_session['parts_filename']:
-            incr_stat('committee sessions with parts_filename')
-        if committee_session['text_filename']:
-            incr_stat('committee sessions with text_filename')
+        if committee_session['parts_parsed_filename']:
+            incr_stat('committee sessions with parts_parsed_filename')
+        if committee_session['text_parsed_filename']:
+            incr_stat('committee sessions with text_parsed_filename')
         yield committee_session
 
 
