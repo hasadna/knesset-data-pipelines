@@ -16,6 +16,7 @@ datapackage-pipelines-metrics = "*"
 psutil = "*"
 crcmod = "*"
 jsonpickle = "*"
+tika = "*"
 
 [dev-packages]
 tox = "*"
