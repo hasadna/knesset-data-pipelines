@@ -1,4 +1,12 @@
 view_vote_rslts_hdr_approved:
+  dependencies:
+  - pipeline: ./votes/vote_rslts_kmmbr_shadow
+  - datapackage: data/votes/vote_rslts_kmmbr_shadow/datapackage.json
+  pre-steps:
+  - run: load_resource
+    parameters:
+      url: ../data/votes/vote_rslts_kmmbr_shadow/datapackage.json
+      resource: vote_rslts_kmmbr_shadow
   pipeline-type: knesset dataservice
   schemas-bucket: votes
   dataservice-parameters:
@@ -100,6 +108,8 @@ view_vote_rslts_hdr_approved:
         source: remark
         type: string
         description: remark
+  additional-steps:
+  - run: join_kmmbr_votes
 
 view_vote_mk_individual:
   pipeline-type: knesset dataservice
@@ -152,6 +162,20 @@ vote_result_type:
         description: result name
 
 vote_rslts_kmmbr_shadow:
+  dependencies:
+  - pipeline: ./members/mk_individual
+  - datapackage: data/members/mk_individual/datapackage.json
+  - pipeline: ./votes/vote_result_type
+  - datapackage: data/votes/vote_result_type/datapackage.json
+  pre-steps:
+  - run: load_resource
+    parameters:
+      url: ../data/members/mk_individual/datapackage.json
+      resource: mk_individual_positions
+  - run: load_resource
+    parameters:
+      url: ../data/votes/vote_result_type/datapackage.json
+      resource: vote_result_type
   pipeline-type: knesset dataservice
   schemas-bucket: votes
   dataservice-parameters:
@@ -199,66 +223,84 @@ vote_rslts_kmmbr_shadow:
         source: remark
         type: string
         description: remark
-
-
-join-votes:
-  description: join the votes sessions, the votes themselves, and the voters
-  schedule:
-    crontab: "10 1 * * *"
-  pipeline:
-  - run: load_resource
+  additional-steps:
+  - run: sort
+    cache: true
     parameters:
-      url: https://storage.googleapis.com/knesset-data-pipelines/data/votes/vote_result_type/datapackage.json
-      resource: vote_result_type
-  - run: load_resource
-    parameters:
-      url: https://storage.googleapis.com/knesset-data-pipelines/data/votes/view_vote_rslts_hdr_approved/datapackage.json
-      resource: view_vote_rslts_hdr_approved
-  - run: load_resource
-    parameters:
-      url: https://storage.googleapis.com/knesset-data-pipelines/data/votes/vote_rslts_kmmbr_shadow/datapackage.json
-      resource: vote_rslts_kmmbr_shadow
-
+      resources: vote_rslts_kmmbr_shadow
+      sort-by: "{kmmbr_id}"
   - run: join
     parameters:
       source:
         name: vote_result_type
         key: ["result_type_id"]
+        delete: true
       target:
         name: vote_rslts_kmmbr_shadow
         key: ["vote_result"]
       fields:
-        vote_result_string:
-          name: result_type_name
-      full: true
+        result_type_name: {}
+  - run: join_kmmbr_mk_individuals
 
-  - run: join
-    parameters:
-      source:
-        name: view_vote_rslts_hdr_approved
-        key: ["id"]
-      target:
-        name: vote_rslts_kmmbr_shadow
-        key: ["vote_id"]
-      fields:
-        vote_session:
-          name: sess_item_dscr
-        vote_item:
-          name: vote_item_dscr
-        vote_date:
-          name: vote_date
-      full: true
-  - run: dump.to_path
-    parameters:
-      out-path: ../data/votes/joined-votes
 
-all:
-  pipeline-type: all package
-  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/votes/
-  resources:
-  - name: view_vote_rslts_hdr_approved
-  - name: view_vote_mk_individual
-  - name: vote_result_type
-  - name: vote_rslts_kmmbr_shadow
-  out-path: ../data/votes/all
-  sql-tables-prefix: votes
+#join-votes:
+#  description: join the votes sessions, the votes themselves, and the voters
+#  schedule:
+#    crontab: "10 1 * * *"
+#  pipeline:
+#  - run: load_resource
+#    parameters:
+#      url: https://storage.googleapis.com/knesset-data-pipelines/data/votes/vote_result_type/datapackage.json
+#      resource: vote_result_type
+#  - run: load_resource
+#    parameters:
+#      url: https://storage.googleapis.com/knesset-data-pipelines/data/votes/view_vote_rslts_hdr_approved/datapackage.json
+#      resource: view_vote_rslts_hdr_approved
+#  - run: load_resource
+#    parameters:
+#      url: https://storage.googleapis.com/knesset-data-pipelines/data/votes/vote_rslts_kmmbr_shadow/datapackage.json
+#      resource: vote_rslts_kmmbr_shadow
+#
+#  - run: join
+#    parameters:
+#      source:
+#        name: vote_result_type
+#        key: ["result_type_id"]
+#      target:
+#        name: vote_rslts_kmmbr_shadow
+#        key: ["vote_result"]
+#      fields:
+#        vote_result_string:
+#          name: result_type_name
+#      full: true
+#
+#  - run: join
+#    parameters:
+#      source:
+#        name: view_vote_rslts_hdr_approved
+#        key: ["id"]
+#      target:
+#        name: vote_rslts_kmmbr_shadow
+#        key: ["vote_id"]
+#      fields:
+#        vote_session:
+#          name: sess_item_dscr
+#        vote_item:
+#          name: vote_item_dscr
+#        vote_date:
+#          name: vote_date
+#      full: true
+#  - run: dump.to_path
+#    parameters:
+#      out-path: ../data/votes/joined-votes
+
+#all:
+#  pipeline-type: all package
+#  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/votes/
+#  resources:
+#  - name: view_vote_rslts_hdr_approved
+#  - name: view_vote_mk_individual
+#  - name: vote_result_type
+#  - name: vote_rslts_kmmbr_shadow
+#  out-path: ../data/votes/all
+#  sql-tables-prefix: votes

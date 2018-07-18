@@ -1,0 +1,132 @@
+
+committee-meetings:
+  dependencies:
+  - pipeline: ./knesset/kns_knessetdates
+  - datapackage: data/knesset/kns_knessetdates/datapackage.json
+  - pipeline: ./people/committee-meeting-attendees
+  - datapackage: data/people/committees/meeting-attendees/datapackage.json
+  - pipeline: ./members/mk_individual
+  - datapackage: data/members/mk_individual/datapackage.json
+  pipeline:
+  - run: add_resource
+    parameters:
+      name: security-attendance-knesset-20-until-sep-2017
+      url: https://www.odata.org.il/dataset/48551e7e-11d4-47f9-a951-1264356fda2d/resource/182d2ef9-5cd2-43b6-abc1-e78460e229b6/download/security_committee_attendance_report_sep2018_shakuf.csv
+  - run: stream_remote_resources
+    cache: true
+  - run: load_resource
+    parameters:
+      url: ../../data/knesset/kns_knessetdates/datapackage.json
+      resource: kns_knessetdates
+  - run: knesset.load_large_csv_resource
+    parameters:
+      url: ../../data/members/mk_individual/datapackage.json
+      resource: mk_individual_positions
+  - run: load_resource
+    parameters:
+      url: ../../data/people/committees/meeting-attendees/datapackage.json
+      resource: kns_committeesession
+  - run: filter
+    parameters:
+      resources: kns_committeesession
+      in:
+      - KnessetNum: 20
+  - run: mk_attendance_report
+    parameters:
+      name: knesset_20_all_meetings
+      KnessetNum: 20
+      pagra: include
+  - run: mk_attendance_report
+    parameters:
+      name: knesset_20_without_meetings_during_pagra
+      KnessetNum: 20
+      pagra: exclude
+  - run: mk_attendance_report
+    parameters:
+      name: knesset_20_only_meetings_during_pagra
+      KnessetNum: 20
+      pagra: only
+  - run: mk_attendance_report
+    parameters:
+      name: knesset_20_kenes_4_summer_2018
+      KnessetNum: 20
+      Plenum-Assembly: "4-2"
+  - run: mk_attendance_report
+    parameters:
+      name: knesset_20_kenes_4_winter_2018
+      KnessetNum: 20
+      Plenum-Assembly: "4-1"
+  - run: mk_attendance_report
+    parameters:
+      name: knesset_20_with_shakuf_security_until_sep_2017
+      pagra: include
+      with-shakuf-security: true
+      KnessetNum: 20
+      max-year: 2017
+      max-month: 9
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../../data/people/attendance/committee_meetings
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/attendance/committee_meetings
+
+
+plenum-votes:
+  dependencies:
+  - pipeline: ./knesset/kns_knessetdates
+  - datapackage: data/knesset/kns_knessetdates/datapackage.json
+  - pipeline: ./people/plenum-session-voters
+  - datapackage: data/people/plenum/session_voters/datapackage.json
+  - pipeline: ./members/mk_individual
+  - datapackage: data/members/mk_individual/datapackage.json
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../../data/knesset/kns_knessetdates/datapackage.json
+      resource: kns_knessetdates
+  - run: knesset.load_large_csv_resource
+    parameters:
+      url: ../../data/members/mk_individual/datapackage.json
+      resource: mk_individual_positions
+  - run: load_resource
+    parameters:
+      url: ../../data/people/plenum/session_voters/datapackage.json
+      resource: kns_plenumsession
+  - run: filter
+    parameters:
+      resources: kns_plenumsession
+      in:
+      - KnessetNum: 20
+  - run: mk_attendance_report
+    parameters:
+      plenum-session-voters: true
+      name: knesset_20_all_meetings
+      KnessetNum: 20
+      pagra: include
+  - run: mk_attendance_report
+    parameters:
+      plenum-session-voters: true
+      name: knesset_20_without_meetings_during_pagra
+      KnessetNum: 20
+      pagra: exclude
+  - run: mk_attendance_report
+    parameters:
+      plenum-session-voters: true
+      name: knesset_20_only_meetings_during_pagra
+      KnessetNum: 20
+      pagra: only
+  - run: mk_attendance_report
+    parameters:
+      plenum-session-voters: true
+      name: knesset_20_kenes_4_summer_2018
+      KnessetNum: 20
+      Plenum-Assembly: "4-2"
+  - run: mk_attendance_report
+    parameters:
+      plenum-session-voters: true
+      name: knesset_20_kenes_4_winter_2018
+      KnessetNum: 20
+      Plenum-Assembly: "4-1"
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../../data/people/attendance/plenum_votes
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/attendance/plenum_votes

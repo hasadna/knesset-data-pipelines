@@ -21,7 +21,7 @@ COPY members /pipelines/members
 COPY people /pipelines/people
 COPY plenum /pipelines/plenum
 COPY votes /pipelines/votes
-COPY votes_kmember /pipelines/votes_kmember
+#COPY votes_kmember /pipelines/votes_kmember
 COPY bin /pipelines/bin
 COPY *.py /pipelines/
 COPY *.sh /pipelines/
