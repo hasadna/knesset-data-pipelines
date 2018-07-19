@@ -1,7 +1,7 @@
 from datapackage_pipelines_knesset.common.processors.base_processor import BaseProcessor
 from knesset_data.dataservice.base import KnessetDataServiceSimpleField
 from datapackage_pipelines_knesset.retry_get_response_content import get_retry_response_content
-import logging
+import logging, datetime
 
 
 class BaseDataserviceProcessor(BaseProcessor):
@@ -42,6 +42,16 @@ class BaseDataserviceProcessor(BaseProcessor):
             @classmethod
             def _get_response_content(cls, url, params, timeout, proxies, retry_num=1):
                 return get_retry_response_content(url, params, timeout, proxies, retry_num, num_retries, seconds_between_retries)
+            @classmethod
+            def get_all(cls, proxies=None, skip_exceptions=False, since_last_update=None):
+                start_url = cls._get_url_base()
+                if since_last_update is not None:
+                    lu_field, lu_value, lu_type = since_last_update
+                    if lu_type == 'datetime':
+                        start_url += '?$filter={}%20gt%20DateTime%27{}T00:00:00%27'.format(lu_field, lu_value)
+                    else:
+                        start_url += '?$filter={}%20gt%20{}'.format(lu_field, lu_value)
+                return cls._get_all_pages(start_url, proxies=proxies, skip_exceptions=skip_exceptions)
         return BaseExtendedDataserviceClass
 
     def _filter_output_row(self, row):

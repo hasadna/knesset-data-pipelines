@@ -56,3 +56,7 @@ def get_speech_parts(meeting):
             if stream:
                 yield from get_speech_part_contexts(stream)
                 stream.close()
+
+
+def update_speech_parts_hash(meeting, update_hash_callback):
+    update_hash_callback(str(meeting['parts_crc32c']).encode())

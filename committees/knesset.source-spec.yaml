@@ -135,6 +135,7 @@ kns_cmtsessionitem:
   pipeline-type: knesset dataservice
   schemas-bucket: "committees"
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_cmtsessionitem
     service-name: api
     method-name: "KNS_CmtSessionItem"
@@ -178,6 +179,7 @@ kns_documentcommitteesession:
   pipeline-type: knesset dataservice
   schemas-bucket: "committees"
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_documentcommitteesession
     service-name: api
     method-name: "KNS_DocumentCommitteeSession"
@@ -216,24 +218,48 @@ kns_documentcommitteesession:
         type: datetime
         description: תאריך עדכון אחרון
   additional-steps:
+#  - run: filter
+#    cached: true
+#    parameters:
+#      in:
+#      - CommitteeSessionID: 2072573
   - run: download_document_committee_session
     parameters:
       out-path: ../data/committees/download_document_committee_session
-      # limit-rows: 5
+#      limit-rows: 5
   - run: parse_meeting_protocols
     parameters:
       type: text
-      # files-limit: 5
+#      files-limit: 2
       download-from-path: ../data/committees/download_document_committee_session/
       # download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
       out-path: ../data/committees/meeting_protocols_text
   - run: parse_meeting_protocols
     parameters:
       type: parts
-      # files-limit: 5
+#      files-limit: 2
       download-from-path: ../data/committees/download_document_committee_session/
       # download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
       out-path: ../data/committees/meeting_protocols_parts
+
+
+sync-documents:
+  dependencies:
+  - pipeline: ./committees/kns_documentcommitteesession
+  - datapackage: data/committees/kns_documentcommitteesession/datapackage.json
+  pipeline:
+  - run: knesset.sync
+    parameters:
+      source: "../data/committees/download_document_committee_session"
+      target: "gs://knesset-data-pipelines/data/committees/download_document_committee_session"
+  - run: knesset.sync
+    parameters:
+      source: "../data/committees/meeting_protocols_text"
+      target: "gs://knesset-data-pipelines/data/committees/meeting_protocols_text"
+  - run: knesset.sync
+    parameters:
+      source: "../data/committees/meeting_protocols_parts"
+      target: "gs://knesset-data-pipelines/data/committees/meeting_protocols_parts"
 
 
 kns_committeesession:
@@ -260,6 +286,7 @@ kns_committeesession:
   pipeline-type: knesset dataservice
   schemas-bucket: "committees"
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_committeesession
     service-name: api
     method-name: "KNS_CommitteeSession"
@@ -362,262 +389,3 @@ kns_committeesession:
       fields:
         committee_name:
           name: Name
-
-
-#meetings_datapackage_zip:
-#  dependencies:
-#  - datapackage: data/committees/meeting_protocols_text/datapackage.json
-#  pipeline:
-#  - run: load_resource
-#    parameters:
-#      url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/gcs_list_files/datapackage.json
-#      resource: files
-#  - run: filter
-#    parameters:
-#      resources: ["files"]
-#      in:
-#      - file_type: parts
-#  - run: load_resource
-#    parameters:
-#      url: ../data/committees/joined-meetings/datapackage.json
-#      resource: kns_committeesession
-#  - run: join
-#    parameters:
-#      source:
-#        name: files
-#        key: ["committee_session_id"]
-#        delete: true
-#      target:
-#        name: kns_committeesession
-#        key: ["CommitteeSessionID"]
-#      fields:
-#        parts_file_size:
-#          name: size
-#        parts_file_name:
-#          name: name
-#  - run: meetings_datapackage_zip
-#    parameters:
-##      dry-run: true
-#      out-file: ../data/committees/meetings_datapackage_files.zip
-#  - run: dump.to_zip
-#    parameters:
-#      out-file: ../data/committees/meetings_datapackage.zip
-
-#all:
-#  pipeline-type: all package
-#  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/committees/
-#  resources:
-#  - name: gcs_document_committee_session_files
-#    resource: files
-#  - name: gcs_list_files
-#    resource: files
-#  - name: joined-meetings
-#    resource: kns_committeesession
-#  - name: kns_cmtsessionitem
-#  - name: kns_cmtsitecode
-#  - name: kns_committee
-#  - name: kns_committeesession
-#  - name: kns_documentcommitteesession
-#  - name: kns_jointcommittee
-#  out-path: ../data/committees/all
-#  sql-tables-prefix: committees
-
-
-### parse protocols
-
-#committee-meeting-protocols:
-#  description: >
-#    <p>runs daily, downloads and parses committee meeting protocols</p>
-#    <ul>
-#      <li>saves data to DB table - committee_meeting_protocols_parsed</li>
-#      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
-#    </ul>
-#  schedule:
-#    crontab: "10 0 * * *"
-#  pipeline:
-#    - run: ..datapackage_pipelines_knesset.committees.processors.load_committee_meeting_protocols
-#      parameters:
-#        resource: kns_documentcommitteesession
-#    # downloads the source protocol files for meetings which weren't downloaded before
-#    # saves the files in object storage
-#    # all meetings with url are yielded for parse processor
-#    - run: ..datapackage_pipelines_knesset.committees.processors.download_committee_meeting_protocols
-#      parameters:
-#        input-resource: kns_documentcommitteesession
-#        output-resource: committee-meeting-protocols
-#        data-resource-descriptor:
-#          name: committee-meeting-protocols
-#    # parses the downloaded protocols into text and parts files which will be saved in object storage
-#    # will re-parse meetings which have missing or empty files
-#    - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_protocols
-#      parameters:
-#        input-resource: committee-meeting-protocols
-#        output-resource: committee-meeting-protocols-parsed
-#        data-resource-descriptor:
-#          name: committee-meeting-protocols-parsed
-#    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
-#      parameters:
-#        resource: committee-meeting-protocols-parsed
-#        table: committee_meeting_protocols_parsed
-#        schemas-bucket: committees
-#        # lower commit batches - because protocol parsing takes some time
-#        commit-every: 50
-
-# looks like these processors consume too much memory - removed temporarily
-# TODO: investigate memory consumption, I think it's related to the dump_to_sql processor
-
-## create datapackage
-#committee-meeting-attendees:
-#  description: >
-#    <p>runs daily, downloads and parses committee meeting protocols</p>
-#    <ul>
-#      <li>saves data to DB table - committee_meeting_protocols_parsed</li>
-#      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
-#    </ul>
-#  schedule:
-#    crontab: "10 0 * * *"
-#  pipeline:
-#    - run: ..datapackage_pipelines_knesset.committees.processors.load_committee_meeting_protocols
-#      parameters:
-#        resource: kns_documentcommitteesession
-#    # only yields attendees for meetings which don't exist in the attendees table in DB
-#    # meaning that every meeting is parsed once - until all it's attendees are deleted from attendees table
-#    - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_attendees
-#      parameters:
-#        input-resource: kns_documentcommitteesession
-#        output-resource: committee-meeting-attendees
-#    - run: dump.to_sql
-#      parameters:
-#        tables:
-#          committee_meeting_attendees:
-#            resource-name: committee-meeting-attendees
-#            mode: insert
-#    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
-#      parameters:
-#        resource: committee-meeting-attendees
-#        table: committee_meeting_attendees
-#        schemas-bucket: committees
-#        only-save-schema: true
-#
-#committee-meeting-speakers:
-#  description: >
-#    <p>runs daily, downloads and parses committee meeting protocols</p>
-#    <ul>
-#      <li>saves data to DB table - committee_meeting_protocols_parsed</li>
-#      <li>saves field types and descriptions to <a href="https://next.oknesset.org/data/table_schemas/">data/table_schemas/</a></li>
-#    </ul>
-#  schedule:
-#    crontab: "10 0 * * *"
-#  pipeline:
-#    - run: ..datapackage_pipelines_knesset.committees.processors.load_committee_meeting_protocols
-#      parameters:
-#        resource: kns_documentcommitteesession
-#    # downloads the source protocol files for meetings which weren't downloaded before
-#    # saves the files in object storage
-#    # all meetings with url are yielded for parse processor
-#    - run: ..datapackage_pipelines_knesset.committees.processors.parse_committee_meeting_speakers
-#      parameters:
-#        input-resource: kns_documentcommitteesession
-#        output-resource: committee-meeting-speakers
-#    - run: dump.to_sql
-#      parameters:
-#        tables:
-#          committee_meeting_speakers:
-#            resource-name: committee-meeting-speakers
-#            mode: insert
-#    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
-#      parameters:
-#        resource: committee-meeting-speakers
-#        table: committee_meeting_speakers
-#        schemas-bucket: committees
-#        only-save-schema: true
-
-
-#committee-meetings-metadata:
-#  description: >
-#    <p>runs daily, updates a committee_meetings table which contains joined metadata about meetings</p>
-#  schedule:
-#    crontab: "10 0 * * *"
-#  pipeline:
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema-bucket: committees
-#        resource-name: kns_committee
-#        table: kns_committee
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema-bucket: committees
-#        resource-name: kns_cmtsessionitem
-#        table: kns_cmtsessionitem
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema-bucket: committees
-#        resource-name: kns_committeesession
-#        table: kns_committeesession
-#    - run: ..datapackage_pipelines_knesset.committees.processors.committee_meetings_metadata
-#    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_sql
-#      parameters:
-#        resource: kns_committeesession
-#        table: committee_meetings_metadata
-#        schemas-bucket: committees
-
-
-#all:
-#  description: >
-#    <p>runs daily, aggregates data from all relevant DB tables to a datapackage zip file</p>
-#  schedule:
-#    crontab: "10 2 * * *"
-#  pipeline:
-#    - run: add_metadata
-#      parameters:
-#        name: knesset_data_committees
-#        description: Knesset committees and committee meetings data from Knesset dataservice API
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema-bucket: committees
-#        resource-name: kns_committee
-#        table: kns_committee
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema-bucket: committees
-#        resource-name: kns_jointcommittee
-#        table: kns_jointcommittee
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema-bucket: committees
-#        resource-name: kns_cmtsitecode
-#        table: kns_cmtsitecode
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema-bucket: committees
-#        resource-name: kns_committeesession
-#        table: kns_committeesession
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema-bucket: committees
-#        resource-name: kns_cmtsessionitem
-#        table: kns_cmtsessionitem
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema-bucket: committees
-#        resource-name: kns_documentcommitteesession
-#        table: kns_documentcommitteesession
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema-bucket: committees
-#        resource-name: committee_meeting_protocols_parsed
-#        table: committee_meeting_protocols_parsed
-#    - run: aws.dump.to_s3
-#      parameters:
-#        bucket: committees
-#    - run: ..datapackage_pipelines_knesset.common.processors.dump_to_html
-#      parameters:
-#        bucket: committees
-
-#    - run: ..datapackage_pipelines_knesset.common.processors.load_sql_resource
-#      parameters:
-#        schema-bucket: committees
-#        resource-name: committee-meeting-attendees
-#        table: committee_meeting_attendees
-#        # there are simply too many attendees, we limit here to only mks, at least for the dump (DB has all the data)
-#        filter: {"role": "mks"}

@@ -179,6 +179,8 @@ vote_rslts_kmmbr_shadow:
   pipeline-type: knesset dataservice
   schemas-bucket: votes
   dataservice-parameters:
+    incremental-field: vote_id
+    incremental-field-type: integer
     resource-name: vote_rslts_kmmbr_shadow
     service-name: votes
     method-name: "vote_rslts_kmmbr_shadow"
@@ -225,7 +227,6 @@ vote_rslts_kmmbr_shadow:
         description: remark
   additional-steps:
   - run: sort
-    cache: true
     parameters:
       resources: vote_rslts_kmmbr_shadow
       sort-by: "{kmmbr_id}"

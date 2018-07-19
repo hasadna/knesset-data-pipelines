@@ -4,6 +4,7 @@ kns_plenumsession:
   pipeline-type: knesset dataservice
   schemas-bucket: plenum
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_plenumsession
     service-name: api
     method-name: "KNS_PlenumSession"
@@ -46,6 +47,7 @@ kns_plmsessionitem:
   pipeline-type: knesset dataservice
   schemas-bucket: plenum
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_plmsessionitem
     service-name: api
     method-name: "KNS_PlmSessionItem"
@@ -96,6 +98,7 @@ kns_documentplenumsession:
   pipeline-type: knesset dataservice
   schemas-bucket: plenum
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_documentplenumsession
     service-name: api
     method-name: "KNS_DocumentPlenumSession"
@@ -133,17 +136,6 @@ kns_documentplenumsession:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
-
-
-all:
-  pipeline-type: all package
-  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/plenum/
-  resources:
-  - name: kns_plenumsession
-  - name: kns_plmsessionitem
-  - name: kns_documentplenumsession
-  out-path: ../data/plenum/all
-  sql-tables-prefix: plenum
 
 
 ### parse protocols

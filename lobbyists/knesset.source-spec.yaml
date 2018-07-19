@@ -77,12 +77,3 @@ v_lobbyist_clients:
         source: "{name}"
         type: string
         description: שמות הלקוחות
-
-#all:
-#  pipeline-type: all package
-#  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/lobbyists/
-#  resources:
-#  - name: v_lobbyist
-#  - name: v_lobbyist_clients
-#  out-path: ../data/lobbyists/all
-#  sql-tables-prefix: lobbyists

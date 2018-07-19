@@ -139,15 +139,3 @@ kns_status:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
-
-
-#all:
-#  pipeline-type: all package
-#  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/knesset/
-#  resources:
-#  - name: kns_knessetdates
-#  - name: kns_govministry
-#  - name: kns_itemtype
-#  - name: kns_status
-#  out-path: ../data/knesset/all
-#  sql-tables-prefix: knesset

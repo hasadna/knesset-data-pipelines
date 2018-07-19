@@ -137,17 +137,3 @@ create_factions:
       url: ../../data/committees/dist/positions_aggr/datapackage.json
       resource: knessets
   - run: build_factions
-
-#sync:
-#  schedule:
-#    crontab: "10 1 * * *"
-#  dependencies:
-#  - pipeline: render_meetings
-#  - pipeline: render_committees
-#  - pipeline: create_members
-#  - pipeline: create_factions
-#  pipeline:
-#  - run: sync
-#    parameters:
-#      source: "../../data/committees/dist/dist"
-#      target: "gs://knesset-data-pipelines/data/dist"

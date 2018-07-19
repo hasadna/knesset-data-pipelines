@@ -55,7 +55,8 @@ class Generator(GeneratorBase):
             yield from cls.get_db_dump_pipeline(pipeline_id, pipeline, base)
         else:
             if os.environ.get('KNESSET_LOAD_FROM_URL') == '1':
-                del pipeline['dependencies']
+                if 'dependencies' in pipeline:
+                    del pipeline['dependencies']
                 url = None
                 out_path = None
                 for step in pipeline['pipeline']:
@@ -86,10 +87,23 @@ class Generator(GeneratorBase):
                                                   "resource": resource_name},
                                 True),]
         else:
+            if (
+                    'incremental-field' in pipeline['dataservice-parameters']
+                    and os.environ.get('KNESSET_DATASERVICE_INCREMENTAL')
+            ):
+                if os.environ.get('KNESSET_PIPELINES_DATA_PATH'):
+                    url = os.path.join(os.environ['KNESSET_PIPELINES_DATA_PATH'],
+                                       pipeline['schemas-bucket'], pipeline_id)
+                else:
+                    url = storage_url
+                pipeline_steps += [('load_resource', {"url": "{}/datapackage.json".format(url),
+                                                      "resource": resource_name}),
+                                   ('knesset.rename_resource', {'src': resource_name,
+                                                        'dst': 'last_' + resource_name})]
             pipeline_steps += [('..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource',
                                 pipeline["dataservice-parameters"]),
                                ('..datapackage_pipelines_knesset.common.processors.throttle',
-                                {'rows-per-page': 50}),]
+                                {'rows-per-page': 50, 'resource': resource_name}),]
         for additional_step in pipeline.get('additional-steps', []):
             pipeline_steps.append((additional_step['run'],
                                    additional_step.get('parameters', {}),

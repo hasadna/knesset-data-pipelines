@@ -27,3 +27,4 @@ COPY *.py /pipelines/
 COPY *.sh /pipelines/
 ENV RTF_EXTRACTOR_BIN /knesset/bin/rtf_extractor.py
 ENV KNESSET_PIPELINES_DATA_PATH=/pipelines/data
+ENV KNESSET_DATASERVICE_INCREMENTAL=1

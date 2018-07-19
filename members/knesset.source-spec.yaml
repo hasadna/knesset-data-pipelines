@@ -5,6 +5,7 @@ kns_person:
   pipeline-type: knesset dataservice
   schemas-bucket: members
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_person
     service-name: api
     method-name: "KNS_Person"
@@ -52,6 +53,7 @@ kns_position:
   pipeline-type: knesset dataservice
   schemas-bucket: members
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_position
     service-name: api
     method-name: "KNS_Position"
@@ -86,6 +88,7 @@ kns_persontoposition:
   pipeline-type: knesset dataservice
   schemas-bucket: members
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_persontoposition
     service-name: api
     method-name: "KNS_PersonToPosition"
@@ -275,19 +278,6 @@ presence:
         members_presence:
           resource-name: presence
 
-
-#all:
-#  pipeline-type: all package
-#  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/members/
-#  resources:
-#  - name: presence
-#  - name: kns_person
-#  - name: kns_position
-#  - name: kns_persontoposition
-#  - name: kns_mksitecode
-#  - name: mk_individual
-#  out-path: ../data/members/all
-#  sql-tables-prefix: members
 
 #
 #

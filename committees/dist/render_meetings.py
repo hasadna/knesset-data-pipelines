@@ -1,10 +1,26 @@
 from datapackage_pipelines.wrapper import ingest, spew
 import logging
 from datapackage_pipelines_knesset.committees.dist.template_functions import build_template, get_jinja_env, get_context
-from datapackage_pipelines_knesset.committees.dist.speech_parts import get_speech_part_body, get_speech_parts
+from datapackage_pipelines_knesset.committees.dist.speech_parts import (get_speech_part_body,
+                                                                        get_speech_parts,
+                                                                        update_speech_parts_hash)
 from datapackage_pipelines_knesset.committees.dist.constants import COMMITTEE_DETAIL_URL, COMMITTEE_LIST_KNESSET_URL, MEMBER_URL
 from datapackage_pipelines_knesset.committees.dist.committees_common import get_meeting_path
 from datapackage_pipelines.utilities.resources import PROP_STREAMING
+import hashlib, fileinput
+
+
+HASH_FILES=('../../datapackage_pipelines_knesset/committees/dist/template_functions.py',
+            '../../datapackage_pipelines_knesset/committees/dist/speech_parts.py',
+            '../../datapackage_pipelines_knesset/committees/dist/constants.py',
+            '../../datapackage_pipelines_knesset/committees/dist/committees_common.py',
+            'render_meetings.py',)
+
+
+HASH_FILES_OBJECT = hashlib.md5()
+with fileinput.input(HASH_FILES, mode='rb') as f:
+    for line in f:
+        HASH_FILES_OBJECT.update(line)
 
 
 parameters, datapackage, resources = ingest()
@@ -35,6 +51,15 @@ meetings_descriptor = datapackage["resources"][2]
 
 
 jinja_env = get_jinja_env()
+
+
+def update_meeting_hash(meeting, update_hash_callback):
+    update_speech_parts_hash(meeting, update_hash_callback)
+    update_hash_callback(''.join((str(mk_individuals[mk_id])
+                                  for mk_id
+                                  in meeting["attended_mk_individual_ids"])).encode())
+    update_hash_callback(str(kns_committees[meeting["CommitteeID"]]).encode())
+    update_hash_callback(str(meeting).encode())
 
 
 def get_meeting_context(meeting):
@@ -68,10 +93,13 @@ def get_meeting_context(meeting):
 
 
 for meeting in next(resources):
+    m = HASH_FILES_OBJECT.copy()
+    update_meeting_hash(meeting, m.update)
     build_template(jinja_env,
                    "committeemeeting_detail.html",
-                   get_meeting_context(meeting),
-                   get_meeting_path(meeting))
+                   lambda: get_meeting_context(meeting),
+                   get_meeting_path(meeting),
+                   with_hash=m.hexdigest())
     stats["meetings"] += 1
 
 
@@ -85,5 +113,6 @@ spew(dict(datapackage, resources=[{PROP_STREAMING: True,
                                    "name": "meetings_stats",
                                    "path": "meetings_stats.csv",
                                    "schema": {"fields": [{"name": "CommitteeSessionID", "type": "integer"},
-                                                         {"name": "num_speech_parts", "type": "integer"}]}}]),
+                                                         {"name": "num_speech_parts", "type": "integer"},
+                                                         {'name': 'hash', 'type': 'string'}]}}]),
      [get_stats_resource()], stats)

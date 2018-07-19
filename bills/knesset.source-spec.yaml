@@ -4,6 +4,7 @@ kns_bill:
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_bill
     service-name: api
     method-name: "KNS_Bill"
@@ -113,6 +114,7 @@ kns_billname:
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_billname
     service-name: api
     method-name: "KNS_BillName"
@@ -151,6 +153,7 @@ kns_billinitiator:
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_billinitiator
     service-name: api
     method-name: "KNS_BillInitiator"
@@ -186,6 +189,7 @@ kns_billhistoryinitiator:
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_billhistoryinitiator
     service-name: api
     method-name: "KNS_BillHistoryInitiator"
@@ -232,6 +236,7 @@ kns_billsplit:
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_billsplit
     service-name: api
     method-name: "KNS_BillSplit"
@@ -266,6 +271,7 @@ kns_billunion:
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_billunion
     service-name: api
     method-name: "KNS_BillUnion"
@@ -291,6 +297,7 @@ kns_documentbill:
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_documentbill
     service-name: api
     method-name: "KNS_DocumentBill"
@@ -331,20 +338,3 @@ kns_documentbill:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
-
-
-#all:
-#  pipeline-type: all package
-#  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/bills/
-#  resources:
-#  - name: kns_bill
-#  - name: kns_billname
-#  - name: kns_billinitiator
-#  - name: kns_billhistoryinitiator
-#    set_types:
-#      StartDate: null
-#  - name: kns_billsplit
-#  - name: kns_billunion
-#  - name: kns_documentbill
-#  out-path: ../data/bills/all
-#  sql-tables-prefix: bills

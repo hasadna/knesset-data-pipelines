@@ -4,6 +4,7 @@ kns_law:
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_law
     service-name: api
     method-name: "KNS_Law"
@@ -72,6 +73,7 @@ kns_law_binding:
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_law_binding
     service-name: api
     method-name: "KNS_LawBinding"
@@ -134,6 +136,7 @@ kns_document_law:
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_document_law
     service-name: api
     method-name: "KNS_DocumentLaw"
@@ -176,6 +179,7 @@ kns_israel_law:
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_israel_law
     service-name: api
     method-name: "KNS_IsraelLaw"
@@ -255,6 +259,7 @@ kns_israel_law_name:
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_israel_law_name
     service-name: api
     method-name: "KNS_IsraelLawName"
@@ -289,6 +294,7 @@ kns_israel_law_ministry:
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_israel_law_ministry
     service-name: api
     method-name: "KNS_IsraelLawMinistry"
@@ -315,6 +321,7 @@ kns_israel_law_classification:
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_israel_law_classification
     service-name: api
     method-name: "KNS_IsraelLawClassificiation"
@@ -345,6 +352,7 @@ kns_israel_law_binding:
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
+    incremental-field: LastUpdatedDate
     resource-name: kns_israel_law_binding
     service-name: api
     method-name: "KNS_IsraelLawBinding"
@@ -374,15 +382,3 @@ kns_israel_law_binding:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
-
-#all:
-#  pipeline-type: all package
-#  base-url: https://storage.googleapis.com/knesset-data-pipelines/data/laws/
-#  resources:
-#  - name: kns_law
-#  - name: kns_law_binding
-#  - name: kns_document_law
-#  - name: kns_israel_law
-#  - name: kns_israel_law_name
-#  out-path: ../data/laws/all
-#  sql-tables-prefix: laws
