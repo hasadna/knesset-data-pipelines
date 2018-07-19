@@ -38,11 +38,12 @@ committee-meeting-attendees:
       resource: kns_committeesession
 #  - run: filter
 #    parameters:
+#      resources: kns_committeesession
 #      in:
 #      - CommitteeSessionID: 2068104
   - run: committee_meeting_attendees
 #    parameters:
-#      filter-meeting-id: [2019698,2068132,2068104]
+#      filter-meeting-id: [540838, 2025600, 2019698,2068132,2068104]
 #      filter-committee-id: [198]
   - run: join_committee_meeting_attendees_mks
   - run: knesset.dump_to_path

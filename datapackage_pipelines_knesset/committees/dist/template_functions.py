@@ -22,11 +22,11 @@ def build_template(jinja_env, template_name, context, output_name=None, with_has
     json_file_name = re.sub(r'(.html)$', '.json', dist_file_name)
     hash_file_name = re.sub(r'(.html)$', '.hash', dist_file_name)
     old_hash = None
-    if os.path.exists(hash_file_name) and with_hash is not None:
+    if with_hash is not None and os.path.exists(hash_file_name):
         with open(hash_file_name) as f:
             old_hash = f.read()
     if old_hash is None or old_hash != with_hash:
-        if with_hash:
+        if with_hash is not None:
             context = context()
         os.makedirs(os.path.dirname(dist_file_name), exist_ok=True)
         logging.info("Building template {} to {}".format(template_name, dist_file_name))
@@ -35,8 +35,9 @@ def build_template(jinja_env, template_name, context, output_name=None, with_has
             f.write(template.render(context))
         with open(json_file_name, 'w') as f:
             f.write(jsonpickle.dumps(context))
-        with open(hash_file_name, 'w') as f:
-            f.write(with_hash)
+        if with_hash is not None:
+            with open(hash_file_name, 'w') as f:
+                f.write(with_hash)
 
 
 def get_context(context):
