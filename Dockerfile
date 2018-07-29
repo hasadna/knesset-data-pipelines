@@ -1,4 +1,4 @@
-FROM frictionlessdata/datapackage-pipelines@sha256:89f6950995e75e82bead922b811a4588f38b05fc2b0a11f1dd40e4c2f1614e47
+FROM orihoch/datapackage-pipelines:support-reload
 RUN pip install --no-cache-dir pipenv pew
 RUN apk --update --no-cache add build-base python3-dev bash jq libxml2 libxml2-dev git libxslt libxslt-dev curl \
                                 libpq postgresql-dev openssl antiword
