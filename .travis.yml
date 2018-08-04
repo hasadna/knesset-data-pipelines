@@ -25,4 +25,5 @@ deploy:
   script: bash .travis.sh deploy
   on:
     branch: master
-    condition: `echo "${TRAVIS_COMMIT_MESSAGE}" | grep -q -- --no-deploy && echo 1` != "1"
+    condition: |
+      `echo "${TRAVIS_COMMIT_MESSAGE}" | grep -q -- --no-deploy && echo 1` != "1"
