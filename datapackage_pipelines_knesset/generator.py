@@ -64,10 +64,19 @@ class Generator(GeneratorBase):
                         parameters = step.get('parameters', {})
                         if parameters.get('storage-url') and parameters.get('out-path'):
                             url, out_path = parameters['storage-url'], parameters['out-path']
+                if not url or not out_path:
+                    for step in pipeline['pipeline']:
+                        if step.get('run') == 'dump.to_path':
+                            parameters = step.get('parameters', {})
+                            if parameters.get('out-path') and parameters.get('out-path').startswith('../../data/committees/dist/'):
+                                out_path = parameters['out-path']
+                                rel_path = parameters['out-path'].replace('../../data/committees/dist/', '')
+                                url = 'https://production.oknesset.org/pipelines/data/committees/dist/{}'.format(rel_path)
                 if url and out_path:
                     pipeline['pipeline'] = [{'run': 'load_resource',
                                              'parameters': {'url': url + '/datapackage.json',
-                                                            'resource': '.*'}},
+                                                            'resource': '.*',
+                                                            'log-progress-rows': 50}},
                                             {'run': 'dump.to_path',
                                              'parameters': {'out-path': out_path}}]
             yield os.path.join(base, pipeline_id), pipeline
@@ -78,36 +87,45 @@ class Generator(GeneratorBase):
         storage_url = "http://storage.googleapis.com/knesset-data-pipelines/{}".format(storage_path)
         resource_name = pipeline_id
         pipeline_steps = []
-        for pre_step in pipeline.get('pre-steps', []):
-            pipeline_steps.append((pre_step['run'],
-                                   pre_step.get('parameters', {}),
-                                   pre_step.get('cache', False)))
-        if os.environ.get("DATASERVICE_LOAD_FROM_URL") or os.environ.get('KNESSET_LOAD_FROM_URL'):
+        if os.environ.get('KNESSET_LOAD_FROM_URL'):
+            if 'dependencies' in pipeline:
+                del pipeline['dependencies']
             pipeline_steps += [('load_resource', {"url": "{}/datapackage.json".format(storage_url),
-                                                  "resource": resource_name},
-                                True),]
+                                                  "resource": resource_name,
+                                                  'log-progress-rows': 50},
+                                True), ]
         else:
-            if (
-                    'incremental-field' in pipeline['dataservice-parameters']
-                    and os.environ.get('KNESSET_DATASERVICE_INCREMENTAL')
-            ):
-                if os.environ.get('KNESSET_PIPELINES_DATA_PATH'):
-                    url = os.path.join(os.environ['KNESSET_PIPELINES_DATA_PATH'],
-                                       pipeline['schemas-bucket'], pipeline_id)
-                else:
-                    url = storage_url
-                pipeline_steps += [('load_resource', {"url": "{}/datapackage.json".format(url),
-                                                      "resource": resource_name}),
-                                   ('knesset.rename_resource', {'src': resource_name,
-                                                        'dst': 'last_' + resource_name})]
-            pipeline_steps += [('..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource',
-                                pipeline["dataservice-parameters"]),
-                               ('..datapackage_pipelines_knesset.common.processors.throttle',
-                                {'rows-per-page': 50, 'resource': resource_name}),]
-        for additional_step in pipeline.get('additional-steps', []):
-            pipeline_steps.append((additional_step['run'],
-                                   additional_step.get('parameters', {}),
-                                   additional_step.get('cache', False)))
+            for pre_step in pipeline.get('pre-steps', []):
+                pipeline_steps.append((pre_step['run'],
+                                       pre_step.get('parameters', {}),
+                                       pre_step.get('cache', False)))
+            if os.environ.get("DATASERVICE_LOAD_FROM_URL"):
+                pipeline_steps += [('load_resource', {"url": "{}/datapackage.json".format(storage_url),
+                                                      "resource": resource_name,
+                                                      'log-progress-rows': 50},
+                                    True),]
+            else:
+                if (
+                        'incremental-field' in pipeline['dataservice-parameters']
+                        and os.environ.get('KNESSET_DATASERVICE_INCREMENTAL')
+                ):
+                    if os.environ.get('KNESSET_PIPELINES_DATA_PATH'):
+                        url = os.path.join(os.environ['KNESSET_PIPELINES_DATA_PATH'],
+                                           pipeline['schemas-bucket'], pipeline_id)
+                    else:
+                        url = storage_url
+                    pipeline_steps += [('load_resource', {"url": "{}/datapackage.json".format(url),
+                                                          "resource": resource_name}),
+                                       ('knesset.rename_resource', {'src': resource_name,
+                                                            'dst': 'last_' + resource_name})]
+                pipeline_steps += [('..datapackage_pipelines_knesset.dataservice.processors.add_dataservice_collection_resource',
+                                    pipeline["dataservice-parameters"]),
+                                   ('..datapackage_pipelines_knesset.common.processors.throttle',
+                                    {'rows-per-page': 50, 'resource': resource_name}),]
+            for additional_step in pipeline.get('additional-steps', []):
+                pipeline_steps.append((additional_step['run'],
+                                       additional_step.get('parameters', {}),
+                                       additional_step.get('cache', False)))
         pipeline_steps += [('knesset.dump_to_path', {'storage-url': storage_url,
                                                      'out-path': '../{}'.format(storage_path)},)]
         dump_to_sql = 'knesset.dump_to_sql'
