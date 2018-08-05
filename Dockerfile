@@ -1,4 +1,4 @@
-FROM orihoch/datapackage-pipelines:reload-improved-kill-strategy-2
+FROM orihoch/datapackage-pipelines:reload-improved-kill-strategy-3
 RUN pip install --no-cache-dir pipenv pew
 RUN apk --update --no-cache add build-base python3-dev bash jq libxml2 libxml2-dev git libxslt libxslt-dev curl \
                                 libpq postgresql-dev openssl antiword
