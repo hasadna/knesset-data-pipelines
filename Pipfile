@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"datapackage-pipelines[speedup]" = "*"
+"datapackage-pipelines[speedup]" = {file = "https://github.com/OriHoch/datapackage-pipelines/archive/1.7.1-oh-1.zip"}
 knesset-data = "*"
 "requests[socks]" = "*"
 botocore = "*"
@@ -17,6 +17,7 @@ psutil = "*"
 crcmod = "*"
 jsonpickle = "*"
 tika = "*"
+kvfile = "*"
 
 [dev-packages]
 tox = "*"

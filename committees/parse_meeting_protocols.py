@@ -94,11 +94,15 @@ def modify_datapackage(datapackage, parameters, stats):
     stats[t + ': skipped files'] = 0
     stats[t + ': errored files'] = 0
     stats[t + ': missing download files'] = 0
-    datapackage['resources'][0]['schema']['fields'] += [{"name": t + "_protocol_extension", "type": "string"},
-                                                        {"name": t + "_parsed_filename", "type": "string"},
-                                                        {"name": t + "_filesize", "type": "integer"},
-                                                        {"name": t + "_crc32c", "type": "string"},
-                                                        {"name": t + "_error", "type": "string"}]
+    fields = {t + "_protocol_extension": {'type': 'string'},
+              t + "_parsed_filename": {'type': 'string'},
+              t + "_filesize": {'type': 'integer'},
+              t + "_crc32c": {'type': 'string'},
+              t + "_error": {'type': 'string'},}
+    for resource in datapackage['resources']:
+        if resource['name'] == 'kns_documentcommitteesession':
+            resource['schema']['fields'] = list(filter(lambda f: f['name'] not in fields, resource['schema']['fields']))
+            resource['schema']['fields'] += [dict(f, name=fn) for fn, f in fields.items()]
     return datapackage
 
 

@@ -6,13 +6,18 @@ from datetime import datetime
 
 ATTENDANCE_FIELDS = [{'name': 'mk', 'type': 'string'},
                      {'name': 'factions', 'type': 'string'},
+                     {'name': 'open_meetings', 'type': 'integer'},
                      {'name': 'relevant_meetings', 'type': 'integer'},
                      {'name': 'attended_meetings', 'type': 'integer'},
                      {'name': 'attendance_percent', 'type': 'integer'},
                      {'name': 'attendance_percent_from_total', 'type': 'integer'}]
 
 
-def is_relevant_meeting(meeting, plenum_assembly, knessetsdata, parameters):
+def is_open_meeting(meeting):
+    return meeting['StartDate'] and meeting.get('TypeDesc', 'פתוחה') == 'פתוחה'
+
+
+def is_relevant_meeting_for_selected_dates(meeting, plenum_assembly, knessetsdata, parameters):
     if not plenum_assembly:
         # no plenum assembly filtering
         # all meetings are filtered for the selected knesset num
@@ -91,6 +96,7 @@ def get_mks(resource, knessetsdata, parameters):
         yield mk_individual
         mk = {'name': '{} {}'.format(mk_individual['mk_individual_first_name'],
                                      mk_individual['mk_individual_name']),
+              'open_meetings': 0,
               'relevant_meetings': 0,
               'attended_meetings': 0,
               'positions': [],
@@ -160,7 +166,7 @@ def get_meetings(resource, knessetsdata, parameters, stats):
     if parameters.get('with-shakuf-security'):
         get_shakuf_security(knessetsdata['mks'], knessetsdata)
     stats.update(**{parameters['name'] + ': total meetings': 0,
-                    parameters['name'] + ': relevant meetings': 0,
+                    parameters['name'] + ': relevant meetings for selected dates': 0,
                     parameters['name'] + ': relevant meetings for mks': 0})
     for meeting in resource:
         yield meeting
@@ -170,23 +176,29 @@ def get_meetings(resource, knessetsdata, parameters, stats):
             continue
         if parameters.get('max-month') and meeting['StartDate'].month > parameters['max-month']:
             continue
-        if parameters.get('plenum-session-voters') and not meeting['voter_mk_ids']:
+        if meeting['KnessetNum'] != parameters['KnessetNum']:
             continue
-        if not parameters.get('plenum-session-voters') and not meeting['parts_parsed_filename']:
+        stats[parameters['name'] + ': total meetings'] += 1
+        if not is_relevant_meeting_for_selected_dates(meeting, parameters.get('Plenum-Assembly'),
+                                                      knessetsdata, parameters):
             continue
-        if meeting['KnessetNum'] == parameters['KnessetNum']:
-            stats[parameters['name'] + ': total meetings'] += 1
-            if is_relevant_meeting(meeting, parameters.get('Plenum-Assembly'), knessetsdata, parameters):
-                stats[parameters['name'] + ': relevant meetings'] += 1
-                is_meeting_relevant_for_mks = False
-                for mk in knessetsdata['mks']:
-                    if is_relevant_meeting_for_mk(meeting, mk):
-                        is_meeting_relevant_for_mks = True
-                        mk['relevant_meetings'] += 1
-                        if is_attended_meeting(meeting, mk, parameters):
-                            mk['attended_meetings'] += 1
-                if is_meeting_relevant_for_mks:
-                    stats[parameters['name'] + ': relevant meetings for mks'] += 1
+        stats[parameters['name'] + ': relevant meetings for selected dates'] += 1
+        is_meeting_relevant_for_mks = False
+        for mk in knessetsdata['mks']:
+            if not is_relevant_meeting_for_mk(meeting, mk):
+                continue
+            if is_open_meeting(meeting):
+                mk['open_meetings'] += 1
+            if parameters.get('plenum-session-voters') and not meeting['voter_mk_ids']:
+                continue
+            if not parameters.get('plenum-session-voters') and not meeting['parts_parsed_filename']:
+                continue
+            is_meeting_relevant_for_mks = True
+            mk['relevant_meetings'] += 1
+            if is_attended_meeting(meeting, mk, parameters):
+                mk['attended_meetings'] += 1
+        if is_meeting_relevant_for_mks:
+            stats[parameters['name'] + ': relevant meetings for mks'] += 1
 
 
 def get_mks_attendance(knessetsdata):
@@ -196,6 +208,7 @@ def get_mks_attendance(knessetsdata):
     for mk in knessetsdata['mks']:
         if mk['relevant_meetings'] > 0:
             mk = {'mk': mk['name'], 'factions': mk['factions'],
+                  'open_meetings': mk['open_meetings'],
                   'relevant_meetings': mk['relevant_meetings'],
                   'attended_meetings': mk['attended_meetings'],}
             relevant_mks.append(mk)

@@ -345,6 +345,7 @@ kns_committeesession:
         type: datetime
         description: תאריך עדכון אחרון
   additional-steps:
+  - run: filter_document_committee_sessions
   - run: join
     parameters:
       source:
