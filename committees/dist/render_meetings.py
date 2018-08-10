@@ -14,6 +14,8 @@ HASH_FILES=('../../datapackage_pipelines_knesset/committees/dist/template_functi
             '../../datapackage_pipelines_knesset/committees/dist/speech_parts.py',
             '../../datapackage_pipelines_knesset/committees/dist/constants.py',
             '../../datapackage_pipelines_knesset/committees/dist/committees_common.py',
+            'templates/committeemeeting_detail.html',
+            'templates/site_base.html',
             'render_meetings.py',)
 
 
