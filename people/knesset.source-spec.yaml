@@ -221,3 +221,68 @@ mk-party-discipline-reports:
       tables:
         people_mk_party_discipline_knesset_20:
           resource-name: details_knesset_20_all_meetings
+
+mk-party-discipline-reports-export:
+  dependencies:
+  - pipeline: ./people/mk-party-discipline-reports
+  - datapackage: data/people/mk_party_discipline_reports/datapackage.json
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/people/mk_party_discipline_reports/datapackage.json
+      resource: 'report_.*'
+  - run: load_resource
+    parameters:
+      url: ../data/people/mk_party_discipline_reports/datapackage.json
+      resource: details_knesset_20_all_meetings
+  - run: knesset.dump_to_xlsx
+    parameters:
+      out-file: ../data/people/mk_party_discipline_reports/export/export.xlsx
+      sheet-names:
+        details_knesset_20_all_meetings: 'כל הצבעות נגד ציות הכנסת ה-20'
+        report_knesset_20_all_meetings: 'הכנסת ה-20'
+        report_knesset_20_kenes_3_2017: 'הכנסת ה-20 מושב 3 - 2017'
+        report_knesset_20_kenes_4_2018: 'הכנסת ה-20 מושב 4 - 2018'
+      fields:
+        report:
+          mk_id:
+            title: מזהה הח"כ
+          mk_name:
+            title: שם הח"כ
+          faction_ids:
+            title: מזהה הסיעה
+          faction_names:
+            title: שם הסיעה
+          party_discipline_votes:
+            title: מספר ההצבעות התואמות לציות המפלגתי
+          party_non_discipline_votes:
+            title: מספר ההצבעות בניגוד לציות המפלגתי
+        details:
+          vote_id:
+            title: מזהה ההצבעה
+          vote_url:
+            title: פרטי ההצבעה באתר הכנסת
+          vote_datetime:
+            title: זמן ההצבעה
+          vote_knesset:
+            title: מספר הכנסת
+          vote_plenum:
+            title: מספר הכנס
+          vote_assembly:
+            title: מספר המושב
+          vote_pagra:
+            title: האם בזמן פגרה?
+          mk_id:
+            title: מזהה הח"כ
+          mk_name:
+            title: שם הח"כ
+          faction_id:
+            title: מזהה הסיעה
+          faction_name:
+            title: שם הסיעה
+          vote_majority:
+            title: כיצד הצביעה רוב הסיעה
+  - run: knesset.sync
+    parameters:
+      source: "../data/people/mk_party_discipline_reports/export"
+      target: "gs://knesset-data-pipelines/data/people/mk_party_discipline_reports/export"
