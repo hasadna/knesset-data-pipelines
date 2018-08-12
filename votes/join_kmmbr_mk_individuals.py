@@ -81,8 +81,10 @@ def get_resources(datapackage, resources):
 def get_datapackage(datapackage):
     for descriptor in datapackage['resources']:
         if descriptor['name'] == 'vote_rslts_kmmbr_shadow':
-            fields = [{'name': 'mk_individual_id', 'type': 'integer'}]
-            descriptor['schema']['fields'] += fields
+            new_fields = [{'name': 'mk_individual_id', 'type': 'integer'}]
+            descriptor['schema']['fields'] = [field for field in descriptor['schema']['fields']
+                                              if field['name'] not in [f['name'] for f in new_fields]]
+            descriptor['schema']['fields'] += new_fields
     return datapackage
 
 
