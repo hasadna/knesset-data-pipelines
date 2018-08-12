@@ -144,7 +144,7 @@ def dateKey(position):
     elif "start_date" in position:
         key = position["start_date"]
 
-    return datetime.strptime(key, "%Y-%m-%d %H:%M:%S")
+    return datetime.strptime(key, "%Y-%m-%d %H:%M:%S") if key else None
 
 
 def dateTimeFormat(value, format="%Y-%m-%d %H:%M:%S"):
