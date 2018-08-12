@@ -125,3 +125,99 @@ plenum-session-voters:
       tables:
         people_plenum_session_voters:
           resource-name: kns_plenumsession
+
+mk-voted-against-majority:
+  description: for each vote - collect mks that voted against party majority
+  dependencies:
+  - pipeline: ./members/mk_individual
+  - datapackage: data/members/mk_individual/datapackage.json
+  - pipeline: ./votes/view_vote_rslts_hdr_approved
+  - datapackage: data/votes/view_vote_rslts_hdr_approved/datapackage.json
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/members/mk_individual/datapackage.json
+      resource: mk_individual_factions
+  - run: load_resource
+    parameters:
+      url: ../data/members/mk_individual/datapackage.json
+      resource: faction_memberships
+  - run: load_resource
+    parameters:
+#      limit-rows: 5
+      url: ../data/votes/view_vote_rslts_hdr_approved/datapackage.json
+      resource: view_vote_rslts_hdr_approved
+  - run: mk_voted_against_majority
+    parameters:
+      # vote considered party majority vote
+      # if this percent of mks from the party voted the same way
+      party-majority-percent: 0.66
+      # minimal number of members in a party to consider it for majority votes
+      party-minimal-num-members: 6
+  - run: sort
+    parameters:
+      resources: mk_voted_against_majority
+      sort-by: '{vote_id}-{faction_id}-{mk_id}'
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../data/people/mk_voted_against_majority
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/mk_voted_against_majority
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        people_mk_voted_against_majority:
+          resource-name: mk_voted_against_majority
+
+mk-party-discipline-reports:
+  dependencies:
+  - pipeline: ./members/mk_individual
+  - datapackage: data/members/mk_individual/datapackage.json
+  - pipeline: ./people/mk-voted-against-majority
+  - datapackage: data/people/mk_voted_against_majority/datapackage.json
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/members/mk_individual/datapackage.json
+      resource: [mk_individual_names, factions]
+  - run: load_resource
+    parameters:
+      url: ../data/people/mk_voted_against_majority/datapackage.json
+      resource: mk_voted_against_majority
+  - run: filter
+    parameters:
+      resources: votes_voted_against_majority
+      in:
+      - vote_knesset: 20
+  - run: mk_party_discipline_report
+    parameters:
+      name: knesset_20_all_meetings
+      knesset: 20
+  - run: mk_party_discipline_report
+    parameters:
+      name: knesset_20_kenes_4_2018
+      knesset: 20
+      plenum: 4
+  - run: mk_party_discipline_report
+    parameters:
+      name: knesset_20_kenes_3_2017
+      knesset: 20
+      plenum: 3
+  - run: sort
+    parameters:
+      resources: report_.*
+      sort-by: "{party_non_discipline_votes:08x}"
+      reverse: true
+  - run: sort
+    parameters:
+      resources: details_.*
+      sort-by: "{vote_datetime}-{faction_id:08x}"
+      reverse: true
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../data/people/mk_party_discipline_reports
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/mk_party_discipline_reports
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        people_mk_party_discipline_knesset_20:
+          resource-name: details_knesset_20_all_meetings

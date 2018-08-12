@@ -111,7 +111,8 @@ class Generator(GeneratorBase):
             if os.environ.get("DATASERVICE_LOAD_FROM_URL"):
                 pipeline_steps += [('load_resource', {"url": "{}/datapackage.json".format(storage_url),
                                                       "resource": resource_name,
-                                                      'log-progress-rows': 10000},
+                                                      'log-progress-rows': 10000,
+                                                      'limit-rows': pipeline['dataservice-parameters'].get('limit-rows')},
                                     True),]
             else:
                 if (
@@ -136,8 +137,12 @@ class Generator(GeneratorBase):
                                                      'out-path': '../{}'.format(storage_path)},)]
         dump_to_sql = 'knesset.dump_to_sql'
         table_name = '{}_{}'.format(pipeline['schemas-bucket'], pipeline_id.replace('-', '_'))
+        tables = {table_name: pipeline_id}
+        tables.update(pipeline['dataservice-parameters'].get('additional-sql-tables', {}))
+        tables = {table_name: {'resource-name': resource_name, 'mode': 'rewrite'}
+                  for table_name, resource_name in tables.items()}
         pipeline_steps += [(dump_to_sql, {'engine': 'env://DPP_DB_ENGINE',
-                                          'tables': {table_name: {'resource-name': pipeline_id, 'mode': 'rewrite', }}},)]
+                                          'tables': tables},)]
         output_pipeline = {'pipeline': steps(*pipeline_steps),
                            'dependencies': pipeline.get('dependencies', [])}
         if pipeline.get('dependencies'):

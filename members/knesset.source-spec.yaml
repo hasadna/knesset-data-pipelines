@@ -193,6 +193,8 @@ mk_individual:
   - datapackage: data/members/kns_position/datapackage.json
   - pipeline: ./members/kns_person
   - datapackage: data/members/kns_person/datapackage.json
+  - pipeline: ./knesset/kns_knessetdates
+  - datapackage: data/knesset/kns_knessetdates/datapackage.json
   pre-steps:
   - run: load_resource
     parameters:
@@ -210,6 +212,10 @@ mk_individual:
     parameters:
       url: ../data/members/kns_person/datapackage.json
       resource: kns_person
+  - run: load_resource
+    parameters:
+      url: ../data/knesset/kns_knessetdates/datapackage.json
+      resource: kns_knessetdates
   pipeline-type: knesset dataservice
   schemas-bucket: members
   dataservice-parameters:
@@ -244,9 +250,22 @@ mk_individual:
         type: string
   additional-steps:
   - run: join_mks
+  - run: knesset.add_event_plenum_assembly
+    parameters:
+      resource: factions
+      event-datetime: start_date
+      assembly: False
+      plenum: False
+      pagra: False
 #    parameters:
 #      filter-knesset-num: [20]
 #      filter-is-current: true
+  additional-sql-tables:
+    members_mk_individual_names: mk_individual_names
+    members_mk_individual_factions: mk_individual_factions
+    members_mk_individual_committees: mk_individual_committees
+    members_factions: factions
+    members_faction_memberships: faction_memberships
 
 
 presence:
@@ -277,7 +296,6 @@ presence:
       tables:
         members_presence:
           resource-name: presence
-
 
 #
 #
