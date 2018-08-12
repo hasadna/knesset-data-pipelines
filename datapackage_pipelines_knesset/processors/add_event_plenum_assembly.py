@@ -16,13 +16,18 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
         event_date = parameters.get('event-date')
         event_time = parameters.get('event-time')
         event_datetime = parameters.get('event-datetime')
-        if event_date and event_time:
-            event_datetime = '{} {}'.format(row[event_date],
-                                            row[event_time] if row[event_time] else '00:00')
-            event_datetime = datetime.datetime.strptime(event_datetime, "%Y-%m-%d %H:%M")
-        elif event_datetime:
-            event_datetime = datetime.datetime.strptime(row[event_datetime], "%Y-%m-%d %H:%M:%S")
-        assert event_datetime
+        try:
+            if event_date and event_time:
+                event_datetime = '{} {}'.format(row[event_date],
+                                                row[event_time] if row[event_time] else '00:00')
+                event_datetime = datetime.datetime.strptime(event_datetime, "%Y-%m-%d %H:%M")
+            elif event_datetime:
+                event_datetime = datetime.datetime.strptime(row[event_datetime], "%Y-%m-%d %H:%M:%S")
+            assert event_datetime
+        except Exception:
+            logging.info(spec)
+            logging.info(row)
+            raise
         knesset_field = parameters.get('knesset', 'knesset')
         plenum_field = parameters.get('plenum', 'plenum')
         assembly_field = parameters.get('assembly', 'assembly')
