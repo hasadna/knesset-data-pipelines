@@ -18,7 +18,10 @@ services:
   - docker
 script:
   - curl -s https://raw.githubusercontent.com/hasadna/hasadna-k8s/master/apps_travis_script.sh > .travis.sh
-  - bash .travis.sh script
+  - |
+    export FORCE_RECREATE=`echo $TRAVIS_COMMIT_MESSAGE | grep -q -- --force-recreate && echo ' --force-recreate'`;
+    export DEPLOY_COMMIT_MESSAGE="${DEPLOY_COMMIT_MESSAGE}${FORCE_RECREATE}";
+    bash .travis.sh script
 deploy:
   skip_cleanup: true
   provider: script
