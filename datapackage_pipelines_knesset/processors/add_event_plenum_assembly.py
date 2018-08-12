@@ -18,7 +18,10 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
         event_datetime = parameters.get('event-datetime')
         try:
             if event_date and event_time:
-                event_datetime = '{} {}'.format(row[event_date],
+                event_date = row[event_date]
+                if isinstance(event_date, datetime.datetime):
+                    event_date = event_date.date()
+                event_datetime = '{} {}'.format(event_date,
                                                 row[event_time] if row[event_time] else '00:00')
                 event_datetime = datetime.datetime.strptime(event_datetime, "%Y-%m-%d %H:%M")
             elif event_datetime:

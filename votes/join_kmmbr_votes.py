@@ -47,10 +47,15 @@ def get_datapackage(datapackage, data):
     for i, descriptor in enumerate(datapackage['resources']):
         if descriptor['name'] == 'view_vote_rslts_hdr_approved':
             data['votes_index'] = i
-            fields = [{'name': 'mk_ids_pro', 'type': 'array'},
-                      {'name': 'mk_ids_against', 'type': 'array'},
-                      {'name': 'mk_ids_abstain', 'type': 'array'},]
-            descriptor['schema']['fields'] += fields
+            existing_fields = {field['name']: field for field in descriptor['schema']['fields']}
+            new_fields = [{'name': 'mk_ids_pro', 'type': 'array'},
+                          {'name': 'mk_ids_against', 'type': 'array'},
+                          {'name': 'mk_ids_abstain', 'type': 'array'},]
+            for new_field in new_fields:
+                if new_field['name'] in existing_fields:
+                    existing_fields[new_field['name']].update(new_field)
+                else:
+                    descriptor['schema']['fields'].append(new_field)
         elif descriptor['name'] == 'vote_rslts_kmmbr_shadow':
             data['kmmbr_index'] = i
     del datapackage['resources'][data['kmmbr_index']]
