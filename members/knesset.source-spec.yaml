@@ -250,20 +250,15 @@ mk_individual:
         type: string
   additional-steps:
   - run: join_mks
-  - run: knesset.add_event_plenum_assembly
-    parameters:
-      resource: factions
-      event-datetime: start_date
-      assembly: False
-      plenum: False
-      pagra: False
 #    parameters:
 #      filter-knesset-num: [20]
 #      filter-is-current: true
   additional-sql-tables:
     members_mk_individual_names: mk_individual_names
     members_mk_individual_factions: mk_individual_factions
+    members_mk_individual_faction_chairpersons: mk_individual_faction_chairpersons
     members_mk_individual_committees: mk_individual_committees
+    members_mk_individual_govministries: mk_individual_govministries
     members_factions: factions
     members_faction_memberships: faction_memberships
 

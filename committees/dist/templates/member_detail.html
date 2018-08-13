@@ -24,6 +24,35 @@
     </section>
     <div class="row">
         <div class="cards span9">
+            {% if factions %}
+                <section class="card card-list card-list-latest">
+                <header>
+                    <h2>
+                        <i class="fa fa-users"></i>
+                       	סיעות
+                    </h2>
+                </header>
+                <ul id="recent-factions">
+                    {% for faction in factions %}
+                        <li>
+                            <p class="item-action">
+								הכנסת ה-{{faction.knesset_num}}
+
+								מ-{{faction.start_date}}
+
+								{% if faction.finish_date %}
+									עד {{faction.finish_date}}
+								{% endif %}
+                            </p>
+                            <p class="item-title">
+                                {{faction.faction_name}}
+                            </p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+
             {% if committees %}
                 <section class="card card-list card-list-latest">
                 <header>
@@ -39,11 +68,11 @@
 								הכנסת ה-{{committee.knesset_num}}
 
 								{% if committee.start_date %}
-									מ-{{committee.start_date|datetime('%d/%m/%Y')}}
+									מ-{{committee.start_date}}
 								{% endif %}
 
 								{% if committee.finish_date %}
-									עד {{committee.finish_date|datetime('%d/%m/%Y')}}
+									עד {{committee.finish_date}}
 								{% endif %}
                             </p>
                             <p class="item-title">
@@ -58,41 +87,7 @@
             </section>
             {% endif %}
 
-            {% if factions %}
-                <section class="card card-list card-list-latest">
-                <header>
-                    <h2>
-                        <i class="fa fa-users"></i>
-                       	סיעות
-                    </h2>
-                </header>
-                <ul id="recent-factions">
-                    {% for faction in factions %}
-                        <li>
-                            <p class="item-action">
-								הכנסת ה-{{faction.knesset_num}}
-
-								{% if faction.start_date %}
-									מ-{{faction.start_date|datetime('%d/%m/%Y')}}
-								{% endif %}
-
-								{% if faction.finish_date %}
-									עד {{faction.finish_date|datetime('%d/%m/%Y')}}
-								{% endif %}
-                            </p>
-                            <p class="item-title">
-                                {{faction.faction_name}}
-                            </p>
-                            <p class="item-context">
-                                {{faction.position_name}}
-                            </p>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </section>
-            {% endif %}
-
-            {% if ministries %}
+            {% if govministries %}
                 <section class="card card-list card-list-latest">
                 <header>
                     <h2>
@@ -101,17 +96,15 @@
                     </h2>
                 </header>
                 <ul id="recent-ministries">
-                    {% for ministry in ministries %}
+                    {% for ministry in govministries %}
                         <li>
                             <p class="item-action">
 								הכנסת ה-{{ministry.knesset_num}}
 
-								{% if ministry.start_date %}
-									מ-{{ministry.start_date|datetime('%d/%m/%Y')}}
-								{% endif %}
+								מ-{{ministry.start_date}}
 
 								{% if ministry.finish_date %}
-									עד {{ministry.finish_date|datetime('%d/%m/%Y')}}
+									עד {{ministry.finish_date}}
 								{% endif %}
                             </p>
                             <p class="item-title">
@@ -119,6 +112,66 @@
                             </p>
                             <p class="item-context">
                                 {{ministry.position_name}}
+                            </p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+
+            {% if faction_chairperson %}
+                <section class="card card-list card-list-latest">
+                <header>
+                    <h2>
+                        <i class="fa fa-users"></i>
+                       	יו"ר סיעות
+                    </h2>
+                </header>
+                <ul id="recent-factions">
+                    {% for faction in faction_chairperson %}
+                        <li>
+                            <p class="item-action">
+								הכנסת ה-{{faction.knesset_num}}
+
+								מ-{{faction.start_date}}
+
+								{% if faction.finish_date %}
+									עד {{faction.finish_date}}
+								{% endif %}
+                            </p>
+                            <p class="item-title">
+                                {{faction.faction_name}}
+                            </p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+
+            {% if committee_chairperson %}
+                <section class="card card-list card-list-latest">
+                <header>
+                    <h2>
+                        <i class="fa fa-users"></i>
+                       	יו"ר ועדות
+                    </h2>
+                </header>
+                <ul id="recent-committees">
+                    {% for committee in committee_chairperson %}
+                        <li>
+                            <p class="item-action">
+								הכנסת ה-{{committee.knesset_num}}
+
+								{% if committee.start_date %}
+									מ-{{committee.start_date}}
+								{% endif %}
+
+								{% if committee.finish_date %}
+									עד {{committee.finish_date}}
+								{% endif %}
+                            </p>
+                            <p class="item-title">
+                                {{committee.committee_name}}
                             </p>
                         </li>
                     {% endfor %}

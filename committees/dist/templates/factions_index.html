@@ -14,6 +14,7 @@
         <div class="cards span12">
             <section class="card card-list card-list-latest compact" style="display:inline-block;width:100%;">
                 {% for faction in factions %}
+                    {% if faction.faction_name %}
                     <div class="span1">
                         <h4 style="height: 5em;">
                             <a href="{{faction_url | replace('{faction_id}', faction.faction_num)}}">{{faction.faction_name}}</a>
@@ -29,6 +30,7 @@
                             {% endfor %}
                         </div>
                     </div>
+                    {% endif %}
                 {% endfor %}
             </section>
         </div>

@@ -2,6 +2,28 @@ from datapackage_pipelines.wrapper import ingest, spew
 from datapackage_pipelines.utilities.resources import PROP_STREAMING
 import logging, yaml, json, datetime
 
+FACTION_MEMBER_POSITION = 54
+
+FACTION_CHAIRPERSON_POSITION = 48
+
+GOV_MINISTRY_POSITIONS = {
+    31: 'משנה לראש הממשלה',
+    39: 'שר',
+    40: 'סגן שר',
+    45: 'ראש הממשלה',
+    49: 'מ"מ שר',
+    50: 'סגן ראש הממשלה',
+    51: 'מ"מ ראש הממשלה',
+    57: 'שרה',
+    59: 'סגנית שר'
+}
+
+COMMITTEE_POSITIONS = {
+    41: 'יו"ר ועדה',
+    42: 'חבר ועדה',
+    66: 'חברת ועדה',
+    67: 'מ"מ חבר ועדה'
+}
 
 parameters, datapackage, resources = ingest()
 aggregations = {"stats": {}}
@@ -71,46 +93,56 @@ def find_matching_kns_person(mk):
 
 mk_individual_committees = []
 mk_individual_factions = []
+mk_individual_govministries = []
+mk_individual_faction_chairpersons = []
 factions = {}
 faction_memberships = {}
 
 
 def faction_dates_days_iterator(start_date, finish_date):
-    finish_date = datetime.date.today() if not finish_date else datetime.datetime.strptime(finish_date,
-                                                                                           '%Y-%m-%d %H:%M:%S').date()
-    start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S').date()
+    if not finish_date:
+        finish_date = datetime.date.today()
     cur_date = start_date
     while cur_date <= finish_date:
         yield cur_date
         cur_date += datetime.timedelta(days=1)
 
 
-def update_faction(faction_id, faction_name, start_date, finish_date, mk_id):
+def update_faction(faction_id, faction_name, start_date, finish_date, mk_id, knesset):
+    start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S').date()
+    if finish_date:
+        finish_date = datetime.datetime.strptime(finish_date, '%Y-%m-%d %H:%M:%S').date()
     if faction_id:
-        faction_membership_days = faction_memberships.setdefault(faction_id, {})
+        faction_membership_days = faction_memberships.setdefault(faction_id, {}).setdefault(knesset, {})
         for day_date in faction_dates_days_iterator(start_date, finish_date):
             faction_membership_days.setdefault(day_date, set()).add(mk_id)
         faction = factions.get(faction_id)
         if faction:
             assert faction['name'] == faction_name, 'faction name mismatch ({}: {})'.format(faction_id, faction_name)
+            faction['knessets'].add(knesset)
             if faction['start_date'] > start_date:
                 faction['start_date'] = start_date
             if not finish_date or (faction['finish_date'] and faction['finish_date'] < finish_date):
                 faction['finish_date'] = finish_date
         else:
             factions[faction_id] = {'id': faction_id, 'name': faction_name,
-                                    'start_date': start_date, 'finish_date': finish_date}
+                                    'start_date': start_date, 'finish_date': finish_date,
+                                    'knessets': {knesset}}
 
 
 def get_person_positions(person_id, mk_individual_row):
     positions = []
     for kns_persontoposition_row in kns_persontopositions[person_id]:
+        if kns_persontoposition_row['KnessetNum'] is None:
+            logging.warning('invalid persontoposition row - missing KnessetNum: {}'.format(kns_persontoposition_row))
+            continue
         start_date = kns_persontoposition_row["StartDate"].strftime('%Y-%m-%d %H:%M:%S')
         finish_date = kns_persontoposition_row["FinishDate"]
         if finish_date:
             finish_date = finish_date.strftime('%Y-%m-%d %H:%M:%S')
         update_faction(kns_persontoposition_row['FactionID'], kns_persontoposition_row['FactionName'],
-                       start_date, finish_date, mk_individual_row['mk_individual_id'])
+                       start_date, finish_date, mk_individual_row['mk_individual_id'],
+                       kns_persontoposition_row['KnessetNum'])
         mk_position = {field: kns_persontoposition_row[field] for field in ("KnessetNum",
                                                                             "GovMinistryID", "GovMinistryName",
                                                                             "DutyDesc",
@@ -126,16 +158,44 @@ def get_person_positions(person_id, mk_individual_row):
                                position=position["Description"],
                                position_id=position_id,
                                gender={250: "f", 251: "m", 252: "o"}[int(position["GenderID"])],)
-            if position_id == 54:
+            mk_position_start_date = datetime.datetime.strptime(mk_position['start_date'],
+                                                                '%Y-%m-%d %H:%M:%S').date()
+            mk_position_finish_date = mk_position['finish_date']
+            if mk_position_finish_date:
+                mk_position_finish_date = datetime.datetime.strptime(mk_position['finish_date'],
+                                                                     '%Y-%m-%d %H:%M:%S').date()
+            if position_id == FACTION_CHAIRPERSON_POSITION:
+                mk_individual_faction_chairpersons.append({'mk_individual_id': mk_individual_row['mk_individual_id'],
+                                                           'faction_id': kns_persontoposition_row['FactionID'],
+                                                           'faction_name': kns_persontoposition_row['FactionName'],
+                                                           'start_date': mk_position_start_date,
+                                                           'finish_date': mk_position_finish_date,
+                                                           'knesset': kns_persontoposition_row['KnessetNum']})
+            elif position_id == FACTION_MEMBER_POSITION:
                 mk_individual_factions.append({'mk_individual_id': mk_individual_row['mk_individual_id'],
                                                'faction_id': kns_persontoposition_row['FactionID'],
-                                               'start_date': mk_position['start_date'],
-                                               'finish_date': mk_position['finish_date']})
-            elif position_id in (42, 66):
+                                               'faction_name': kns_persontoposition_row['FactionName'],
+                                               'start_date': mk_position_start_date,
+                                               'finish_date': mk_position_finish_date,
+                                               'knesset': kns_persontoposition_row['KnessetNum']})
+            elif position_id in COMMITTEE_POSITIONS:
                 mk_individual_committees.append({'mk_individual_id': mk_individual_row['mk_individual_id'],
                                                  'committee_id': kns_persontoposition_row['CommitteeID'],
-                                                 'start_date': mk_position['start_date'],
-                                                 'finish_date': mk_position['finish_date']})
+                                                 'committee_name': kns_persontoposition_row['CommitteeName'],
+                                                 'position_id': position_id,
+                                                 'position_name': COMMITTEE_POSITIONS[position_id],
+                                                 'start_date': mk_position_start_date,
+                                                 'finish_date': mk_position_finish_date,
+                                                 'knesset': kns_persontoposition_row['KnessetNum']})
+            elif position_id in GOV_MINISTRY_POSITIONS:
+                mk_individual_govministries.append({'mk_individual_id': mk_individual_row['mk_individual_id'],
+                                                    'govministry_id': kns_persontoposition_row['GovMinistryID'],
+                                                    'govministry_name': kns_persontoposition_row['GovMinistryName'],
+                                                    'position_id': position_id,
+                                                    'position_name': GOV_MINISTRY_POSITIONS[position_id],
+                                                    'start_date': mk_position_start_date,
+                                                    'finish_date': mk_position_finish_date,
+                                                    'knesset': kns_persontoposition_row['KnessetNum']})
         positions.append(mk_position)
     mk_individual_row.update(positions=positions)
 
@@ -186,43 +246,37 @@ def get_mk_individual_resource():
         yield row
 
 
-def get_membership_row(row, faction_id):
+def get_membership_row(row, faction_id, knesset):
     return {'faction_id': faction_id,
-            'start_date': row['start_date'].strftime('%Y-%m-%d'),
-            'finish_date': row['finish_date'].strftime('%Y-%m-%d'),
-            'member_mk_ids': list(row['mk_ids'])}
+            'faction_name': factions[faction_id]['name'],
+            'start_date': row['start_date'],
+            'finish_date': row['finish_date'],
+            'member_mk_ids': list(row['mk_ids']),
+            'knesset': knesset}
 
 
 def get_faction_memberships_resource():
     for faction_id in sorted(faction_memberships):
-        membership_days = faction_memberships[faction_id]
-        membership = None
-        for day in sorted(membership_days):
-            mk_ids = membership_days[day]
-            if membership and membership['mk_ids'] == mk_ids:
-                membership['finish_date'] += datetime.timedelta(days=1)
-            else:
-                if membership:
-                    yield get_membership_row(membership, faction_id)
-                membership = {'start_date': day, 'finish_date': day,
-                              'mk_ids': mk_ids}
-        if membership:
-            yield get_membership_row(membership, faction_id)
+        for knesset in sorted(faction_memberships[faction_id]):
+            membership_days = faction_memberships[faction_id][knesset]
+            membership = None
+            for day in sorted(membership_days):
+                mk_ids = membership_days[day]
+                if membership and membership['mk_ids'] == mk_ids:
+                    membership['finish_date'] += datetime.timedelta(days=1)
+                else:
+                    if membership:
+                        yield get_membership_row(membership, faction_id, knesset)
+                    membership = {'start_date': day, 'finish_date': day,
+                                  'mk_ids': mk_ids}
+            if membership:
+                yield get_membership_row(membership, faction_id, knesset)
 
 
-def get_mk_individual_resources(resource):
-    yield get_mk_individual_positions_resource(resource)
-    yield get_mk_individual_resource()
-    yield kns_knessetdates
-    yield mk_individual_names
-    yield mk_individual_factions
-    yield mk_individual_committees
-    yield factions.values()
-    yield get_faction_memberships_resource()
-
-
-mk_individual_descriptor["schema"]["fields"] += kns_person_descriptor["schema"]["fields"]
-mk_individual_descriptor["schema"]["fields"] += [{"name": "altnames", "type": "array"}]
+new_fields = kns_person_descriptor["schema"]["fields"] + [{"name": "altnames", "type": "array"}]
+mk_individual_descriptor["schema"]["fields"] = [f for f in mk_individual_descriptor["schema"]["fields"]
+                                                if f['name'] not in [f['name'] for f in new_fields]]
+mk_individual_descriptor["schema"]["fields"] += new_fields
 
 
 mk_individual_positions_descriptor = {PROP_STREAMING: True,
@@ -243,39 +297,110 @@ mk_individual_factions_descriptor = {PROP_STREAMING: True,
                                      'path': 'mk_individual_factions.csv',
                                      'schema': {'fields': [{"name": "mk_individual_id", "type": "integer"},
                                                            {'name': 'faction_id', 'type': 'integer'},
-                                                           {'name': 'start_date', 'type': 'string'},
-                                                           {'name': 'finish_date', 'type': 'string'}]}}
+                                                           {'name': 'faction_name', 'type': 'string'},
+                                                           {'name': 'start_date', 'type': 'date'},
+                                                           {'name': 'finish_date', 'type': 'date'},
+                                                           {'name': 'knesset', 'type': 'integer'}]}}
+
+mk_individual_faction_chairpersons_descriptor = {PROP_STREAMING: True,
+                                                 'name': 'mk_individual_faction_chairpersons',
+                                                 'path': 'mk_individual_faction_chairpersons.csv',
+                                                 'schema': {'fields': [{"name": "mk_individual_id", "type": "integer"},
+                                                                       {'name': 'faction_id', 'type': 'integer'},
+                                                                       {'name': 'faction_name', 'type': 'string'},
+                                                                       {'name': 'start_date', 'type': 'date'},
+                                                                       {'name': 'finish_date', 'type': 'date'},
+                                                                       {'name': 'knesset', 'type': 'integer'}]}}
 
 mk_individual_committees_descriptor = {PROP_STREAMING: True,
                                        'name': 'mk_individual_committees',
                                        'path': 'mk_individual_committees.csv',
                                        'schema': {'fields': [{"name": "mk_individual_id", "type": "integer"},
                                                              {'name': 'committee_id', 'type': 'integer'},
-                                                             {'name': 'start_date', 'type': 'string'},
-                                                             {'name': 'finish_date', 'type': 'string'}]}}
+                                                             {'name': 'committee_name', 'type': 'string'},
+                                                             {'name': 'position_id', 'type': 'integer'},
+                                                             {'name': 'position_name', 'type': 'string'},
+                                                             {'name': 'start_date', 'type': 'date'},
+                                                             {'name': 'finish_date', 'type': 'date'},
+                                                             {'name': 'knesset', 'type': 'integer'}]}}
+
+mk_individual_govministries_descriptor = {PROP_STREAMING: True,
+                                          'name': 'mk_individual_govministries',
+                                          'path': 'mk_individual_govministries.csv',
+                                          'schema': {'fields': [{"name": "mk_individual_id", "type": "integer"},
+                                                                {'name': 'govministry_id', 'type': 'integer'},
+                                                                {'name': 'govministry_name', 'type': 'string'},
+                                                                {'name': 'position_id', 'type': 'integer'},
+                                                                {'name': 'position_name', 'type': 'string'},
+                                                                {'name': 'start_date', 'type': 'date'},
+                                                                {'name': 'finish_date', 'type': 'date'},
+                                                                {'name': 'knesset', 'type': 'integer'}]}}
 
 factions_descriptor = {PROP_STREAMING: True,
                        'name': 'factions',
                        'path': 'factions.csv',
                        'schema': {'fields': [{'name': 'id', 'type': 'integer'},
                                              {'name': 'name', 'type': 'string'},
-                                             {'name': 'start_date', 'type': 'string'},
-                                             {'name': 'finish_date', 'type': 'string'}]}}
+                                             {'name': 'start_date', 'type': 'date'},
+                                             {'name': 'finish_date', 'type': 'date'},
+                                             {'name': 'knessets', 'type': 'array'}]}}
 
 faction_memberships_descriptor = {PROP_STREAMING: True,
                                   'name': 'faction_memberships',
                                   'path': 'faction_memberships.csv',
                                   'schema': {'fields': [{'name': 'faction_id', 'type': 'integer'},
-                                                        {'name': 'start_date', 'type': 'string'},
-                                                        {'name': 'finish_date', 'type': 'string'},
-                                                        {'name': 'member_mk_ids', 'type': 'array'}]}}
+                                                        {'name': 'faction_name', 'type': 'string'},
+                                                        {'name': 'start_date', 'type': 'date'},
+                                                        {'name': 'finish_date', 'type': 'date'},
+                                                        {'name': 'member_mk_ids', 'type': 'array'},
+                                                        {'name': 'knesset', 'type': 'integer'}]}}
+
+
+def counter(rows_iter, stat):
+    i = 0
+    for i, row in enumerate(rows_iter, start=1):
+        yield row
+    aggregations["stats"][stat] = i
+
+
+def start_finish_date_order_key(row):
+    start_date, finish_date = row['start_date'], row['finish_date']
+    if not finish_date:
+        finish_date = datetime.date.today()
+    return start_date, finish_date
+
+
+def start_finish_date_order(row_iter):
+    return sorted(row_iter, key=start_finish_date_order_key, reverse=True)
+
+
+def get_factions_resource():
+    for faction in factions.values():
+        faction['knessets'] = list(faction['knessets'])
+        yield faction
+
+
+def get_mk_individual_resources(resource):
+    yield counter(get_mk_individual_positions_resource(resource), 'mk_individual_positions')
+    yield counter(get_mk_individual_resource(), 'mk_individual')
+    yield counter(kns_knessetdates, 'kns_knessetdates')
+    yield counter(mk_individual_names, 'mk_individual_names')
+    yield start_finish_date_order(counter(mk_individual_factions, 'mk_individual_factions'))
+    yield start_finish_date_order(counter(mk_individual_faction_chairpersons, 'mk_individual_faction_chairpersons'))
+    yield start_finish_date_order(counter(mk_individual_committees, 'mk_individual_committees'))
+    yield start_finish_date_order(counter(mk_individual_govministries, 'mk_individual_govministries'))
+    yield start_finish_date_order(counter(get_factions_resource(), 'factions'))
+    yield start_finish_date_order(counter(get_faction_memberships_resource(), 'faction_memberships'))
+
 
 spew(dict(datapackage, resources=[mk_individual_positions_descriptor,
                                   mk_individual_descriptor,
                                   kns_knessetdates_descriptor,
                                   mk_individual_names_descriptor,
                                   mk_individual_factions_descriptor,
+                                  mk_individual_faction_chairpersons_descriptor,
                                   mk_individual_committees_descriptor,
+                                  mk_individual_govministries_descriptor,
                                   factions_descriptor,
                                   faction_memberships_descriptor]),
      get_mk_individual_resources(mk_individual_resource),

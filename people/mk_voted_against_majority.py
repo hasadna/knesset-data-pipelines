@@ -7,8 +7,8 @@ def get_vote_faction_num_members(faction_memberships, vote_datetime):
     faction_num_members = {}
     vote_date = vote_datetime.date()
     for row in faction_memberships:
-        start_date = datetime.datetime.strptime(row['start_date'], "%Y-%m-%d").date()
-        finish_date = datetime.datetime.strptime(row['finish_date'], "%Y-%m-%d").date()
+        start_date = row['start_date']
+        finish_date = row['finish_date']
         if start_date <= vote_date <= finish_date:
             faction_id = row['faction_id']
             assert faction_id not in faction_num_members, 'invalid faction membership: {}'.format(row)

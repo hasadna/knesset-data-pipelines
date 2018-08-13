@@ -96,13 +96,9 @@ class Generator(GeneratorBase):
             if 'dependencies' in pipeline:
                 del pipeline['dependencies']
             pipeline_steps += [('load_resource', {"url": "{}/datapackage.json".format(storage_url),
-                                                  "resource": resource_name,
+                                                  "resource": '.*',
                                                   'log-progress-rows': 10000},
                                 True), ]
-            if storage_path == 'data/members/mk_individual':
-                pipeline_steps += [('load_resource', {'url': '{}/datapackage.json'.format(storage_url),
-                                                      'resource': 'mk_individual_positions',
-                                                      'log-progress-rows': 10000})]
         else:
             for pre_step in pipeline.get('pre-steps', []):
                 pipeline_steps.append((pre_step['run'],

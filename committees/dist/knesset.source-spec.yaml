@@ -88,13 +88,15 @@ create_members:
   - pipeline: ./members/mk_individual
   - datapackage: data/members/mk_individual/datapackage.json
   pipeline:
-  # all these tables are loaded into memory
-  - run: knesset.load_large_csv_resource
+  - run: load_resource
     parameters:
       url: ../../data/members/mk_individual/datapackage.json
-      resource: mk_individual_positions
-  - run: knesset.rename_resource
-    parameters: {src: mk_individual_positions, dst: mk_individual}
+      resource:
+      - mk_individual
+      - mk_individual_committees
+      - mk_individual_faction_chairpersons
+      - mk_individual_factions
+      - mk_individual_govministries
   - run: load_resource
     parameters:
       url: ../../data/people/committees/meeting-attendees/datapackage.json
