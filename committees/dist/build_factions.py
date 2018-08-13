@@ -37,7 +37,7 @@ def main():
                     knessets[knesset["KnessetNum"]].append(factions[id])
 
     for knesset_num, factions in knessets.items():
-        mks = []
+        mks = set()
 
         build_template(jinja_env, "factions_index.html",
                        get_context({
@@ -49,8 +49,11 @@ def main():
                        FACTION_HOME_URL.format(knesset_num=knesset_num))
 
         for faction in factions:
+            if not faction['faction_name']:
+                continue
 
-            mks.extend([mk["mk_individual_id"] for mk in faction["mks"]])
+            for mk in faction['mks']:
+                mks.add(mk['mk_individual_id'])
 
             build_template(jinja_env, "faction_detail.html",
                            get_context({
@@ -65,7 +68,7 @@ def main():
 
         counts[knesset_num] = {
             'factions': len(factions),
-            'mks': len(set(mks))
+            'mks': len(mks)
         }
 
     build_template(jinja_env, "members_index.html",
