@@ -70,6 +70,54 @@ committee-meetings:
       storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/attendance/committee_meetings
 
 
+committee-meetings-export:
+  dependencies:
+  - pipeline: ./people/attendance/committee-meetings
+  - datapackage: data/people/attendance/committee_meetings/datapackage.json
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../../data/people/attendance/committee_meetings/datapackage.json
+      resource: 'knesset_20_.*'
+  - run: sort
+    parameters:
+      resources: 'knesset_20_.*'
+      sort-by: "{attendance_percent_from_total:08x}"
+      reverse: true
+  - run: knesset.dump_to_xlsx
+    parameters:
+      out-file: ../../data/people/attendance/committee_meetings/export/knesset_20_committee_meeting_attendance_reports.xlsx
+      sheet-names:
+        knesset_20_all_meetings: 'כל הישיבות - כנסת 20'
+        knesset_20_kenes_4_summer_2018: 'כנסת 20 כנס 4 מושב קיץ 2018'
+        knesset_20_kenes_4_winter_2018: 'כנסת 20 כנס 4 חורף 2018'
+        knesset_20_only_meetings_during_pagra: 'כנסת 20 רק ישיבות בזמן פגרה'
+        knesset_20_with_shakuf_security_until_sep_2017: 'כנסת 20 כולל ישיבות חסויות עד ספטמבר 2017'
+        knesset_20_without_meetings_during_pagra: 'כנסת 20 לא כולל ישיבות בזמן פגרה'
+      fields:
+        knesset_20:
+          mk:
+            title: ח"כ
+          mk_name:
+            title: שם הח"כ
+          factions:
+            title: מפלגה
+          open_meetings:
+            title: סה"כ ישיבות פתוחות שהתקיימו בזמן כהונת הח"כ
+          relevant_meetings:
+            title: ישיבות שפורסם עבורם פרוטוקול ושהתקיימו בזמן כהונת הח"כ
+          attended_meetings:
+            title: ישיבות שהח"כ נכח בהם לפי פענוח טקסטואלי של הפרוטוקול
+          attendance_percent:
+            title: אחוז נוכחות
+          attendance_percent_from_total:
+            title: אחוז נוכחות מהמקסימום
+  - run: knesset.sync
+    parameters:
+      source: "../../data/people/attendance/committee_meetings/export"
+      target: "gs://knesset-data-pipelines/data/people/attendance/committee_meetings/export"
+
+
 plenum-votes:
   dependencies:
   - pipeline: ./knesset/kns_knessetdates
