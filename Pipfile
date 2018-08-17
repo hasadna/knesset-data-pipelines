@@ -18,6 +18,7 @@ crcmod = "*"
 jsonpickle = "*"
 tika = "*"
 kvfile = "*"
+pyquery = "*"
 
 [dev-packages]
 tox = "*"
