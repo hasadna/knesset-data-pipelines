@@ -1,0 +1,10 @@
+meetings:
+  dependencies:
+  - pipeline: ./committees/kns_committee
+  - datapackage: data/committees/kns_committee/datapackage.json
+  - pipeline: ./people/committee-meeting-attendees
+  - datapackage: data/people/committees/meeting-attendees/datapackage.json
+  - pipeline: ./members/mk_individual
+  - datapackage: data/members/mk_individual/datapackage.json
+  pipeline:
+  - run: flow_dpp

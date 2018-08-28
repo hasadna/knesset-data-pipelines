@@ -19,6 +19,8 @@ jsonpickle = "*"
 tika = "*"
 kvfile = "*"
 pyquery = "*"
+"e82dd60" = {file = "https://github.com/OriHoch/dataflows/archive/cache_processor.zip"}
+pymongo = "*"
 
 [dev-packages]
 tox = "*"
