@@ -114,8 +114,10 @@ class Generator(GeneratorBase):
                 if (
                         'incremental-field' in pipeline['dataservice-parameters']
                         and os.environ.get('KNESSET_DATASERVICE_INCREMENTAL')
-                        and storage_abspath
                 ):
+                    if not storage_abspath:
+                        logging.error('please set KNESSET_PIPELINES_DATA_PATH env var to absolute path for the data directory to use incremental updates')
+                        exit(1)
                     pipeline_steps += [('load_resource',
                                         {"url": "{}/datapackage.json".format(storage_abspath),
                                          'required': False,
@@ -125,6 +127,12 @@ class Generator(GeneratorBase):
                                     pipeline["dataservice-parameters"]),
                                    ('..datapackage_pipelines_knesset.common.processors.throttle',
                                     {'rows-per-page': 50, 'resource': resource_name}),]
+                if (
+                        'incremental-field' in pipeline['dataservice-parameters']
+                        and os.environ.get('KNESSET_DATASERVICE_INCREMENTAL')
+                ):
+                    pipeline_steps += [('sort', {'resources': resource_name,
+                                                 'sort-by': '{' + pipeline['dataservice-parameters']['incremental-field'] + '}'})]
             for additional_step in pipeline.get('additional-steps', []):
                 pipeline_steps.append((additional_step['run'],
                                        additional_step.get('parameters', {}),

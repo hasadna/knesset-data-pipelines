@@ -298,6 +298,7 @@ kns_documentbill:
   schemas-bucket: bills
   dataservice-parameters:
     incremental-field: LastUpdatedDate
+    incremental-field-key: [DocumentBillID, BillID, FilePath]
     resource-name: kns_documentbill
     service-name: api
     method-name: "KNS_DocumentBill"

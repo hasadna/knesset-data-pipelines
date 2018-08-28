@@ -212,6 +212,7 @@ vote_rslts_kmmbr_shadow:
   dataservice-parameters:
     incremental-field: vote_id
     incremental-field-type: integer
+    incremental-field-key: [vote_id, kmmbr_id]
     resource-name: vote_rslts_kmmbr_shadow
     service-name: votes
     method-name: "vote_rslts_kmmbr_shadow"
