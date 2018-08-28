@@ -142,7 +142,7 @@ class Generator(GeneratorBase):
         dump_to_sql = 'knesset.dump_to_sql'
         table_name = '{}_{}'.format(pipeline['schemas-bucket'], pipeline_id.replace('-', '_'))
         tables = {table_name: pipeline_id}
-        tables.update(pipeline['dataservice-parameters'].get('additional-sql-tables', {}))
+        tables.update(pipeline.get('additional-sql-tables', {}))
         tables = {table_name: {'resource-name': resource_name, 'mode': 'rewrite'}
                   for table_name, resource_name in tables.items()}
         pipeline_steps += [(dump_to_sql, {'engine': 'env://DPP_DB_ENGINE',
