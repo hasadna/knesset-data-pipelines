@@ -107,7 +107,7 @@ committee-meeting-attendees-mks-full-stats:
   - pipeline: ./people/committee-meeting-attendees
   - datapackage: data/people/committees/meeting-attendees/datapackage.json
   - pipeline: ./committees/kns_committeesession
-  - datapackage: committees/kns_committeesession/datapackage.json
+  - datapackage: data/committees/kns_committeesession/datapackage.json
   - pipeline: ./knesset/kns_knessetdates
   - datapackage: data/knesset/kns_knessetdates/datapackage.json
   pipeline:
@@ -153,6 +153,34 @@ plenum-session-voters:
       tables:
         people_plenum_session_voters:
           resource-name: kns_plenumsession
+
+plenum-session-voters-stats:
+  dependencies:
+  - pipeline: ./knesset/kns_knessetdates
+  - datapackage: data/knesset/kns_knessetdates/datapackage.json
+  - pipeline: ./members/mk_individual
+  - datapackage: data/members/mk_individual/datapackage.json
+  - pipeline: ./plenum/kns_plenumsession
+  - datapackage: data/plenum/kns_plenumsession/datapackage.json
+  - pipeline: ./people/plenum-session-voters
+  - datapackage: data/people/plenum/session_voters/datapackage.json
+  pipeline:
+  - run: knesset.flow_dpp
+    parameters:
+      module: people.plenum_session_voters_stats
+  - run: load_resource
+    parameters:
+      url: ../data/people/plenum/session_voters_stats/datapackage.json
+      resource: plenum_session_voters_stats
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        people_plenum_session_voters_stats:
+          resource-name: plenum_session_voters_stats
+  - run: knesset.sync
+    parameters:
+      source: ../data/people/plenum/session_voters_stats/
+      target: gs://knesset-data-pipelines/data/people/plenum/session_voters_stats/
 
 mk-voted-against-majority:
   description: for each vote - collect mks that voted against party majority

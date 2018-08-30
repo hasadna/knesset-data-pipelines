@@ -1,0 +1,77 @@
+{
+  "bytes": 1445666,
+  "count_of_rows": 8035,
+  "hash": "fb67b33378e707d3722c47aa961ec69d",
+  "name": "_",
+  "resources": [
+    {
+      "bytes": 3897405,
+      "count_of_rows": 24105,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/people/plenum/session_voters/kns_plenumsession.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "50ff16bba2e8b46b6dfc3ee3dc2927cb",
+      "name": "kns_plenumsession",
+      "path": "kns_plenumsession.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "description": "קוד ישיבת המליאה",
+            "name": "PlenumSessionID",
+            "type": "integer"
+          },
+          {
+            "description": "מספר ישיבת המליאה",
+            "name": "Number",
+            "type": "integer"
+          },
+          {
+            "description": "מספר הכנסת",
+            "name": "KnessetNum",
+            "type": "integer"
+          },
+          {
+            "description": "שם הישיבה",
+            "name": "Name",
+            "type": "string"
+          },
+          {
+            "description": "תאריך התחלה",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "StartDate",
+            "type": "datetime"
+          },
+          {
+            "description": "תאריך סיום",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "FinishDate",
+            "type": "datetime"
+          },
+          {
+            "description": "האם הישיבה הוגדרה כישיבה מיוחדת (למשל ישיבת זיכרון)",
+            "name": "IsSpecialMeeting",
+            "type": "boolean"
+          },
+          {
+            "description": "תאריך עדכון אחרון",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "LastUpdatedDate",
+            "type": "datetime"
+          },
+          {
+            "name": "voter_mk_ids",
+            "type": "array"
+          }
+        ]
+      }
+    }
+  ]
+}

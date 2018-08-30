@@ -1,0 +1,73 @@
+{
+  "bytes": 1004824,
+  "count_of_rows": 8026,
+  "hash": "2b0726e8df6bb0006d960e3382a16739",
+  "name": "_",
+  "resources": [
+    {
+      "bytes": 2009648,
+      "count_of_rows": 16052,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/plenum/kns_plenumsession/kns_plenumsession.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "09fbf8e42c15c0a3293c96dc2b6f8b22",
+      "name": "kns_plenumsession",
+      "path": "kns_plenumsession.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "description": "קוד ישיבת המליאה",
+            "name": "PlenumSessionID",
+            "type": "integer"
+          },
+          {
+            "description": "מספר ישיבת המליאה",
+            "name": "Number",
+            "type": "integer"
+          },
+          {
+            "description": "מספר הכנסת",
+            "name": "KnessetNum",
+            "type": "integer"
+          },
+          {
+            "description": "שם הישיבה",
+            "name": "Name",
+            "type": "string"
+          },
+          {
+            "description": "תאריך התחלה",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "StartDate",
+            "type": "datetime"
+          },
+          {
+            "description": "תאריך סיום",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "FinishDate",
+            "type": "datetime"
+          },
+          {
+            "description": "האם הישיבה הוגדרה כישיבה מיוחדת (למשל ישיבת זיכרון)",
+            "name": "IsSpecialMeeting",
+            "type": "boolean"
+          },
+          {
+            "description": "תאריך עדכון אחרון",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "LastUpdatedDate",
+            "type": "datetime"
+          }
+        ]
+      }
+    }
+  ]
+}
