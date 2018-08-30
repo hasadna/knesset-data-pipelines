@@ -24,3 +24,4 @@ tox.ini
 *.secret.env
 .code
 .dpp
+data_samples

@@ -21,6 +21,8 @@ kvfile = "*"
 pyquery = "*"
 "e82dd60" = {file = "https://github.com/OriHoch/dataflows/archive/cache_processor.zip"}
 pymongo = "*"
+pip = "*"
+tabulate = "*"
 
 [dev-packages]
 tox = "*"

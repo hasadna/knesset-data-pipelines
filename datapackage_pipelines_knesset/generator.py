@@ -79,6 +79,9 @@ class Generator(GeneratorBase):
                                                             'log-progress-rows': 10000}},
                                             {'run': 'dump.to_path',
                                              'parameters': {'out-path': out_path}}]
+            elif os.environ.get('KNESSET_DATA_SAMPLES'):
+                if 'dependencies' in pipeline:
+                    del pipeline['dependencies']
             yield os.path.join(base, pipeline_id), pipeline
 
     @classmethod

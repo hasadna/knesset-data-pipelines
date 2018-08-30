@@ -1,0 +1,610 @@
+{
+  "bytes": 8502304,
+  "count_of_rows": 17593,
+  "hash": "2d6176cd7c48b285b38cfa8bda232284",
+  "name": "_",
+  "resources": [
+    {
+      "bytes": 13645404,
+      "count_of_rows": 1912,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/members/mk_individual/mk_individual_positions.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "bf57e2e0e96453d5fce2197abcb73cb9",
+      "name": "mk_individual_positions",
+      "path": "mk_individual_positions.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "name": "mk_individual_id",
+            "type": "integer"
+          },
+          {
+            "name": "mk_status_id",
+            "type": "integer"
+          },
+          {
+            "name": "mk_individual_name",
+            "type": "string"
+          },
+          {
+            "name": "mk_individual_name_eng",
+            "type": "string"
+          },
+          {
+            "name": "mk_individual_first_name",
+            "type": "string"
+          },
+          {
+            "name": "mk_individual_first_name_eng",
+            "type": "string"
+          },
+          {
+            "name": "mk_individual_email",
+            "type": "string"
+          },
+          {
+            "name": "mk_individual_photo",
+            "type": "string"
+          },
+          {
+            "description": "מספר השורה בטבלה זו",
+            "name": "PersonID",
+            "type": "integer"
+          },
+          {
+            "description": "שם משפחה",
+            "name": "LastName",
+            "type": "string"
+          },
+          {
+            "description": "שם פרטי",
+            "name": "FirstName",
+            "type": "string"
+          },
+          {
+            "description": "מין",
+            "name": "GenderID",
+            "type": "integer"
+          },
+          {
+            "description": "תיאור מין",
+            "name": "GenderDesc",
+            "type": "string"
+          },
+          {
+            "description": "אימייל חבר הכנסת",
+            "name": "Email",
+            "type": "string"
+          },
+          {
+            "description": "האם בכנסת הנוכחית",
+            "name": "IsCurrent",
+            "type": "boolean"
+          },
+          {
+            "description": "תאריך עדכון אחרון",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "LastUpdatedDate",
+            "type": "datetime"
+          },
+          {
+            "name": "altnames",
+            "type": "array"
+          },
+          {
+            "name": "positions",
+            "type": "array"
+          }
+        ]
+      }
+    },
+    {
+      "bytes": 422166,
+      "count_of_rows": 1912,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/members/mk_individual/mk_individual.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "727df9be152b3123c44834d454539a96",
+      "name": "mk_individual",
+      "path": "mk_individual.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "name": "mk_individual_id",
+            "type": "integer"
+          },
+          {
+            "name": "mk_status_id",
+            "type": "integer"
+          },
+          {
+            "name": "mk_individual_name",
+            "type": "string"
+          },
+          {
+            "name": "mk_individual_name_eng",
+            "type": "string"
+          },
+          {
+            "name": "mk_individual_first_name",
+            "type": "string"
+          },
+          {
+            "name": "mk_individual_first_name_eng",
+            "type": "string"
+          },
+          {
+            "name": "mk_individual_email",
+            "type": "string"
+          },
+          {
+            "name": "mk_individual_photo",
+            "type": "string"
+          },
+          {
+            "description": "מספר השורה בטבלה זו",
+            "name": "PersonID",
+            "type": "integer"
+          },
+          {
+            "description": "שם משפחה",
+            "name": "LastName",
+            "type": "string"
+          },
+          {
+            "description": "שם פרטי",
+            "name": "FirstName",
+            "type": "string"
+          },
+          {
+            "description": "מין",
+            "name": "GenderID",
+            "type": "integer"
+          },
+          {
+            "description": "תיאור מין",
+            "name": "GenderDesc",
+            "type": "string"
+          },
+          {
+            "description": "אימייל חבר הכנסת",
+            "name": "Email",
+            "type": "string"
+          },
+          {
+            "description": "האם בכנסת הנוכחית",
+            "name": "IsCurrent",
+            "type": "boolean"
+          },
+          {
+            "description": "תאריך עדכון אחרון",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "LastUpdatedDate",
+            "type": "datetime"
+          },
+          {
+            "name": "altnames",
+            "type": "array"
+          }
+        ]
+      }
+    },
+    {
+      "bytes": 28184,
+      "count_of_rows": 300,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/members/mk_individual/kns_knessetdates.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "b1c68d56fb0cd95c0bbdf5856a788322",
+      "name": "kns_knessetdates",
+      "path": "kns_knessetdates.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "description": "מספר השורה בטבלה זו",
+            "name": "KnessetDateID",
+            "type": "integer"
+          },
+          {
+            "description": "מספר הכנסת",
+            "name": "KnessetNum",
+            "type": "integer"
+          },
+          {
+            "description": "שם הכנסת",
+            "name": "Name",
+            "type": "string"
+          },
+          {
+            "description": "מספר המושב",
+            "name": "Assembly",
+            "type": "integer"
+          },
+          {
+            "description": "מספר הכנס (קיץ, חורף)",
+            "name": "Plenum",
+            "type": "integer"
+          },
+          {
+            "description": "תאריך תחילה",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "PlenumStart",
+            "type": "datetime"
+          },
+          {
+            "description": "תאריך סיום",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "PlenumFinish",
+            "type": "datetime"
+          },
+          {
+            "description": "האם זו הכנסת הנוכחית?",
+            "name": "IsCurrent",
+            "type": "boolean"
+          },
+          {
+            "description": "תאריך עדכון אחרון",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "LastUpdatedDate",
+            "type": "datetime"
+          }
+        ]
+      }
+    },
+    {
+      "bytes": 96646,
+      "count_of_rows": 1912,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/members/mk_individual/mk_individual_names.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "c5e90d4856baf265a341f38abf5ea917",
+      "name": "mk_individual_names",
+      "path": "mk_individual_names.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "name": "mk_individual_id",
+            "type": "integer"
+          },
+          {
+            "name": "names",
+            "type": "array"
+          }
+        ]
+      }
+    },
+    {
+      "bytes": 340940,
+      "count_of_rows": 6078,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/members/mk_individual/mk_individual_factions.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "3abbd3de72b1464374233dd585ce237d",
+      "name": "mk_individual_factions",
+      "path": "mk_individual_factions.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "name": "mk_individual_id",
+            "type": "integer"
+          },
+          {
+            "name": "faction_id",
+            "type": "integer"
+          },
+          {
+            "name": "faction_name",
+            "type": "string"
+          },
+          {
+            "format": "%Y-%m-%d",
+            "name": "start_date",
+            "type": "date"
+          },
+          {
+            "format": "%Y-%m-%d",
+            "name": "finish_date",
+            "type": "date"
+          },
+          {
+            "name": "knesset",
+            "type": "integer"
+          }
+        ]
+      }
+    },
+    {
+      "bytes": 9786,
+      "count_of_rows": 178,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/members/mk_individual/mk_individual_faction_chairpersons.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "cd0c34d18ef8ca6a8e10791cba2e7d85",
+      "name": "mk_individual_faction_chairpersons",
+      "path": "mk_individual_faction_chairpersons.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "name": "mk_individual_id",
+            "type": "integer"
+          },
+          {
+            "name": "faction_id",
+            "type": "integer"
+          },
+          {
+            "name": "faction_name",
+            "type": "string"
+          },
+          {
+            "format": "%Y-%m-%d",
+            "name": "start_date",
+            "type": "date"
+          },
+          {
+            "format": "%Y-%m-%d",
+            "name": "finish_date",
+            "type": "date"
+          },
+          {
+            "name": "knesset",
+            "type": "integer"
+          }
+        ]
+      }
+    },
+    {
+      "bytes": 1990032,
+      "count_of_rows": 17556,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/members/mk_individual/mk_individual_committees.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "beb75963ac9a6bfa2701a8b0128ea2d9",
+      "name": "mk_individual_committees",
+      "path": "mk_individual_committees.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "name": "mk_individual_id",
+            "type": "integer"
+          },
+          {
+            "name": "committee_id",
+            "type": "integer"
+          },
+          {
+            "name": "committee_name",
+            "type": "string"
+          },
+          {
+            "name": "position_id",
+            "type": "integer"
+          },
+          {
+            "name": "position_name",
+            "type": "string"
+          },
+          {
+            "format": "%Y-%m-%d",
+            "name": "start_date",
+            "type": "date"
+          },
+          {
+            "format": "%Y-%m-%d",
+            "name": "finish_date",
+            "type": "date"
+          },
+          {
+            "name": "knesset",
+            "type": "integer"
+          }
+        ]
+      }
+    },
+    {
+      "bytes": 185276,
+      "count_of_rows": 2782,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/members/mk_individual/mk_individual_govministries.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "37528783ea54bf2c09188f189df71a4f",
+      "name": "mk_individual_govministries",
+      "path": "mk_individual_govministries.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "name": "mk_individual_id",
+            "type": "integer"
+          },
+          {
+            "name": "govministry_id",
+            "type": "integer"
+          },
+          {
+            "name": "govministry_name",
+            "type": "string"
+          },
+          {
+            "name": "position_id",
+            "type": "integer"
+          },
+          {
+            "name": "position_name",
+            "type": "string"
+          },
+          {
+            "format": "%Y-%m-%d",
+            "name": "start_date",
+            "type": "date"
+          },
+          {
+            "format": "%Y-%m-%d",
+            "name": "finish_date",
+            "type": "date"
+          },
+          {
+            "name": "knesset",
+            "type": "integer"
+          }
+        ]
+      }
+    },
+    {
+      "bytes": 41038,
+      "count_of_rows": 704,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/members/mk_individual/factions.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "dbb5264c380a863995fd2ef41668ba5f",
+      "name": "factions",
+      "path": "factions.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "name": "id",
+            "type": "integer"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "format": "%Y-%m-%d",
+            "name": "start_date",
+            "type": "date"
+          },
+          {
+            "format": "%Y-%m-%d",
+            "name": "finish_date",
+            "type": "date"
+          },
+          {
+            "name": "knessets",
+            "type": "array"
+          }
+        ]
+      }
+    },
+    {
+      "bytes": 245136,
+      "count_of_rows": 1852,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/members/mk_individual/faction_memberships.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "ee702146681660554a0f3b021bcd6f16",
+      "name": "faction_memberships",
+      "path": "faction_memberships.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "name": "faction_id",
+            "type": "integer"
+          },
+          {
+            "name": "faction_name",
+            "type": "string"
+          },
+          {
+            "format": "%Y-%m-%d",
+            "name": "start_date",
+            "type": "date"
+          },
+          {
+            "format": "%Y-%m-%d",
+            "name": "finish_date",
+            "type": "date"
+          },
+          {
+            "name": "member_mk_ids",
+            "type": "array"
+          },
+          {
+            "name": "knesset",
+            "type": "integer"
+          }
+        ]
+      }
+    }
+  ]
+}

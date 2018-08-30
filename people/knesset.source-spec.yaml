@@ -100,6 +100,34 @@ committee-meeting-attendees-mks-stats:
         people_committees_meeting_attendees_mks_stats:
           resource-name: mk_attendance
 
+committee-meeting-attendees-mks-full-stats:
+  dependencies:
+  - pipeline: ./members/mk_individual
+  - datapackage: data/members/mk_individual/datapackage.json
+  - pipeline: ./people/committee-meeting-attendees
+  - datapackage: data/people/committees/meeting-attendees/datapackage.json
+  - pipeline: ./committees/kns_committeesession
+  - datapackage: committees/kns_committeesession/datapackage.json
+  - pipeline: ./knesset/kns_knessetdates
+  - datapackage: data/knesset/kns_knessetdates/datapackage.json
+  pipeline:
+  - run: knesset.flow_dpp
+    parameters:
+      module: people.committee_meeting_attendees_mks_full_stats
+  - run: load_resource
+    parameters:
+      url: ../data/people/committees/meeting_attendees_mks_full_stats/datapackage.json
+      resource: meeting_attendees_mks_full_stats
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        people_committees_meeting_attendees_mks_full_stats:
+          resource-name: meeting_attendees_mks_full_stats
+  - run: knesset.sync
+    parameters:
+      source: ../data/people/committees/meeting_attendees_mks_full_stats/
+      target: gs://knesset-data-pipelines/data/people/committees/meeting_attendees_mks_full_stats/
+
 plenum-session-voters:
   dependencies:
   - pipeline: ./votes/view_vote_rslts_hdr_approved
