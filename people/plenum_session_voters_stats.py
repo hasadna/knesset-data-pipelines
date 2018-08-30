@@ -1,9 +1,9 @@
-from dataflows import Flow, load, dump_to_path
+from dataflows import Flow, load, dump_to_path, PackageWrapper
 import os
 import datetime
 import re
+from collections import defaultdict
 from datapackage_pipelines_knesset.common_flow import (rows_counter,
-                                                       process_rows_modify_descriptor,
                                                        process_rows_remove_resource,
                                                        kns_knessetdates_processor,
                                                        get_knessetdate,
@@ -28,6 +28,7 @@ def flow():
     mk_individual_factions = {}
     all_mk_ids = set()
     session_voted_mk_ids = {}
+    aggregates = {}
 
     def process_session_voters(rows):
         for row in rows_counter('session_voters', rows):
@@ -38,37 +39,70 @@ def flow():
         return attended_mk_ids if attended_mk_ids else []
 
     def process_kns_plenumsession(sessions):
-        num_yielded_rows = 0
-        for num_sessions, session in enumerate(rows_counter('kns_plenumsession', sessions), start=1):
+        for session in rows_counter('kns_plenumsession', sessions):
             session_date = get_plenum_session_start_date(session)
-            attended_mk_ids = get_session_voted_mk_ids(session['PlenumSessionID'])
-            for mk_id, faction_id in get_mk_faction_ids(all_mk_ids,
-                                                        mk_individual_factions,
+            voted_mk_ids = get_session_voted_mk_ids(session['PlenumSessionID'])
+            for mk_id, faction_id in get_mk_faction_ids(all_mk_ids, mk_individual_factions,
                                                         session_date):
                 knessetdate = get_knessetdate(kns_knessetdates_sorted, session_date)
-                yield {'PlenumSessionID': session['PlenumSessionID'],
-                       'mk_individual_id': mk_id,
-                       'faction_id': faction_id,
-                       'attended': int(mk_id in attended_mk_ids),
-                       'knesset': knessetdate['knesset'],
-                       'plenum': knessetdate['plenum'],
-                       'assembly': knessetdate['assembly'],
-                       'pagra': int(knessetdate['pagra'])}
-                num_yielded_rows += 1
-        print('yielded {} plenum session voters stats rows'.format(num_yielded_rows))
+                agg = aggregates.setdefault(knessetdate['knesset'], {})\
+                                .setdefault(knessetdate['plenum'], {})\
+                                .setdefault(knessetdate['assembly'], {})\
+                                .setdefault(knessetdate['pagra'], {})\
+                                .setdefault(faction_id, {})\
+                                .setdefault(mk_id, defaultdict(int))
+                if mk_id in voted_mk_ids:
+                    agg['voted_sessions'] += 1
+                agg['total_sessions'] += 1
 
-    def modify_kns_plenumsession_descriptor(descriptor):
-        descriptor.update(name='plenum_session_voters_stats',
-                          path='plenum_session_voters_stats.csv',
-                          schema={'fields': [{'name': 'PlenumSessionID', 'type': 'integer'},
-                                             {'name': 'mk_individual_id', 'type': 'integer'},
-                                             {'name': 'faction_id', 'type': 'integer'},
-                                             {'name': 'attended', 'type': 'integer'},
-                                             {'name': 'knesset', 'type': 'integer'},
-                                             {'name': 'plenum', 'type': 'integer'},
-                                             {'name': 'assembly', 'type': 'integer'},
-                                             {'name': 'pagra', 'type': 'integer'},
-                                             ]})
+    def get_all_aggregates():
+        for knesset, aggs in aggregates.items():
+            for plenum, aggs in aggs.items():
+                for assembly, aggs in aggs.items():
+                    for pagra, aggs in aggs.items():
+                        for faction_id, aggs in aggs.items():
+                            for mk_id, agg in aggs.items():
+                                yield (knesset, plenum, assembly, pagra,
+                                       faction_id, mk_id), agg
+
+    def get_mk_aggregates():
+        for agg_key, agg in get_all_aggregates():
+            if agg.get('total_sessions', 0) > 0:
+                knesset, plenum, assembly, pagra, faction_id, mk_id = agg_key
+                yield dict({'voted_sessions': 0,
+                            'total_sessions': 0,
+                            'voted_sessions_percent': 0, },
+                           **agg, knesset=knesset, plenum=plenum, assembly=assembly,
+                           pagra=pagra, faction_id=faction_id, mk_id=mk_id)
+
+    def get_aggregates(package: PackageWrapper):
+        schema_fields = [{'name': 'knesset', 'type': 'integer'},
+                         {'name': 'plenum', 'type': 'integer'},
+                         {'name': 'assembly', 'type': 'integer'},
+                         {'name': 'pagra', 'type': 'integer'},
+                         {'name': 'faction_id', 'type': 'integer'},
+                         {'name': 'mk_id', 'type': 'integer'},
+                         {'name': 'voted_sessions', 'type': 'integer'},
+                         {'name': 'total_sessions', 'type': 'integer'},
+                         {'name': 'voted_sessions_percent', 'type': 'integer'},]
+        package.pkg.add_resource({'name': 'plenum_session_voters_stats',
+                                  'path': 'plenum_session_voters_stats.csv',
+                                  'schema': {'fields': schema_fields}})
+        yield package.pkg
+        yield from package
+        min_voted_sessions_percent = 100
+        max_voted_sessions_percent = 0
+        for agg_key, agg in get_all_aggregates():
+            total_sessions = agg.get('total_sessions', 0)
+            if total_sessions > 0:
+                voted_sessions_percent = int(agg.get('voted_sessions', 0)
+                                             / total_sessions * 100)
+                agg['voted_sessions_percent'] = voted_sessions_percent
+                if voted_sessions_percent < min_voted_sessions_percent:
+                    min_voted_sessions_percent = voted_sessions_percent
+                elif voted_sessions_percent > max_voted_sessions_percent:
+                    max_voted_sessions_percent = voted_sessions_percent
+        yield get_mk_aggregates()
 
     return Flow(load(data_path + 'members/mk_individual/datapackage.json',
                      resources=['mk_individual_names']),
@@ -88,9 +122,9 @@ def flow():
                                              process_session_voters),
                 load(data_path + 'plenum/kns_plenumsession/datapackage.json',
                      resources=['kns_plenumsession']),
-                process_rows_modify_descriptor('kns_plenumsession',
-                                               process_kns_plenumsession,
-                                               modify_kns_plenumsession_descriptor),
+                process_rows_remove_resource('kns_plenumsession',
+                                               process_kns_plenumsession),
+                get_aggregates,
                 dump_to_path('data/people/plenum/session_voters_stats'),
                 )
 

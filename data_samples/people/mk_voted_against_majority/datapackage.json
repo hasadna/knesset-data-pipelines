@@ -1,0 +1,71 @@
+{
+  "bytes": 15527,
+  "count_of_rows": 270,
+  "hash": "2c69c58407678b9bd4aa6285f3c40862",
+  "name": "_",
+  "resources": [
+    {
+      "bytes": 21072270,
+      "count_of_rows": 44670,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "/home/ori/knesset-data-pipelines/data/votes/view_vote_rslts_hdr_approved/view_vote_rslts_hdr_approved.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "571cddcf695a58d2e7892864bd28527c",
+      "name": "mk_voted_against_majority",
+      "path": "mk_voted_against_majority.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "name": "vote_id",
+            "type": "integer"
+          },
+          {
+            "name": "mk_id",
+            "type": "integer"
+          },
+          {
+            "name": "faction_id",
+            "type": "integer"
+          },
+          {
+            "name": "vote_knesset",
+            "type": "integer"
+          },
+          {
+            "name": "vote_plenum",
+            "type": "integer"
+          },
+          {
+            "name": "vote_assembly",
+            "type": "integer"
+          },
+          {
+            "name": "vote_pagra",
+            "type": "boolean"
+          },
+          {
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "vote_datetime",
+            "type": "datetime"
+          },
+          {
+            "name": "vote_majority",
+            "type": "string"
+          },
+          {
+            "name": "voted_against_majority",
+            "type": "boolean"
+          }
+        ]
+      }
+    }
+  ]
+}

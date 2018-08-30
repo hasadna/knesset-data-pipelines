@@ -1,0 +1,239 @@
+{
+  "bytes": 10686388,
+  "count_of_rows": 22350,
+  "hash": "5890bbd9769741a287292a45f32e3b92",
+  "name": "_",
+  "resources": [
+    {
+      "bytes": 42276,
+      "count_of_rows": 450,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "/home/ori/knesset-data-pipelines/data/knesset/kns_knessetdates/kns_knessetdates.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "b1c68d56fb0cd95c0bbdf5856a788322",
+      "name": "kns_knessetdates",
+      "path": "kns_knessetdates.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "description": "מספר השורה בטבלה זו",
+            "name": "KnessetDateID",
+            "type": "integer"
+          },
+          {
+            "description": "מספר הכנסת",
+            "name": "KnessetNum",
+            "type": "integer"
+          },
+          {
+            "description": "שם הכנסת",
+            "name": "Name",
+            "type": "string"
+          },
+          {
+            "description": "מספר המושב",
+            "name": "Assembly",
+            "type": "integer"
+          },
+          {
+            "description": "מספר הכנס (קיץ, חורף)",
+            "name": "Plenum",
+            "type": "integer"
+          },
+          {
+            "description": "תאריך תחילה",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "PlenumStart",
+            "type": "datetime"
+          },
+          {
+            "description": "תאריך סיום",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "PlenumFinish",
+            "type": "datetime"
+          },
+          {
+            "description": "האם זו הכנסת הנוכחית?",
+            "name": "IsCurrent",
+            "type": "boolean"
+          },
+          {
+            "description": "תאריך עדכון אחרון",
+            "format": "%Y-%m-%d %H:%M:%S",
+            "name": "LastUpdatedDate",
+            "type": "datetime"
+          }
+        ]
+      }
+    },
+    {
+      "bytes": 21056743,
+      "count_of_rows": 44400,
+      "dialect": {
+        "delimiter": ",",
+        "doubleQuote": true,
+        "lineTerminator": "\r\n",
+        "quoteChar": "\"",
+        "skipInitialSpace": false
+      },
+      "dpp:streamedFrom": "http://storage.googleapis.com/knesset-data-pipelines/data/votes/view_vote_rslts_hdr_approved/view_vote_rslts_hdr_approved.csv",
+      "encoding": "utf-8",
+      "format": "csv",
+      "hash": "445ac18e24c907c31e335d3b83c5f079",
+      "name": "view_vote_rslts_hdr_approved",
+      "path": "view_vote_rslts_hdr_approved.csv",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "description": "the primary key",
+            "name": "id",
+            "type": "integer"
+          },
+          {
+            "description": "knesset number",
+            "name": "knesset_num",
+            "type": "integer"
+          },
+          {
+            "description": "session id",
+            "name": "session_id",
+            "type": "integer"
+          },
+          {
+            "description": "sess_item_nbr",
+            "name": "sess_item_nbr",
+            "type": "integer"
+          },
+          {
+            "description": "sess_item_id",
+            "name": "sess_item_id",
+            "type": "integer"
+          },
+          {
+            "description": "sess_item_dscr",
+            "name": "sess_item_dscr",
+            "type": "string"
+          },
+          {
+            "description": "vote item id",
+            "name": "vote_item_id",
+            "type": "integer"
+          },
+          {
+            "description": "item_dscr",
+            "name": "vote_item_dscr",
+            "type": "string"
+          },
+          {
+            "description": "vote date",
+            "format": "%Y-%m-%d",
+            "name": "vote_date",
+            "type": "date"
+          },
+          {
+            "description": "vote time",
+            "name": "vote_time",
+            "type": "string"
+          },
+          {
+            "description": "is_elctrnc_vote",
+            "name": "is_elctrnc_vote",
+            "type": "integer"
+          },
+          {
+            "description": "type",
+            "name": "vote_type",
+            "type": "integer"
+          },
+          {
+            "description": "is_accepted",
+            "name": "is_accepted",
+            "type": "integer"
+          },
+          {
+            "description": "total_for",
+            "name": "total_for",
+            "type": "integer"
+          },
+          {
+            "description": "total_against",
+            "name": "total_against",
+            "type": "integer"
+          },
+          {
+            "description": "total_abstain",
+            "name": "total_abstain",
+            "type": "integer"
+          },
+          {
+            "description": "vote stat",
+            "name": "vote_stat",
+            "type": "integer"
+          },
+          {
+            "description": "session_num",
+            "name": "session_num",
+            "type": "integer"
+          },
+          {
+            "description": "nbr_in_sess",
+            "name": "vote_nbr_in_sess",
+            "type": "integer"
+          },
+          {
+            "description": "reason",
+            "name": "reason",
+            "type": "integer"
+          },
+          {
+            "description": "modifier",
+            "name": "modifier",
+            "type": "string"
+          },
+          {
+            "description": "remark",
+            "name": "remark",
+            "type": "string"
+          },
+          {
+            "name": "mk_ids_pro",
+            "type": "array"
+          },
+          {
+            "name": "mk_ids_against",
+            "type": "array"
+          },
+          {
+            "name": "mk_ids_abstain",
+            "type": "array"
+          },
+          {
+            "name": "knesset",
+            "type": "integer"
+          },
+          {
+            "name": "plenum",
+            "type": "integer"
+          },
+          {
+            "name": "assembly",
+            "type": "integer"
+          },
+          {
+            "name": "pagra",
+            "type": "boolean"
+          }
+        ]
+      }
+    }
+  ]
+}
