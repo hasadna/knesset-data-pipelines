@@ -67,14 +67,26 @@ def kns_knessetdates_processor(kns_knessetdates_sorted):
 
 
 def get_knessetdate(kns_knessetdates_sorted, event_date):
+    # returns knessetdate object for given event date, including pagra attribute
+    # if pagra is True - it means event occured at pagra after the returned knesset date
+    for knessetdate in get_knessetdates_with_pagra(kns_knessetdates_sorted):
+        if event_date <= knessetdate['finish_date']:
+            return knessetdate
+
+
+def get_knessetdates_with_pagra(kns_knessetdates_sorted):
+    # returns all the knessetdates with pagra attribute
+    # start and finish dates are inclusive
+    # the pagra is after the knesset date
     last_knessetdate = None
     for knessetdate in kns_knessetdates_sorted:
-        if event_date <= knessetdate['finish_date']:
-            return dict(knessetdate, pagra=False)
-        elif event_date < knessetdate['start_date']:
-            return dict(last_knessetdate, pagra=True) if last_knessetdate else dict(knessetdate, pagra=True)
+        if last_knessetdate:
+            yield dict(last_knessetdate,
+                       start_date=last_knessetdate['finish_date'] + datetime.timedelta(days=1),
+                       finish_date=knessetdate['start_date'] - datetime.timedelta(days=1),
+                       pagra=True)
+        yield dict(knessetdate, pagra=False)
         last_knessetdate = knessetdate
-    return dict(last_knessetdate, pagra=True)
 
 
 def mk_individual_factions_processor(mk_individual_factions):
@@ -99,17 +111,20 @@ def mk_individual_names_processor(all_mk_ids):
     return processor
 
 
-def get_mk_faction(mk_individual_factions, mk_id, event_date):
+def get_mk_faction(mk_individual_factions, mk_id, event_start_date, event_finish_date=None):
     rows = mk_individual_factions.get(mk_id)
     if rows:
-        for start_date, finish_date, faction_id in rows:
-            if start_date <= event_date <= finish_date:
+        for faction_start_date, faction_finish_date, faction_id in rows:
+            if event_finish_date:
+                if faction_start_date <= event_start_date and event_finish_date <= faction_finish_date:
+                    return faction_id
+            elif faction_start_date <= event_start_date <= faction_finish_date:
                 return faction_id
     return None
 
 
-def get_mk_faction_ids(all_mk_ids, mk_individual_factions, event_date):
+def get_mk_faction_ids(all_mk_ids, mk_individual_factions, event_start_date, event_finish_date=None):
     for mk_id in all_mk_ids:
-        faction_id = get_mk_faction(mk_individual_factions, mk_id, event_date)
+        faction_id = get_mk_faction(mk_individual_factions, mk_id, event_start_date, event_finish_date)
         if faction_id:
             yield mk_id, faction_id
