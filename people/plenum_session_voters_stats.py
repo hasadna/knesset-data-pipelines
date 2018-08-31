@@ -73,7 +73,7 @@ def flow():
                             'total_sessions': 0,
                             'voted_sessions_percent': 0, },
                            **agg, knesset=knesset, plenum=plenum, assembly=assembly,
-                           pagra=pagra, faction_id=faction_id, mk_id=mk_id)
+                           pagra=int(pagra), faction_id=faction_id, mk_id=mk_id)
 
     def get_aggregates(package: PackageWrapper):
         schema_fields = [{'name': 'knesset', 'type': 'integer'},

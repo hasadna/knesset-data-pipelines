@@ -70,7 +70,7 @@ def flow():
                             'attended_meetings_percent': 0,
                             'attended_meetings_relative_percent': 0,},
                            **agg, knesset=knesset, plenum=plenum, assembly=assembly,
-                           pagra=pagra, committee_id=committee_id, faction_id=faction_id,
+                           pagra=int(pagra), committee_id=committee_id, faction_id=faction_id,
                            mk_id=mk_id)
 
     def get_aggregates(package: PackageWrapper):
@@ -86,8 +86,8 @@ def flow():
                          {'name': 'open_meetings', 'type': 'integer'},
                          {'name': 'attended_meetings_percent', 'type': 'integer'},
                          {'name': 'attended_meetings_relative_percent', 'type': 'integer'},]
-        package.pkg.add_resource({'name': 'committee_meetings_attendees_mks_full_stats',
-                                  'path': 'committee_meetings_attendees_mks_full_stats.csv',
+        package.pkg.add_resource({'name': 'meeting_attendees_mks_full_stats',
+                                  'path': 'meeting_attendees_mks_full_stats.csv',
                                   'schema': {'fields': schema_fields}})
         yield package.pkg
         yield from package

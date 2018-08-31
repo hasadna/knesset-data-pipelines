@@ -76,7 +76,7 @@ def flow():
                            undisciplined_votes_percent=undisciplined_votes_percent,
                            disciplined_votes_percent=disciplined_votes_percent,
                            knesset=knesset, plenum=plenum, assembly=assembly,
-                           pagra=pagra, faction_id=faction_id,
+                           pagra=int(pagra), faction_id=faction_id,
                            mk_id=mk_id)
 
     def get_aggregates(package: PackageWrapper):
