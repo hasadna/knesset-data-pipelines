@@ -1,6 +1,8 @@
 from datapackage_pipelines.wrapper import ingest, spew
 from datapackage_pipelines.utilities.resources import PROP_STREAMING
 import logging, yaml, json, datetime
+from functools import lru_cache
+
 
 FACTION_MEMBER_POSITION = 54
 
@@ -24,6 +26,27 @@ COMMITTEE_POSITIONS = {
     66: 'חברת ועדה',
     67: 'מ"מ חבר ועדה'
 }
+
+
+@lru_cache(maxsize=1)
+def get_mks_extra():
+    with open('join_mks_extra_details.yaml') as f:
+        return yaml.load(f)
+
+
+def get_mk_individual_photo(mk):
+    photo_url = get_mks_extra().get(mk['mk_individual_id'], {}).get('photo')
+    if photo_url:
+        return photo_url
+    elif mk['GenderDesc'] == 'זכר':
+        # https://commons.wikimedia.org/wiki/File:Male_portrait_placeholder_cropped.jpg
+        return 'https://oknesset.org/static/img/Male_portrait_placeholder_cropped.jpg'
+    elif mk['GenderDesc'] == 'נקבה':
+        # https://commons.wikimedia.org/wiki/File:Female_portrait_placeholder_cropped.jpg
+        return 'https://oknesset.org/static/img/Female_portrait_placeholder_cropped.jpg'
+    else:
+        raise Exception('Invalid GenderDesc: {}'.format(mk['GenderDesc']))
+
 
 parameters, datapackage, resources = ingest()
 aggregations = {"stats": {}}
@@ -205,8 +228,7 @@ mk_individual_names = []
 
 
 def get_mk_individual_positions_resource(resource):
-    with open('join_mks_extra_details.yaml') as f:
-        mks_extra = yaml.load(f)
+    mks_extra = get_mks_extra()
     for mk_individual_row in resource:
         mk_individual_id = int(mk_individual_row["mk_individual_id"])
         kns_person_id, kns_person_row = None, None
@@ -243,6 +265,9 @@ def get_mk_individual_positions_resource(resource):
 
 def get_mk_individual_resource():
     for row in mk_individuals:
+        # mk_individual_photo from Knesset API has copyright problems
+        # we replace it with out own photo or a placeholder photo
+        row['mk_individual_photo'] = get_mk_individual_photo(row)
         yield row
 
 
