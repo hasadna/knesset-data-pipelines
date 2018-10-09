@@ -2,7 +2,7 @@
 
 Data processing pipelines for loading, processing and visualizing data about the Knesset
 
-Uses the [datapackage pipelines](https://github.com/frictionlessdata/datapackage-pipelines) and [DataFlows]() frameworks.
+Uses the [datapackage pipelines](https://github.com/frictionlessdata/datapackage-pipelines) and [DataFlows](https://github.com/datahq/dataflows) frameworks.
 
 ## Quickstart using Jupyter notebooks and Dataflows
 
