@@ -40,10 +40,10 @@ def get_speech_part_contexts(stream):
                "body": body}
 
 
-def get_speech_parts(meeting):
+def get_speech_parts(meeting, use_data=True):
     source_type, source = None, None
     if meeting["parts_parsed_filename"]:
-        if os.environ.get('KNESSET_PIPELINES_DATA_PATH'):
+        if use_data and os.environ.get('KNESSET_PIPELINES_DATA_PATH'):
             parts_path = os.path.join(os.environ['KNESSET_PIPELINES_DATA_PATH'],
                                       'committees/meeting_protocols_parts/{}'.format(meeting["parts_parsed_filename"]))
             if os.path.exists(parts_path):

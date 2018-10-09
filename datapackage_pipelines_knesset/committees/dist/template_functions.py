@@ -4,9 +4,9 @@ from .constants import COMMITTEES_INDEX_URL, MEMBERS_HOME_URL
 import jsonpickle
 
 
-def get_jinja_env():
+def get_jinja_env(templates_path='templates'):
     return Environment(
-        loader=FileSystemLoader('templates'),
+        loader=FileSystemLoader(templates_path),
         autoescape=select_autoescape(['html', 'xml'])
     )
 
@@ -15,10 +15,11 @@ def get_jinja_template(jinja_env, template_name):
     return jinja_env.get_template(template_name)
 
 
-def build_template(jinja_env, template_name, context, output_name=None, with_hash=None):
+def build_template(jinja_env, template_name, context, output_name=None, with_hash=None,
+                   output_root_dir="../../data/committees/dist/dist"):
     if output_name is None:
         output_name = template_name
-    dist_file_name = os.path.join("../../data/committees/dist/dist", output_name)
+    dist_file_name = os.path.join(output_root_dir, output_name)
     json_file_name = re.sub(r'(.html)$', '.json', dist_file_name)
     hash_file_name = re.sub(r'(.html)$', '.hash', dist_file_name)
     old_hash = None

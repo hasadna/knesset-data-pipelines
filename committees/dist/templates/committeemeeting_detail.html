@@ -45,7 +45,7 @@
         <div class="span9 cards">
             <section class="card card-list">
                 <header><h2><i class="fa fa-list"></i>פרוטוקול</h2></header>
-                {% if speech_parts %}
+                {% if not hidden_meeting and speech_parts %}
                     {% for speech_part in speech_parts %}
                         <div class="speech-{{meeting_id}} speech-container row" id="speech-{{meeting_id}}-{{ speech_part.order }}">
                             <div class="text-speaker span9" {% if speech_part.header %}style="background-color:#d4d4d4" {% endif %}>
@@ -73,17 +73,19 @@
 
 {% block data_sources %}
     {{ super() }}
-    <p>להלן נתוני המקור כפי שהם מופיעים במאגרי המידע של הכנסת באמצעות ממשק מידע פרלמנטרי זמין - </p>
-    <p style="font-size:130%;"><u><b>ישיבה</b></u></p>
-    {% for field in source_meeting_schema.fields %}
-        {% if field.description and source_meeting_row[field.name] %}
-            <b>{{field.description}}</b>: <p>{{source_meeting_row[field.name]}}</p>
-        {% endif %}
-    {% endfor %}
-    <p style="font-size:130%;"><u><b>ועדה</b></u></p>
-    {% for field in source_committee_schema.fields %}
-        {% if field.description and source_committee_row[field.name] %}
-            <b>{{field.description}}</b>: <p>{{source_committee_row[field.name]}}</p>
-        {% endif %}
-    {% endfor %}
+    {% if not hidden_meeting %}
+        <p>להלן נתוני המקור כפי שהם מופיעים במאגרי המידע של הכנסת באמצעות ממשק מידע פרלמנטרי זמין - </p>
+        <p style="font-size:130%;"><u><b>ישיבה</b></u></p>
+        {% for field in source_meeting_schema.fields %}
+            {% if field.description and source_meeting_row[field.name] %}
+                <b>{{field.description}}</b>: <p>{{source_meeting_row[field.name]}}</p>
+            {% endif %}
+        {% endfor %}
+        <p style="font-size:130%;"><u><b>ועדה</b></u></p>
+        {% for field in source_committee_schema.fields %}
+            {% if field.description and source_committee_row[field.name] %}
+                <b>{{field.description}}</b>: <p>{{source_committee_row[field.name]}}</p>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
 {% endblock %}
