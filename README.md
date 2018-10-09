@@ -56,13 +56,15 @@ docker run -it -p 8888:8888 -v `pwd`:/pipelines \
                              --NotebookApp.notebook_dir=jupyter-notebooks
 ```
 
+Open http://localhost:8888
+
 You can now add or make modifications to the notebooks, then open a pull request with your changes.
 
 You can also modify the pipelines code from the host machine and it will be reflected in the notebook environment.
 
-##### Running the Jupyter notebook server locally with Python3
+### Running the Jupyter notebook server locally with Python3
 
-Install system dependencies, followin should work on Ubuntu/Debian based systems:
+Install system dependencies, following should work on Ubuntu/Debian based systems:
 
 ```
 sudo apt-get install -y python3.6 python3-pip python3.6-dev libleveldb-dev libleveldb1v5
@@ -88,6 +90,8 @@ Run the Jupyter notebook server
 ```
 pipenv run jupyter notebook --NotebookApp.notebook_dir=jupyter-notebooks
 ```
+
+Open http://localhost:8888
 
 
 ## Contributing
