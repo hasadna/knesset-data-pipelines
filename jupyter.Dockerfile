@@ -36,6 +36,6 @@ ENV KNESSET_PIPELINES_DATA_PATH=/pipelines/data
 ENV KNESSET_DATASERVICE_INCREMENTAL=1
 
 COPY jupyter-notebooks /pipelines/jupyter-notebooks
-RUN chown -R jovyan:root /pipelines/jupyter-notebooks
+RUN chown -R jovyan:root /pipelines /home/jovyan
 
 USER jovyan
