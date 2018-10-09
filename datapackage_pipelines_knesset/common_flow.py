@@ -1,6 +1,21 @@
-from dataflows import PackageWrapper
+from dataflows import PackageWrapper, load, Flow, cache
 from datapackage import Package
 import datetime
+import os
+
+
+def load_knesset_data(path, use_data=False, **kwargs):
+    return load(get_knesset_data_url_or_path(path, use_data), **kwargs)
+
+
+def get_knesset_data_url_or_path(path, use_data=False):
+    if os.environ.get('KNESSET_PIPELINES_DATA_PATH') and use_data:
+        url = os.path.join(os.environ['KNESSET_PIPELINES_DATA_PATH'], path)
+        print('loading from data path: {}'.format(url))
+    else:
+        url = 'https://storage.googleapis.com/knesset-data-pipelines/data/' + path
+        print('loading from url: {}'.format(url))
+    return url
 
 
 def rows_counter(title, rows, count_every=10000):
@@ -128,3 +143,19 @@ def get_mk_faction_ids(all_mk_ids, mk_individual_factions, event_start_date, eve
         faction_id = get_mk_faction(mk_individual_factions, mk_id, event_start_date, event_finish_date)
         if faction_id:
             yield mk_id, faction_id
+
+
+def load_member_names(cache_path='.cache/members-mk-individual-names', use_data=False):
+    member_names = {}
+
+    def _load_member_names(rows):
+        for row in rows:
+            member_names[row['mk_individual_id']] = row['names'][0]
+            yield row
+
+    load_step = load_knesset_data('members/mk_individual/datapackage.json', use_data=use_data, resources=['mk_individual_names'])
+    Flow(
+        load_step if use_data else cache(load_step, cache_path=cache_path),
+        _load_member_names
+    ).process()
+    return member_names

@@ -121,3 +121,4 @@ devops/k8s/secrets.env.production
 secret*
 .dpp
 .code
+jupyter-notebooks/data

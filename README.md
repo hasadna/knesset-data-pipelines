@@ -14,14 +14,97 @@ Looking to contribute? check out the [Help Wanted Issues](https://github.com/has
 Useful resources for getting acquainted:
 * [DPP](https://github.com/frictionlessdata/datapackage-pipelines) documentation
 * [Code](https://github.com/OriHoch/knesset-data-k8s) for the periodic execution component
-* Pipelines developed in other repos: [People](https://github.com/OriHoch/knesset-data-people), [Committees](https://github.com/OriHoch/knesset-data-committees)
 * [Info](http://main.knesset.gov.il/Activity/Info/Pages/Databases.aspx) on available data from the Knesset site
 * Living [document](https://docs.google.com/document/d/1eeQRrpGYuEJKAAtShPbjFn6i2f_UmQgg1caMTEs93ic/edit) with short list of ongoing project activities
 
 
-## Running the pipelines locally
+## Quickstart using Jupyter notebooks and Dataflows
 
-Most pipelines are available to run locally with minimal infrastructure dependencies.
+Follow this method to get started quickly with exploration, processing and testing of the knesset data.
+
+Clone knesset-data-pipelines
+
+```
+git clone https://github.com/hasadna/knesset-data-pipelines.git
+```
+
+Change directory to the knesset-data-pipelines project root
+
+```
+cd knesset-data-pipelines
+```
+
+You can run the Jupyter notebook server using Docker or locally with python3
+
+##### Running the Jupyter notebook server using Docker
+
+Install Docker for [Windows](https://store.docker.com/editions/community/docker-ce-desktop-windows),
+[Mac](https://store.docker.com/editions/community/docker-ce-desktop-mac) or [Linux](https://docs.docker.com/install/)
+
+Start The knesset-data-pipelines Jupyter server with configuration suitable for local development:
+
+```
+docker run -it -p 8888:8888 -v `pwd`:/pipelines \
+           orihoch/knesset-data-pipelines-jupyter \
+           start-notebook.sh --NotebookApp.token= \
+                             --NotebookApp.notebook_dir=jupyter-notebooks
+```
+
+##### Running the Jupyter notebook server locally with Python3
+
+Install pipenv: https://pipenv.readthedocs.io/en/latest/install/#installing-pipenv
+
+Install compatible pip version:
+
+```
+python3 -m pip install --user 'pip<18.1'
+```
+
+Install project dependencies
+
+```
+pipenv install
+pipenv run python3 -m pip install -e .
+```
+
+Run the Jupyter notebook server
+
+```
+pipenv run jupyter notebook --NotebookApp.notebook_dir=jupyter-notebooks
+```
+
+##### Using the Jupyter notebooks
+
+Browser should open automatically, if it doesn't, check the output log, it should contain the URL to open
+
+On the left sidebar you should see the notebooks provided from knesset-data-pipelines, you are welcome to modify or add notebooks and open a pull request.
+
+If you want to run some processing on the full set of data let us know and we can provide a server for you with all knesset data available locally.
+
+
+## running the pipelines using docker
+
+```
+docker pull orihoch/knesset-data-pipelines
+docker run -it --entrypoint bash -v `pwd`:/pipelines orihoch/knesset-data-pipelines
+```
+
+List the available pipelines
+
+```
+dpp
+```
+
+run a pipeline
+
+```
+dpp run <PIPELINE_ID>
+```
+
+You can usually fix permissions problems on the files by running inside the docker `chown -R 1000:1000 .`
+
+
+## Running the pipelines locally
 
 Install some dependencies (following works for latest version of Ubuntu):
 
@@ -109,56 +192,4 @@ Remove the containers when done
 
 ```
 docker rm --force adminer postgresql
-```
-
-## running using docker
-
-```
-docker pull orihoch/knesset-data-pipelines
-docker run -it --entrypoint bash -v `pwd`:/pipelines orihoch/knesset-data-pipelines
-```
-
-Continue with `Running the pipelines locally` section above
-
-You can usually fix permissions problems on the files by running inside the docker `chown -R 1000:1000 .`
-
-If you have access to the required secrets and google cloud account, you can use the following command to run with all required dependencies:
-
-```
-docker run -d --rm --name postgresql -p 5432:5432 -e POSTGRES_PASSWORD=123456 postgres
-docker run -d --rm --name influxdb -p 8086:8086 influxdb
-docker build -t knesset-data-pipelines . &&\
-docker run -it -e DUMP_TO_STORAGE=1 -e DUMP_TO_SQL=1 \
-           -e DPP_DB_ENGINE=postgresql://postgres:123456@postgresql:5432/postgres \
-           -e DPP_INFLUXDB_URL=http://influxdb:8086 \
-           -v /path/to/google/secret/key:/secret_service_key \
-           --link postgresql \
-           knesset-data-pipelines
-```
-
-Run grafana to visualize metrics
-
-```
-docker run -d --rm --name grafana -p 3000:3000 --link influxdb grafana/grafana
-```
-
-* http://localhost:3000
-* Add data source: name=influxdb type=influxdb url=http://influxdb:8086 access=proxy database=dpp
-* Import dashboards from:
-  * https://github.com/OriHoch/datapackage-pipelines-metrics/blob/master/grafana-dashboard.json
-  * `dataservice_collection_grafana_dashboard.json`
-
-## testing docker build locally using google cloud
-
-this is similar to what the continuous deployment does
-
-Replace UNIQUE_TAG_NAME with a unique id for the image, e.g. the name of the branch you are testing
-
-```
-IMAGE_TAG="gcr.io/hasadna-oknesset/knesset-data-pipelines:UNIQUE_TAG_NAME"
-CLOUDSDK_CORE_PROJECT=hasadna-oknesset
-PROJECT_NAME=knesset-data-pipelines
-gcloud  --project ${CLOUDSDK_CORE_PROJECT} container builds submit \
-        --substitutions _IMAGE_TAG=${IMAGE_TAG},_CLOUDSDK_CORE_PROJECT=${CLOUDSDK_CORE_PROJECT},_PROJECT_NAME=${PROJECT_NAME} \
-        --config continuous_deployment_cloudbuild.yaml .
 ```

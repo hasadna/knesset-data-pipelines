@@ -1,0 +1,7 @@
+.*
+/bin
+data
+data_samples
+/datapackage_pipelines_knesset
+/jupyter-notebooks
+*.egg-info

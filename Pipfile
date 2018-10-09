@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"datapackage-pipelines[speedup]" = {file = "https://github.com/OriHoch/datapackage-pipelines/archive/1.7.1-oh-1.zip"}
+"datapackage-pipelines[speedup]" = {file = "https://github.com/OriHoch/datapackage-pipelines/archive/1.7.1-oh-2.zip"}
 knesset-data = "*"
 "requests[socks]" = "*"
 botocore = "*"
@@ -19,10 +19,10 @@ jsonpickle = "*"
 tika = "*"
 kvfile = "*"
 pyquery = "*"
-"e82dd60" = {file = "https://github.com/OriHoch/dataflows/archive/cache_processor.zip"}
+"dataflows" = "==0.0.14"
 pymongo = "*"
-pip = "*"
 tabulate = "*"
+jupyter = "*"
 
 [dev-packages]
 tox = "*"

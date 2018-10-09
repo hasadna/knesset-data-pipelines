@@ -1,3 +1,8 @@
+copy_static_files:
+  pipeline:
+  - run: copy_static_files
+
+
 build:
   description: prepare the data for rendering, allows to limit rendering to subset of items
   dependencies:
