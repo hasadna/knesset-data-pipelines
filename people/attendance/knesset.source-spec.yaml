@@ -48,6 +48,11 @@ committee-meetings:
       pagra: only
   - run: mk_attendance_report
     parameters:
+      name: knesset_20_kenes_5_winter_2018
+      KnessetNum: 20
+      Plenum-Assembly: "5-1"
+  - run: mk_attendance_report
+    parameters:
       name: knesset_20_kenes_4_summer_2018
       KnessetNum: 20
       Plenum-Assembly: "4-2"
@@ -89,6 +94,7 @@ committee-meetings-export:
       out-file: ../../data/people/attendance/committee_meetings/export/knesset_20_committee_meeting_attendance_reports.xlsx
       sheet-names:
         knesset_20_all_meetings: 'כל הישיבות - כנסת 20'
+        knesset_20_kenes_5_winter_2018: 'כנסת 20 כנס 5 מושב חורף 2018'
         knesset_20_kenes_4_summer_2018: 'כנסת 20 כנס 4 מושב קיץ 2018'
         knesset_20_kenes_4_winter_2018: 'כנסת 20 כנס 4 חורף 2018'
         knesset_20_only_meetings_during_pagra: 'כנסת 20 רק ישיבות בזמן פגרה'
@@ -162,6 +168,12 @@ plenum-votes:
       name: knesset_20_only_meetings_during_pagra
       KnessetNum: 20
       pagra: only
+  - run: mk_attendance_report
+    parameters:
+      plenum-session-voters: true
+      name: knesset_20_kenes_5_winter_2018
+      KnessetNum: 20
+      Plenum-Assembly: "5-1"
   - run: mk_attendance_report
     parameters:
       plenum-session-voters: true
