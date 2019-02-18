@@ -13,6 +13,23 @@ ATTENDANCE_FIELDS = [{'name': 'mk', 'type': 'string'},
                      {'name': 'attendance_percent_from_total', 'type': 'integer'}]
 
 
+GOVMINISTRY_FIELDS = [{'name': 'position', 'type': 'string'},
+                      {'name': 'govministry', 'type': 'string'}]
+
+
+FACTION_MEMBER_POSITION_ID = 54
+GOV_MINISTRY_POSITIONS = {
+    31: 'משנה לראש הממשלה',
+    39: 'שר',
+    40: 'סגן שר',
+    45: 'ראש הממשלה',
+    49: 'מ"מ שר',
+    50: 'סגן ראש הממשלה',
+    51: 'מ"מ ראש הממשלה',
+    57: 'שרה',
+    59: 'סגנית שר'
+}
+
 def is_open_meeting(meeting):
     return meeting['StartDate'] and meeting.get('TypeDesc', 'פתוחה') == 'פתוחה'
 
@@ -22,7 +39,7 @@ def is_relevant_meeting_for_selected_dates(meeting, plenum_assembly, knessetsdat
         # no plenum assembly filtering
         # all meetings are filtered for the selected knesset num
         # taking into account pagra parameter
-        if parameters['pagra'] == 'include':
+        if parameters.get('govministries') or parameters['pagra'] == 'include':
             # pagra should be included - so all meetings are relevant
             return True
         else:
@@ -50,6 +67,10 @@ def is_relevant_meeting_for_selected_dates(meeting, plenum_assembly, knessetsdat
 def is_relevant_meeting_for_mk(meeting, mk):
     return any((position["start_date"] <= meeting['StartDate'] <= position["finish_date"]
                 for position in mk['positions']))
+
+
+def is_relevant_meeting_for_mk_govministry(meeting, mk):
+    return mk['start_date'] <= meeting['StartDate'] <= mk['finish_date']
 
 
 def is_attended_meeting(meeting, mk, parameters):
@@ -92,6 +113,7 @@ def get_knessetsdata(resource, knessetsdata, parameters):
 
 def get_mks(resource, knessetsdata, parameters):
     knessetsdata['mks'] = []
+    knessetsdata['govministries'] = {}
     for mk_individual in resource:
         yield mk_individual
         mk = {'name': '{} {}'.format(mk_individual['mk_individual_first_name'],
@@ -102,18 +124,33 @@ def get_mks(resource, knessetsdata, parameters):
               'positions': [],
               'mk_individual_id': mk_individual['mk_individual_id'],
               'factions': set()}
+        mk_govministry_positions = []
         for position in mk_individual['positions']:
-            if position["position_id"] == 54 and position.get('KnessetNum') == parameters['KnessetNum']:
+            if position["position_id"] in [
+                FACTION_MEMBER_POSITION_ID, *GOV_MINISTRY_POSITIONS
+            ] and position.get('KnessetNum') == parameters['KnessetNum']:
                 start_date = datetime.strptime(position["start_date"], "%Y-%m-%d %H:%M:%S")
                 if position.get('finish_date'):
                     finish_date = datetime.strptime(position["finish_date"], "%Y-%m-%d %H:%M:%S")
                 else:
                     finish_date = datetime.now()
-                mk['positions'].append({'start_date': start_date, 'finish_date': finish_date})
-                if len(position['FactionName']) > 1:
-                    mk['factions'].add(position['FactionName'])
+                if position["position_id"] == FACTION_MEMBER_POSITION_ID:
+                    mk['positions'].append({'start_date': start_date, 'finish_date': finish_date})
+                    if len(position['FactionName']) > 1:
+                        mk['factions'].add(position['FactionName'])
+                elif position["position_id"] in GOV_MINISTRY_POSITIONS:
+                    knessetsdata['govministries'][position['GovMinistryID']] = position['GovMinistryName']
+                    mk_govministry_positions.append({
+                        'start_date': start_date,
+                        'finish_date': finish_date,
+                        'position_id': position["position_id"],
+                        'govministry_id': position['GovMinistryID']
+                    })
         mk['factions'] = ', '.join(mk['factions'])
-        if len(mk['positions']) > 0:
+        if parameters.get('govministries'):
+            for position in mk_govministry_positions:
+                knessetsdata['mks'].append({**mk, **position})
+        elif len(mk['positions']) > 0:
             knessetsdata['mks'].append(mk)
             # logging.info('relevant mk --- {}: {} positions'.format(mk['name'], len(mk['positions'])))
             # stats['relevant_mks'] += 1
@@ -185,7 +222,9 @@ def get_meetings(resource, knessetsdata, parameters, stats):
         stats[parameters['name'] + ': relevant meetings for selected dates'] += 1
         is_meeting_relevant_for_mks = False
         for mk in knessetsdata['mks']:
-            if not is_relevant_meeting_for_mk(meeting, mk):
+            if not parameters.get('govministries') and not is_relevant_meeting_for_mk(meeting, mk):
+                continue
+            if parameters.get('govministries') and not is_relevant_meeting_for_mk_govministry(meeting, mk):
                 continue
             if is_open_meeting(meeting):
                 mk['open_meetings'] += 1
@@ -201,7 +240,7 @@ def get_meetings(resource, knessetsdata, parameters, stats):
             stats[parameters['name'] + ': relevant meetings for mks'] += 1
 
 
-def get_mks_attendance(knessetsdata):
+def get_mks_attendance(knessetsdata, parameters):
     relevant_mks = []
     max_percent = 0
     min_percent = 100
@@ -210,7 +249,10 @@ def get_mks_attendance(knessetsdata):
             mk = {'mk': mk['name'], 'factions': mk['factions'],
                   'open_meetings': mk['open_meetings'],
                   'relevant_meetings': mk['relevant_meetings'],
-                  'attended_meetings': mk['attended_meetings'],}
+                  'attended_meetings': mk['attended_meetings'],
+                  **({'position': GOV_MINISTRY_POSITIONS[mk['position_id']],
+                      'govministry': knessetsdata['govministries'][mk['govministry_id']]}
+                     if parameters.get('govministries') else {})}
             relevant_mks.append(mk)
             attendance_percent = int(mk['attended_meetings'] / mk['relevant_meetings'] * 100)
             if attendance_percent > max_percent:
@@ -241,14 +283,18 @@ def get_resources(datapackage, resources, parameters, stats):
             yield get_meetings(resource, knessetsdata, parameters, stats)
         else:
             yield resource
-    yield get_mks_attendance(knessetsdata)
+    yield get_mks_attendance(knessetsdata, parameters)
 
 
 def get_datapackage(datapackage, parameters, stats):
     datapackage['resources'].append({PROP_STREAMING: True,
                                      'name': parameters['name'],
                                      'path': parameters['name'] + '.csv',
-                                     'schema': {'fields': ATTENDANCE_FIELDS}})
+                                     'schema': {'fields': [
+                                         *ATTENDANCE_FIELDS,
+                                         *(GOVMINISTRY_FIELDS
+                                           if parameters.get('govministries') else {})
+                                     ]}})
     return datapackage
 
 

@@ -190,3 +190,36 @@ plenum-votes:
     parameters:
       out-path: ../../data/people/attendance/plenum_votes
       storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/attendance/plenum_votes
+
+
+
+committee-meetings-govministries:
+  dependencies:
+  - pipeline: ./people/committee-meeting-attendees
+  - datapackage: data/people/committees/meeting-attendees/datapackage.json
+  - pipeline: ./members/mk_individual
+  - datapackage: data/members/mk_individual/datapackage.json
+  pipeline:
+  - run: knesset.load_large_csv_resource
+    parameters:
+      url: ../../data/members/mk_individual/datapackage.json
+      resource: mk_individual_positions
+  - run: load_resource
+    parameters:
+      url: ../../data/people/committees/meeting-attendees/datapackage.json
+      resource: kns_committeesession
+  - run: filter
+    cache: true
+    parameters:
+      resources: kns_committeesession
+      in:
+      - KnessetNum: 20
+  - run: mk_attendance_report
+    parameters:
+      name: knesset_20_all_meetings
+      KnessetNum: 20
+      govministries: true
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../../data/people/attendance/committee_meetings_govministries
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/attendance/committee_meetings_govministries
