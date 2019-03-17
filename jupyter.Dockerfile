@@ -15,6 +15,8 @@ WORKDIR /pipelines
 COPY Pipfile /pipelines/
 COPY Pipfile.lock /pipelines/
 RUN pipenv install --system --deploy --ignore-pipfile
+# notebook specific dependencies
+RUN pip install -U dataflows jupyterlab
 COPY datapackage_pipelines_knesset /pipelines/datapackage_pipelines_knesset
 COPY setup.py /pipelines/
 RUN pip install -e .

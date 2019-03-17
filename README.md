@@ -85,10 +85,16 @@ pipenv install
 pipenv run python3 -m pip install -e .
 ```
 
-Run the Jupyter notebook server
+Install additional notebook specific dependencies
 
 ```
-pipenv run jupyter notebook --NotebookApp.notebook_dir=jupyter-notebooks
+pip install -U dataflows jupyterlab
+```
+
+Run Jupyter Lab
+
+```
+pipenv run jupyter lab --NotebookApp.notebook_dir=jupyter-notebooks
 ```
 
 Open http://localhost:8888
