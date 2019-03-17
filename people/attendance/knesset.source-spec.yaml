@@ -192,6 +192,20 @@ plenum-votes:
       storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/attendance/plenum_votes
 
 
+govministries-managers:
+  pipeline:
+  - run: add_resource
+    parameters:
+      url: https://www.odata.org.il/dataset/7571bb7e-4442-4e0c-b94a-2093abc9b1bd/resource/b18e555a-0b50-48cd-9b20-a668705730cb/download/-.csv
+      name: govministries-managers
+  - run: stream_remote_resources
+    cache: true
+  - run: parse_govministries_managers
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../../data/people/attendance/govministries_managers
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/attendance/govministries_managers
+
 
 committee-meetings-govministries:
   dependencies:
