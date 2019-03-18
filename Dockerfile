@@ -8,6 +8,7 @@ COPY boto.config /root/.boto
 COPY Pipfile /pipelines/
 COPY Pipfile.lock /pipelines/
 RUN pipenv install --system --deploy --ignore-pipfile
+RUN python3 -m pip install jupyterlab
 COPY datapackage_pipelines_knesset /pipelines/datapackage_pipelines_knesset
 COPY setup.py /pipelines/
 RUN pip install -e .
