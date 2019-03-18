@@ -8,8 +8,6 @@ Uses the [datapackage pipelines](https://github.com/frictionlessdata/datapackage
 
 Follow this method to get started quickly with exploration, processing and testing of the knesset data.
 
-Before you start, have a look at what you can accomplish by viewing [html renderings of the available notebooks](https://production.oknesset.org/pipelines/data/committees/dist/dist/static/html/jupyter-notebooks/) - follow along the code and comments in the notebooks to familiarize with the DataFlows and datapackage pipelines frameworks.
-
 ### Running using Docker
 
 Install Docker for [Windows](https://store.docker.com/editions/community/docker-ce-desktop-windows),
