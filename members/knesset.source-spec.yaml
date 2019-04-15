@@ -187,7 +187,8 @@ mk_individual:
   dependencies:
   - pipeline: ./members/kns_mksitecode
   - datapackage: data/members/kns_mksitecode/datapackage.json
-  - pipeline: ./members/kns_persontoposition
+  # this pipeline is broken - skipping until fixed
+  # - pipeline: ./members/kns_persontoposition
   - datapackage: data/members/kns_persontoposition/datapackage.json
   - pipeline: ./members/kns_position
   - datapackage: data/members/kns_position/datapackage.json
