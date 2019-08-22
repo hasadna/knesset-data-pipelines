@@ -1,0 +1,4 @@
+FROM knesset-data-pipelines
+RUN python3 -m pip install pandas
+RUN apk --update add libpng-dev freetype-dev lapack lapack-dev gfortran
+RUN python3 -m pip install matplotlib networkx seaborn
