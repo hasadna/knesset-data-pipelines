@@ -179,7 +179,7 @@ kns_documentcommitteesession:
   pipeline-type: knesset dataservice
   schemas-bucket: "committees"
   dataservice-parameters:
-    incremental-field: LastUpdatedDate
+    # incremental-field: LastUpdatedDate
     resource-name: kns_documentcommitteesession
     service-name: api
     method-name: "KNS_DocumentCommitteeSession"
