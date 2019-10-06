@@ -47,7 +47,7 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
                                             "meeting_protocols_text/{}".format(row["text_parsed_filename"])
                         res = requests.get(protocol_text_url)
                         if res.status_code == 200:
-                            text = requests.get(protocol_text_url).content.decode("utf-8")
+                            text = res.content.decode("utf-8")
                     update_row = dict(mks=None, invitees=None, legal_advisors=None, manager=None)
                     if text:
                         with CommitteeMeetingProtocol.get_from_text(text) as protocol:
@@ -56,7 +56,8 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
                                 update_row = dict(mks=attendees['mks'],
                                                   invitees=attendees['invitees'],
                                                   legal_advisors=attendees['legal_advisors'],
-                                                  manager=attendees['manager'])
+                                                  manager=attendees['manager'],
+                                                  financial_advisors=attendees.get('financial_advisors', []))
                                 row.update(**update_row)
                     if cache_hash_path:
                         os.makedirs(os.path.dirname(cache_hash_path), exist_ok=True)
@@ -72,7 +73,8 @@ def modify_datapackage(datapackage, parameters, stats):
             descriptor['schema']['fields'] += [{"name": "mks", "type": "array"},
                                                {"name": "invitees", "type": "array"},
                                                {"name": "legal_advisors", "type": "array"},
-                                               {"name": "manager", "type": "array"},]
+                                               {"name": "manager", "type": "array"},
+                                               {"name": "financial_advisors", "type": "array"}]
     return datapackage
 
 
