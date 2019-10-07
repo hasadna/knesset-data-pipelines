@@ -36,11 +36,43 @@ committee-meeting-attendees:
     parameters:
       url: ../data/committees/kns_committeesession/datapackage.json
       resource: kns_committeesession
-#  - run: filter
+  - run: filter
+    cache: true
+    parameters:
+      resources: kns_committeesession
+      in:
+      - CommitteeSessionID: 2059313
+  - run: committee_meeting_attendees
+#    parameters:
+#      filter-meeting-id: [540838, 2025600, 2019698,2068132,2068104]
+#      filter-committee-id: [198]
+  - run: join_committee_meeting_attendees_mks
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../data/people/committees/meeting-attendees
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/people/committees/meeting-attendees
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        people_committees_meeting_attendees:
+          resource-name: kns_committeesession
+
+committee-meeting-speaker-stats:
+  description: extract stats for each protocol part
+  dependencies:
+  - pipeline: ./people/committee-meeting-attendees
+  - datapackage: data/people/committees/meeting-attendees/datapackage.json
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/people/committees/meeting-attendees/datapackage.json
+      resource: kns_committeesession
+# - run: filter
+#    cache: true
 #    parameters:
 #      resources: kns_committeesession
 #      in:
-#      - CommitteeSessionID: 2068104
+#      - CommitteeSessionID: 2059313
   - run: committee_meeting_attendees
 #    parameters:
 #      filter-meeting-id: [540838, 2025600, 2019698,2068132,2068104]
