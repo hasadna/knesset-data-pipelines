@@ -122,3 +122,5 @@ secret*
 .dpp
 .code
 jupyter-notebooks/data
+.checkpoints
+

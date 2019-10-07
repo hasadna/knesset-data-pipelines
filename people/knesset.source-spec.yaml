@@ -36,12 +36,12 @@ committee-meeting-attendees:
     parameters:
       url: ../data/committees/kns_committeesession/datapackage.json
       resource: kns_committeesession
-  - run: filter
-    cache: true
-    parameters:
-      resources: kns_committeesession
-      in:
-      - CommitteeSessionID: 2059313
+#  - run: filter
+#    cache: true
+#    parameters:
+#      resources: kns_committeesession
+#      in:
+#      - CommitteeSessionID: 2059313
   - run: committee_meeting_attendees
 #    parameters:
 #      filter-meeting-id: [540838, 2025600, 2019698,2068132,2068104]
