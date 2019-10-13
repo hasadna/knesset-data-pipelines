@@ -26,6 +26,7 @@ def get_meeting_context_data():
 
 def get_meeting_context(meeting, context_data, use_data=True):
     context = get_context({"topics": meeting["topics"],
+                           "note": meeting.get("Note"),
                            "meeting_datestring": meeting["StartDate"].strftime("%d/%m/%Y"),
                            "member_url": MEMBER_URL,
                            "meeting_id": meeting["CommitteeSessionID"],

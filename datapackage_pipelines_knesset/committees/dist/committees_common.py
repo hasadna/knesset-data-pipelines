@@ -4,7 +4,7 @@ import datetime
 
 
 def get_meeting_topics(meeting):
-    return ", ".join(meeting["topics"]) if meeting["topics"] else ""
+    return ", ".join(meeting["topics"]) if meeting["topics"] else meeting.get("Note", "")
 
 
 def get_meeting_path(meeting):
