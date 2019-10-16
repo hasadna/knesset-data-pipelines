@@ -111,6 +111,10 @@ def get_committee_index_context(knesset_num_committees):
     return get_context({"knesset_nums": sorted(knesset_nums(), key=lambda k: k["num"], reverse=True)})
 
 
+def get_homepage_context():
+    return get_context({})
+
+
 jinja_env = get_jinja_env()
 
 
@@ -142,7 +146,7 @@ build_template(jinja_env,
                COMMITTEES_INDEX_URL)
 stats["built index"] = 1
 
-build_template(jinja_env, "homepage.html", {}, HOMEPAGE_URL)
+build_template(jinja_env, "homepage.html", get_homepage_context(), HOMEPAGE_URL)
 
 if os.environ.get("SKIP_STATIC") != "1":
     logging.info("Copying static files from ./static to ./dist/static")
