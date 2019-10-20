@@ -13,7 +13,7 @@ setup(
     name="knesset-data-pipelines",
     version=version,
     packages=find_packages(exclude=["tests", "test.*"]),
-    install_requires=["datapackage-pipelines", "knesset-data==2.1.3"],
+    install_requires=["datapackage-pipelines", "knesset-data==2.1.4"],
     extras_require={'develop': ["tox", "pytest"]},
     url='https://github.com/hasadna/knesset-data-pipelines',
     license='MIT',
