@@ -84,7 +84,7 @@ committee-meeting-speaker-stats:
     parameters:
       tables:
         people_committees_meeting_speaker_stats:
-          resource-name: kns_committeesession
+          resource-name: speaker_stats
 
 ## WIP
 #committee-meeting-speakers:

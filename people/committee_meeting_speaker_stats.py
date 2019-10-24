@@ -72,7 +72,11 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
                         protocol_parts_path = os.path.join(os.environ['KNESSET_PIPELINES_DATA_PATH'],
                                                            'committees/meeting_protocols_parts/{}'.format(row["parts_parsed_filename"]))
                         if os.path.exists(protocol_parts_path) and os.path.getsize(protocol_parts_path) > 0:
-                            protocol_parts = Flow(load(protocol_parts_path)).results()[0][0]
+                            try:
+                                protocol_parts = Flow(load(protocol_parts_path)).results()[0][0]
+                            except Exception as e:
+                                logging.exception('exception parsing protocol parts for CommitteeSessionID {}'.format(row["CommitteeSessionID"]))
+                                protocol_parts = []
                     else:
                         protocol_parts_url = "https://storage.googleapis.com/knesset-data-pipelines/data/committees/" \
                                              "meeting_protocols_parts/{}".format(row["parts_parsed_filename"])
