@@ -1,5 +1,5 @@
 from tabulator import Stream
-import os, requests, logging, re, json
+import os, requests, logging, re, json, csv
 
 
 def get_speech_part_body(speech_part):
@@ -29,6 +29,7 @@ def get_speech_parts_source(meeting, parts_url):
 
 def get_speech_part_contexts(stream):
     for order, row in enumerate(stream):
+        # logging.info('order: {}, row: {}'.format(order, row))
         if not row:
             header, body = "", ""
         elif len(row) == 2:
@@ -48,14 +49,25 @@ def get_speech_parts(meeting, use_data=True):
                                       'committees/meeting_protocols_parts/{}'.format(meeting["parts_parsed_filename"]))
             if os.path.exists(parts_path):
                 source = parts_path
+                source_type = 'filename'
         else:
             source = "http://storage.googleapis.com/knesset-data-pipelines/data/" \
                      "committees/meeting_protocols_parts/{}".format(meeting["parts_parsed_filename"])
-        if source:
-            stream = get_speech_parts_stream(source=source, headers=1)
-            if stream:
-                yield from get_speech_part_contexts(stream)
-                stream.close()
+            source_type = 'url'
+        if source_type in ['filename', 'url'] and source:
+            # logging.info('loading speach parts from {} source: {}'.format(source_type, source))
+            if source_type == 'filename':
+                with open(source) as source_file:
+                    for i, row in enumerate(csv.reader(source_file)):
+                        if i > 0:
+                            yield {"order": i-1,
+                                   "header": row[0],
+                                   "body": row[1]}
+            else:
+                stream = get_speech_parts_stream(source=source, headers=1)
+                if stream:
+                    yield from get_speech_part_contexts(stream)
+                    stream.close()
 
 
 def update_speech_parts_hash(meeting, update_hash_callback):
