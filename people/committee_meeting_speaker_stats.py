@@ -5,6 +5,7 @@ from knesset_data.protocols.committee import CommitteeMeetingProtocol
 import hashlib, json
 from kvfile import KVFile
 from dataflows import Flow, load
+import csv
 
 
 BASE_HASH_OBJ = hashlib.md5()
@@ -79,7 +80,11 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
                         # logging.info('loading from protocol parts: {}'.format(protocol_parts_path))
                         if os.path.exists(protocol_parts_path) and os.path.getsize(protocol_parts_path) > 0:
                             try:
-                                protocol_parts = Flow(load(protocol_parts_path)).results()[0][0]
+                                with open(protocol_parts_path) as protocol_parts_file:
+                                    for i, part_row in enumerate(csv.reader(protocol_parts_file)):
+                                        if i > 0:
+                                            protocol_parts.append({'header': part_row[0], 'body': part_row[1]})
+                                # protocol_parts = Flow(load(protocol_parts_path)).results()[0][0]
                             except Exception as e:
                                 logging.exception('exception parsing protocol parts for CommitteeSessionID {}'.format(row["CommitteeSessionID"]))
                                 protocol_parts = []
