@@ -17,6 +17,7 @@ speaker_stats_kv = KVFile()
 
 def speaker_stats_resource():
     for k, row in speaker_stats_kv.items():
+        # logging.info(row)
         row['CommitteeSessionID'], row['parts_crc32c'], row['part_index'] = k.split('-')
         yield row
 
@@ -64,26 +65,36 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
                             old_cache_hash = cache_data['hash']
                             cache_hash_rows = cache_data['rows']
                 if cache_hash_path and old_cache_hash and old_cache_hash == new_cache_hash:
-                    for row in cache_hash_rows:
-                        add_speaker_stats_row(row)
+                    if cache_hash_rows and len(cache_hash_rows) > 0:
+                        # logging.info('loading {} parts from cache, first part: {}'.format(len(cache_hash_rows), cache_hash_rows[0]))
+                        for cache_hash_row in cache_hash_rows:
+                            add_speaker_stats_row(cache_hash_row)
+                    # else:
+                        # logging.warning('loading 0 parts from cache')
                 else:
                     protocol_parts = []
                     if os.environ.get('KNESSET_PIPELINES_DATA_PATH'):
                         protocol_parts_path = os.path.join(os.environ['KNESSET_PIPELINES_DATA_PATH'],
                                                            'committees/meeting_protocols_parts/{}'.format(row["parts_parsed_filename"]))
+                        # logging.info('loading from protocol parts: {}'.format(protocol_parts_path))
                         if os.path.exists(protocol_parts_path) and os.path.getsize(protocol_parts_path) > 0:
                             try:
                                 protocol_parts = Flow(load(protocol_parts_path)).results()[0][0]
                             except Exception as e:
                                 logging.exception('exception parsing protocol parts for CommitteeSessionID {}'.format(row["CommitteeSessionID"]))
                                 protocol_parts = []
+                        # else:
+                        #     logging.warning('path does not exist: {}'.format(protocol_parts_path))
                     else:
                         protocol_parts_url = "https://storage.googleapis.com/knesset-data-pipelines/data/committees/" \
                                              "meeting_protocols_parts/{}".format(row["parts_parsed_filename"])
+                        # logging.info('loading from protocol parts url: {}'.format(protocol_parts_url))
                         protocol_parts = Flow(load(protocol_parts_url)).results()[0][0]
                     if len(protocol_parts) > 0:
+                        # logging.info('Loaded {} protocol parts, first part: {}'.format(len(protocol_parts), protocol_parts[0]))
                         speaker_stats_rows = add_speaker_stats_from_parts(protocol_parts, row)
                     else:
+                        # logging.info("Loaded 0 protocol parts")
                         speaker_stats_rows = []
                     if cache_hash_path:
                         os.makedirs(os.path.dirname(cache_hash_path), exist_ok=True)
