@@ -6,6 +6,7 @@ import hashlib, json
 from kvfile import KVFile
 from dataflows import Flow, load
 import csv
+from fuzzywuzzy import fuzz
 
 
 BASE_HASH_OBJ = hashlib.md5()
@@ -29,16 +30,38 @@ def add_speaker_stats_row(row):
     speaker_stats_kv.set(key, value)
 
 
+def parse_part_header(part, session):
+    header = part['header']
+    category = ''
+    if 'יו"ר' in header:
+        category = 'chairperson'
+        header = header.replace('היו"ר', '')
+        header = header.replace('יו"ר', '')
+    else:
+        for mk in session['mks']:
+            if fuzz.token_set_ratio(mk, header) > 90:
+                category = 'mk'
+                break
+        if category == '':
+            for legal_advisor in session['legal_advisors']:
+                if fuzz.token_set_ratio(legal_advisor, header) > 90:
+                    category = 'legal_advisor'
+                    break
+    return category, header.strip()
+
+
 def add_speaker_stats_from_parts(protocol_parts, row):
     speaker_stats_rows = []
     for part_index, part in enumerate(protocol_parts):
+        part_category, header = parse_part_header(part, row)
         speaker_stats_row = {
             'CommitteeSessionID': row['CommitteeSessionID'],
             'parts_crc32c': row['parts_crc32c'],
             'part_index': part_index,
-            'header': part['header'],
+            'header': header,
             'body_length': len(part['body']) if part['body'] else 0,
-            'part_category': ''
+            'body_num_words': len(part['body'].split(' ')) if part['body'] else 0,
+            'part_category': part_category
         }
         add_speaker_stats_row(speaker_stats_row)
         speaker_stats_rows.append(speaker_stats_row)
@@ -122,6 +145,7 @@ def modify_datapackage(datapackage, parameters, stats):
                     ('part_index', 'number'),
                     ('header', 'string'),
                     ('body_length', 'number'),
+                    ('body_num_words', 'number'),
                     ('part_category', 'string'),
                 ]
             ]

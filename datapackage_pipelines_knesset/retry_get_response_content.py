@@ -30,6 +30,7 @@ def get_retry_response_content(url, params, timeout, proxies, retry_num, num_ret
         # network / http problem - start the retry mechanism
         if (retry_num < num_retries):
             logging.exception(e)
+            logging.info("url: {} params: {}".format(url, params))
             logging.info("retry {} / {}, waiting {} seconds before retrying...".format(retry_num,
                                                                                        num_retries,
                                                                                        seconds_between_retries))
