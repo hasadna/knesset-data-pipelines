@@ -144,7 +144,10 @@ def update_faction(faction_id, faction_name, start_date, finish_date, mk_id, kne
             faction_membership_days.setdefault(day_date, set()).add(mk_id)
         faction = factions.get(faction_id)
         if faction:
-            assert faction['name'] == faction_name, 'faction name mismatch ({}: {})'.format(faction_id, faction_name)
+            if faction['name'] != faction_name:
+                error_msg = 'faction name mismatch (knesset={} faction_id={} faction_name={} faction["name"]={})'.format(knesset, faction_id, faction_name, faction['name'])
+                if not knesset or int(knesset) < 21:
+                    raise Exception(error_msg)
             faction['knessets'].add(knesset)
             if faction['start_date'] > start_date:
                 faction['start_date'] = start_date

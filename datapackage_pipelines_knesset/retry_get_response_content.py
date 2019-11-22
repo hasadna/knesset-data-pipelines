@@ -40,12 +40,14 @@ def get_retry_response_content(url, params, timeout, proxies, retry_num, num_ret
             return get_retry_response_content(url, params, timeout, proxies, retry_num + 1, num_retries,
                                               seconds_between_retries, headers=headers)
         else:
+            logging.info("url: {} params: {}".format(url, params))
             raise ReachedMaxRetries(e)
     if response.status_code != 200:
         # http status_code is not 200 - retry won't help here
         if response.status_code == 404 and skip_not_found_errors:
             return bytes("", "utf-8")
         else:
+            logging.info("url: {} params: {}".format(url, params))
             raise InvalidStatusCodeException(response.status_code, response.content)
     else:
         try:
