@@ -15,6 +15,8 @@ def is_blocked(content):
 
 def get_retry_response_content(url, params, timeout, proxies, retry_num, num_retries, seconds_between_retries,
                                skip_not_found_errors=False, headers=None):
+    if not timeout or float(timeout) < 60:
+        timeout = 60
     proxies = proxies if proxies else {}
     headers = headers if headers else {}
 
