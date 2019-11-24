@@ -2,6 +2,7 @@ from datapackage_pipelines_knesset.common.processors.base_processor import BaseP
 from knesset_data.dataservice.base import KnessetDataServiceSimpleField
 from datapackage_pipelines_knesset.retry_get_response_content import get_retry_response_content
 import logging, datetime
+import traceback
 
 
 class BaseDataserviceProcessor(BaseProcessor):
@@ -41,7 +42,16 @@ class BaseDataserviceProcessor(BaseProcessor):
         class BaseExtendedDataserviceClass(dataservice_class):
             @classmethod
             def _get_response_content(cls, url, params, timeout, proxies, retry_num=1):
-                return get_retry_response_content(url, params, timeout, proxies, retry_num, num_retries, seconds_between_retries)
+                try:
+                    return get_retry_response_content(url, params, timeout, proxies, retry_num, num_retries, seconds_between_retries)
+                except Exception as e:
+                    if url in [
+                        'http://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_DocumentCommitteeSession?$skiptoken=450820L'
+                    ]:
+                        logging.info(traceback.format_exc())
+                        return ''
+                    else:
+                        raise
             @classmethod
             def get_all(cls, proxies=None, skip_exceptions=False, since_last_update=None):
                 start_url = cls._get_url_base()
