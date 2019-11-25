@@ -36,10 +36,12 @@ def get_mk_individual_id(knesset_nums, kmmbr, data):
                     mk_individual_ids.add(mk['id'])
                 if any([name in kmmbr['names'] for name in mk['altnames']]):
                     mk_individual_ids.add(mk['id'])
-    assert len(mk_individual_ids) == 1, \
-        'multiple mk ids for kmmbr names {}: {}'.format(kmmbr['names'],
-                                                        mk_individual_ids)
-    return mk_individual_ids.pop()
+    if len(mk_individual_ids) == 0:
+        return None
+    else:
+        assert len(mk_individual_ids) == 1, \
+            'num of mk ids is not 1 for kmmbr names {}: {}'.format(kmmbr['names'], mk_individual_ids)
+        return mk_individual_ids.pop()
 
 
 def get_kmmbr_results(kmmbr, data):
@@ -48,7 +50,7 @@ def get_kmmbr_results(kmmbr, data):
         knesset_nums.add(vote_rslt['knesset_num'])
     mk_individual_id = get_mk_individual_id(knesset_nums, kmmbr, data)
     for vote_rslt in kmmbr['vote_rslts']:
-        vote_rslt['mk_individual_id'] = mk_individual_id
+        vote_rslt['mk_individual_id'] = mk_individual_id if mk_individual_id is not None else -1
         yield vote_rslt
 
 
