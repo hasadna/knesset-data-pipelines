@@ -10,6 +10,8 @@ Follow this method to get started quickly with exploration, processing and testi
 
 ### Running using Docker
 
+Docker is required to run the notebooks to provide a consistent environment.
+
 Install Docker for [Windows](https://store.docker.com/editions/community/docker-ce-desktop-windows),
 [Mac](https://store.docker.com/editions/community/docker-ce-desktop-mac) or [Linux](https://docs.docker.com/install/)
 
@@ -18,6 +20,8 @@ Pull the latest Docker image
 ```
 docker pull orihoch/knesset-data-pipelines
 ```
+
+#### Run Jupyter Lab
 
 Create a directory which will be shared between the host PC and the container:
 
@@ -49,6 +53,35 @@ Access the `jupyter-notebooks` directory and open one of the available notebooks
 You can now add or make modifications to the notebooks, then open a pull request with your changes.
 
 You can also modify the pipelines code from the host machine and it will be reflected in the notebook environment.
+
+#### Running from Local copy of knesset-data-pipelines
+
+From your local PC, clone the repository into ./knesset-data-pipelines:
+
+```
+git clone https://github.com/hasadna/knesset-data-pipelines.git .
+```
+
+Change directory:
+
+```
+cd knesset-data-pipelines
+```
+
+Run with Docker, mounting the local directory
+
+```
+docker run -it -p 8888:8888 --entrypoint jupyter \
+           -v `pwd`:/pipelines \
+           orihoch/knesset-data-pipelines lab --allow-root --ip 0.0.0.0 --no-browser \
+                --NotebookApp.token= --NotebookApp.custom_display_url=http://localhost:8888/
+```
+
+When running using this setup, you might have permission problems, fix it giving yourself ownership:
+
+```
+sudo chown -R $USER . 
+```
 
 ## Contributing
 

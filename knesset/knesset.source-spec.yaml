@@ -139,3 +139,14 @@ kns_status:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
+
+generate-sitemap:
+  dependencies:
+  - pipeline: ./committees/dist/render_meetings
+  - pipeline: ./committees/dist/render_committees
+  - pipeline: ./committees/dist/create_members
+  - pipeline: ./committees/dist/create_factions
+  pipeline:
+  - run: generate_sitemap
+    parameters:
+      num-links-per-file: 50000
