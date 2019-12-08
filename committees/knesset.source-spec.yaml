@@ -309,6 +309,8 @@ kns_committeesession:
   - datapackage: data/committees/kns_cmtsessionitem/datapackage.json
   - pipeline: ./committees/kns_documentcommitteesession
   - datapackage: data/committees/kns_documentcommitteesession/datapackage.json
+  - pipeline: ./bills/kns_bill
+  - datapackage: data/bills/kns_bill/datapackage.json
   pre-steps:
   - run: load_resource
     parameters:
@@ -322,10 +324,14 @@ kns_committeesession:
     parameters:
       url: ../data/committees/kns_documentcommitteesession/datapackage.json
       resource: kns_documentcommitteesession
+  - run: load_resource
+    parameters:
+      url: ../data/bills/kns_bill/datapackage.json
+      resource: kns_bill
   pipeline-type: knesset dataservice
   schemas-bucket: "committees"
   dataservice-parameters:
-    incremental-field: LastUpdatedDate
+#    incremental-field: LastUpdatedDate
     resource-name: kns_committeesession
     service-name: api
     method-name: "KNS_CommitteeSession"
@@ -417,7 +423,14 @@ kns_committeesession:
         topics:
           name: Name
           aggregate: array
+        item_ids:
+          name: ItemID
+          aggregate: array
+        item_type_ids:
+          name: ItemTypeID
+          aggregate: array
   - run: join
+    cache: true
     parameters:
       source:
         name: kns_committee
@@ -429,3 +442,4 @@ kns_committeesession:
       fields:
         committee_name:
           name: Name
+  - run: join_session_bills
