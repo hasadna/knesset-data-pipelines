@@ -50,10 +50,42 @@ def parse_part_header(part, session):
     return category, header.strip()
 
 
+def get_invitee_name_role(header, session):
+    for invitee in session['invitees']:
+        name = invitee.get('name', '')
+        role = invitee.get('role', '')
+        name_role = ' - '.join([name, role])
+        if fuzz.token_set_ratio(header, name_role) > 90:
+            return name_role
+    return ''
+
+
 def add_speaker_stats_from_parts(protocol_parts, row):
     speaker_stats_rows = []
     for part_index, part in enumerate(protocol_parts):
+        part_categories = set()
         part_category, header = parse_part_header(part, row)
+        if part_category:
+            part_categories.add(part_category)
+        name_role = get_invitee_name_role(header, row)
+        if name_role:
+            for cat in [
+                {
+                    'name': 'משרד המשפטים',
+                    'role_name_match_strings': ['משרד המשפטים'],
+                },
+                {
+                    'name': 'עו"ד',
+                    'role_name_match_strings': ['עו"ד'],
+                },
+                {
+                    'name': 'ייעוץ משפטי',
+                    'role_name_match_strings': ['יועץ משפטי', 'יועמ"ש'],
+                }
+            ]:
+                for s in cat['role_name_match_strings']:
+                    if fuzz.token_set_ratio(s, name_role) > 90:
+                        part_categories.add(cat['name'])
         speaker_stats_row = {
             'CommitteeSessionID': row['CommitteeSessionID'],
             'parts_crc32c': row['parts_crc32c'],
@@ -61,7 +93,8 @@ def add_speaker_stats_from_parts(protocol_parts, row):
             'header': header,
             'body_length': len(part['body']) if part['body'] else 0,
             'body_num_words': len(part['body'].split(' ')) if part['body'] else 0,
-            'part_category': part_category
+            'part_categories': ','.join(part_categories),
+            'name_role': name_role
         }
         add_speaker_stats_row(speaker_stats_row)
         speaker_stats_rows.append(speaker_stats_row)
@@ -146,7 +179,8 @@ def modify_datapackage(datapackage, parameters, stats):
                     ('header', 'string'),
                     ('body_length', 'number'),
                     ('body_num_words', 'number'),
-                    ('part_category', 'string'),
+                    ('part_categories', 'string'),
+                    ('name_role', 'string'),
                 ]
             ]
         }
