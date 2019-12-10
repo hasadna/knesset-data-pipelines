@@ -60,7 +60,7 @@ def get_invitee_name_role(header, session):
     return ''
 
 
-def add_speaker_stats_from_parts(protocol_parts, row):
+def add_speaker_stats_from_parts(protocol_parts, row, stats):
     speaker_stats_rows = []
     for part_index, part in enumerate(protocol_parts):
         part_categories = set()
@@ -96,6 +96,7 @@ def add_speaker_stats_from_parts(protocol_parts, row):
             'part_categories': ','.join(part_categories),
             'name_role': name_role
         }
+        stats['num_parts'] += 1
         add_speaker_stats_row(speaker_stats_row)
         speaker_stats_rows.append(speaker_stats_row)
     return speaker_stats_rows
@@ -109,6 +110,9 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
             and (not parameters.get("filter-knesset-num") or int(row["KnessetNum"]) in parameters["filter-knesset-num"])
         ):
             if row['parts_parsed_filename'] and row['parts_crc32c']:
+                if stats['num_sessions'] % 1000 == 1:
+                    logging.info(stats)
+                stats['num_sessions'] += 1
                 new_cache_hash, old_cache_hash, cache_hash_path, cache_hash_rows = None, None, None, None
                 if os.environ.get('KNESSET_PIPELINES_DATA_PATH'):
                     m = BASE_HASH_OBJ.copy()
@@ -125,6 +129,7 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
                     if cache_hash_rows and len(cache_hash_rows) > 0:
                         # logging.info('loading {} parts from cache, first part: {}'.format(len(cache_hash_rows), cache_hash_rows[0]))
                         for cache_hash_row in cache_hash_rows:
+                            stats['num_parts_from_cache'] += 1
                             add_speaker_stats_row(cache_hash_row)
                     # else:
                         # logging.warning('loading 0 parts from cache')
@@ -153,7 +158,7 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
                         protocol_parts = Flow(load(protocol_parts_url)).results()[0][0]
                     if len(protocol_parts) > 0:
                         # logging.info('Loaded {} protocol parts, first part: {}'.format(len(protocol_parts), protocol_parts[0]))
-                        speaker_stats_rows = add_speaker_stats_from_parts(protocol_parts, row)
+                        speaker_stats_rows = add_speaker_stats_from_parts(protocol_parts, row, stats)
                     else:
                         # logging.info("Loaded 0 protocol parts")
                         speaker_stats_rows = []
@@ -211,7 +216,11 @@ def generic_process_resources(resource_iterator, parameters, stats, process_row)
 
 
 def process():
-    stats = {}
+    stats = {
+        'num_parts': 0,
+        'num_parts_from_cache': 0,
+        'num_sessions': 0
+    }
     parameters, datapackage, resource_iterator = ingest(debug=False)
     datapackage = modify_datapackage(datapackage, parameters, stats)
     new_iter = generic_process_resources(resource_iterator, parameters, stats, process_row)
