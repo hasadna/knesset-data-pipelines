@@ -76,6 +76,14 @@ committee-meeting-speaker-stats:
 #      - CommitteeSessionID: 86485
 #      - CommitteeSessionID: 2058899
   - run: committee_meeting_speaker_stats
+    parameters:
+      # ratios for matching between header and category
+      MK_MATCH_RATIO: 80
+      LEGAL_ADVISOR_MATCH_RATIO: 80
+      INVITEE_MATCH_RATIO: 80
+      # ratios for matching between name_role and category
+      NAME_ROLE_DEFAULT_MATCH_RATIO: 80
+      NAME_ROLE_OFFICE_MATCH_RATIO: 75
   - run: knesset.dump_to_path
     parameters:
       out-path: ../data/people/committees/meeting-speaker-stats

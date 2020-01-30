@@ -30,7 +30,7 @@ def add_speaker_stats_row(row):
     speaker_stats_kv.set(key, value)
 
 
-def parse_part_header(part, session):
+def parse_part_header(part, session, parameters):
     header = part['header']
     category = ''
     if 'יו"ר' in header:
@@ -39,52 +39,59 @@ def parse_part_header(part, session):
         header = header.replace('יו"ר', '')
     else:
         for mk in session['mks']:
-            if fuzz.token_set_ratio(mk, header) > 90:
+            if fuzz.token_set_ratio(mk, header, full_process=True) > parameters['MK_MATCH_RATIO']:
                 category = 'mk'
                 break
         if category == '':
             for legal_advisor in session['legal_advisors']:
-                if fuzz.token_set_ratio(legal_advisor, header) > 90:
+                if fuzz.token_set_ratio(legal_advisor, header, full_process=True) > parameters['LEGAL_ADVISOR_MATCH_RATIO']:
                     category = 'legal_advisor'
                     break
     return category, header.strip()
 
 
-def get_invitee_name_role(header, session):
+def get_invitee_name_role(header, session, parameters):
     for invitee in session['invitees']:
         name = invitee.get('name', '')
         role = invitee.get('role', '')
         name_role = ' - '.join([name, role])
-        if fuzz.token_set_ratio(header, name_role) > 90:
+        if fuzz.token_set_ratio(header, name_role, full_process=True) > parameters['INVITEE_MATCH_RATIO']:
             return name_role
     return ''
 
 
-def add_speaker_stats_from_parts(protocol_parts, row, stats):
+def add_speaker_stats_from_parts(protocol_parts, row, stats, parameters):
     speaker_stats_rows = []
     for part_index, part in enumerate(protocol_parts):
         part_categories = set()
-        part_category, header = parse_part_header(part, row)
+        part_category, header = parse_part_header(part, row, parameters)
         if part_category:
             part_categories.add(part_category)
-        name_role = get_invitee_name_role(header, row)
+        name_role = get_invitee_name_role(header, row, parameters)
         if name_role:
+            misrad_hamishpatim_role_name = 'משרד המשפטים'
             for cat in [
                 {
-                    'name': 'משרד המשפטים',
+                    'name': misrad_hamishpatim_role_name,
                     'role_name_match_strings': ['משרד המשפטים'],
                 },
                 {
-                    'name': 'עו"ד',
-                    'role_name_match_strings': ['עו"ד'],
+                    'name': 'משרד ממשלתי אחר',
+                    'role_name_match_strings': ['משרד ה'],
+                    'not_role': misrad_hamishpatim_role_name,
+                    'match_ratio': parameters['NAME_ROLE_OFFICE_MATCH_RATIO']
                 },
                 {
-                    'name': 'ייעוץ משפטי',
-                    'role_name_match_strings': ['יועץ משפטי', 'יועמ"ש'],
+                    'name': 'משפטן',
+                    'role_name_match_strings': [
+                        'יועץ משפטי', 'יועמ"ש', 'עו"ד', 'יועצת משפטית', 'עורך דין', 'עורכת דין', 'יעוץ משפטי'
+                    ],
                 }
             ]:
+                if cat.get('not_role') and cat['not_role'] in part_categories:
+                    continue
                 for s in cat['role_name_match_strings']:
-                    if fuzz.token_set_ratio(s, name_role) > 90:
+                    if fuzz.token_set_ratio(s, name_role, full_process=True) > cat.get('match_ratio', parameters['NAME_ROLE_DEFAULT_MATCH_RATIO']):
                         part_categories.add(cat['name'])
         speaker_stats_row = {
             'CommitteeSessionID': row['CommitteeSessionID'],
@@ -158,7 +165,7 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
                         protocol_parts = Flow(load(protocol_parts_url)).results()[0][0]
                     if len(protocol_parts) > 0:
                         # logging.info('Loaded {} protocol parts, first part: {}'.format(len(protocol_parts), protocol_parts[0]))
-                        speaker_stats_rows = add_speaker_stats_from_parts(protocol_parts, row, stats)
+                        speaker_stats_rows = add_speaker_stats_from_parts(protocol_parts, row, stats, parameters)
                     else:
                         # logging.info("Loaded 0 protocol parts")
                         speaker_stats_rows = []
