@@ -245,7 +245,7 @@ kns_documentcommitteesession:
 
 background_material_titles:
   dependencies:
-  - pipeline: ./committees/kns_documentcommitteesession
+#  - pipeline: ./committees/kns_documentcommitteesession
   - datapackage: data/committees/kns_documentcommitteesession/datapackage.json
   - pipeline: ./committees/kns_committeesession
   - datapackage: data/committees/kns_committeesession/datapackage.json
@@ -284,7 +284,7 @@ background_material_titles:
 
 sync-documents:
   dependencies:
-  - pipeline: ./committees/kns_documentcommitteesession
+#  - pipeline: ./committees/kns_documentcommitteesession
   - datapackage: data/committees/kns_documentcommitteesession/datapackage.json
   pipeline:
   - run: knesset.sync
@@ -307,7 +307,7 @@ kns_committeesession:
   - datapackage: data/committees/kns_committee/datapackage.json
   - pipeline: ./committees/kns_cmtsessionitem
   - datapackage: data/committees/kns_cmtsessionitem/datapackage.json
-  - pipeline: ./committees/kns_documentcommitteesession
+#  - pipeline: ./committees/kns_documentcommitteesession
   - datapackage: data/committees/kns_documentcommitteesession/datapackage.json
   - pipeline: ./bills/kns_bill
   - datapackage: data/bills/kns_bill/datapackage.json
