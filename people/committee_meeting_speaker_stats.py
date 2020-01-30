@@ -7,6 +7,7 @@ from kvfile import KVFile
 from dataflows import Flow, load
 import csv
 from fuzzywuzzy import fuzz
+import traceback
 
 
 BASE_HASH_OBJ = hashlib.md5()
@@ -165,7 +166,12 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
                         protocol_parts = Flow(load(protocol_parts_url)).results()[0][0]
                     if len(protocol_parts) > 0:
                         # logging.info('Loaded {} protocol parts, first part: {}'.format(len(protocol_parts), protocol_parts[0]))
-                        speaker_stats_rows = add_speaker_stats_from_parts(protocol_parts, row, stats, parameters)
+                        try:
+                            speaker_stats_rows = add_speaker_stats_from_parts(protocol_parts, row, stats, parameters)
+                        except Exception:
+                            logging.error('Failed to get speaker stats rows for {}'.format(row["parts_parsed_filename"]))
+                            traceback.print_exc()
+                            speaker_stats_rows = []
                     else:
                         # logging.info("Loaded 0 protocol parts")
                         speaker_stats_rows = []
