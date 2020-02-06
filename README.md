@@ -92,3 +92,4 @@ Useful resources for getting acquainted:
 * [Code](https://github.com/OriHoch/knesset-data-k8s) for the periodic execution component
 * [Info](http://main.knesset.gov.il/Activity/Info/Pages/Databases.aspx) on available data from the Knesset site
 * Living [document](https://docs.google.com/document/d/1eeQRrpGYuEJKAAtShPbjFn6i2f_UmQgg1caMTEs93ic/edit) with short list of ongoing project activities
+
