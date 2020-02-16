@@ -8,7 +8,7 @@ env:
     - K8S_OPS_REPO_BRANCH=master
     - K8S_OPS_REPO_SLUG=OriHoch/knesset-data-k8s
     - DOCKER_IMAGE=orihoch/knesset-data-pipelines
-    - DEPLOY_YAML_UPDATE_FILE=environments/production/values.auto-updated.yaml
+    - DEPLOY_YAML_UPDATE_FILE=environments/production-kamatera/values.auto-updated.yaml
     - DEPLOY_VALUES_CHART_NAME=pipelines
     - DEPLOY_VALUES_IMAGE_PROP=image
     - DEPLOY_COMMIT_MESSAGE="automatic update of knesset-data-pipelines"
