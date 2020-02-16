@@ -33,6 +33,10 @@ MK_INDIVIDUAL_PHOTO_MALE = 'https://oknesset.org/static/img/Male_portrait_placeh
 # https://commons.wikimedia.org/wiki/File:Female_portrait_placeholder_cropped.jpg
 MK_INDIVIDUAL_PHOTO_FEMALE = 'https://oknesset.org/static/img/Female_portrait_placeholder_cropped.jpg'
 
+MISSING_MK_INDIVIDUAL_IDS = [
+    '984'
+]
+
 
 @lru_cache(maxsize=1)
 def get_mks_extra():
@@ -248,6 +252,9 @@ def get_mk_individual_positions_resource(resource):
         if not kns_person_id:
             kns_person_id, kns_person_row = find_matching_kns_person(mk_individual_row)
             if not kns_person_id or not kns_person_row:
+                if str(mk_individual_id) in MISSING_MK_INDIVIDUAL_IDS:
+                    logging.warning("Failed to find matching person for mk_invidual {}".format(mk_individual_id))
+                    continue
                 raise Exception("Failed to find matching person for mk_invidual {}".format(mk_individual_id))
         if parameters.get("filter-is-current") is None or kns_person_row["IsCurrent"] == parameters["filter-is-current"]:
             mk_individual_row.update(**kns_person_row)
