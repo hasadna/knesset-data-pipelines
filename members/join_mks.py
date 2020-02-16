@@ -180,7 +180,7 @@ def get_person_positions(person_id, mk_individual_row):
                                                                             "CommitteeID", "CommitteeName")}
         if not parameters.get("filter-knesset-num") or int(mk_position["KnessetNum"]) in parameters["filter-knesset-num"]:
             position_id = int(kns_persontoposition_row["PositionID"])
-            position = kns_position[position_id]
+            position = kns_position.get(position_id, {'Description': str(position_id), 'GenderID': 252})
 
             mk_position.update(start_date=start_date,
                                finish_date=finish_date,
