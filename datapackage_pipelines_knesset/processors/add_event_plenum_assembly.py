@@ -65,7 +65,14 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
                     row[pagra_field] = False
                 break
             last_knesset, last_assembly, last_plenum = knesset, assembly, plenum
-        assert updated, 'failed to update plenum/assembly {}'.format(event_datetime)
+        if not updated:
+            logging.warning('failed to update plenum/assembly for event_datetime: {}'.format(event_datetime))
+            if assembly_field:
+                row[assembly_field] = ''
+            if plenum_field:
+                row[plenum_field] = ''
+            if pagra_field:
+                row[pagra_field] = ''
     return row
 
 

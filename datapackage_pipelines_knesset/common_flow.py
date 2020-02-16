@@ -93,6 +93,8 @@ def get_knessetdate(kns_knessetdates_sorted, event_date):
     for knessetdate in get_knessetdates_with_pagra(kns_knessetdates_sorted):
         if event_date <= knessetdate['finish_date']:
             return knessetdate
+    logging.warning('failed to get knessetdate for event_date: {}'.format(event_date))
+    return None
 
 
 def get_knessetdates_with_pagra(kns_knessetdates_sorted):

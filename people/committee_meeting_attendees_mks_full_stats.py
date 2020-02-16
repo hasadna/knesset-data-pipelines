@@ -35,6 +35,8 @@ def flow():
             for mk_id, faction_id in get_mk_faction_ids(all_mk_ids, mk_individual_factions,
                                                         session_date):
                 knessetdate = get_knessetdate(kns_knessetdates_sorted, session_date)
+                if not knessetdate:
+                    continue
                 agg = aggregates.setdefault(knessetdate['knesset'], {})\
                                 .setdefault(knessetdate['plenum'], {})\
                                 .setdefault(knessetdate['assembly'], {})\
