@@ -18,6 +18,10 @@ with open('../people/committee_meeting_speaker_stats.py', 'rb') as f:
 speaker_stats_kv = KVFile()
 
 
+mk_individual_factions = {}
+mk_individual_names = {}
+
+
 def speaker_stats_resource():
     for k, row in speaker_stats_kv.items():
         # logging.info(row)
@@ -34,21 +38,25 @@ def add_speaker_stats_row(row):
 def parse_part_header(part, session, parameters):
     header = part['header']
     category = ''
+    mk_individual_id = None
+    mk_individual_faction = None
     if 'יו"ר' in header:
         category = 'chairperson'
         header = header.replace('היו"ר', '')
         header = header.replace('יו"ר', '')
+        mk_individual_id, mk_individual_faction = get_mk_individual_id_faction(header, session)
     else:
         for mk in session['mks']:
             if fuzz.token_set_ratio(mk, header, full_process=True) > parameters['MK_MATCH_RATIO']:
                 category = 'mk'
+                mk_individual_id, mk_individual_faction = get_mk_individual_id_faction(mk, session)
                 break
         if category == '':
             for legal_advisor in session['legal_advisors']:
                 if fuzz.token_set_ratio(legal_advisor, header, full_process=True) > parameters['LEGAL_ADVISOR_MATCH_RATIO']:
                     category = 'legal_advisor'
                     break
-    return category, header.strip()
+    return category, header.strip(), mk_individual_id, mk_individual_faction
 
 
 def get_invitee_name_role(header, session, parameters):
@@ -65,7 +73,7 @@ def add_speaker_stats_from_parts(protocol_parts, row, stats, parameters):
     speaker_stats_rows = []
     for part_index, part in enumerate(protocol_parts):
         part_categories = set()
-        part_category, header = parse_part_header(part, row, parameters)
+        part_category, header, mk_individual_id, mk_individual_faction = parse_part_header(part, row, parameters)
         if part_category:
             part_categories.add(part_category)
         name_role = get_invitee_name_role(header, row, parameters)
@@ -78,7 +86,7 @@ def add_speaker_stats_from_parts(protocol_parts, row, stats, parameters):
                 },
                 {
                     'name': 'משרד ממשלתי אחר',
-                    'role_name_match_strings': ['משרד ה'],
+                    'role_name_match_strings': ['משרד ה', 'משרד ל', 'המשרד ל'],
                     'not_role': misrad_hamishpatim_role_name,
                     'match_ratio': parameters['NAME_ROLE_OFFICE_MATCH_RATIO']
                 },
@@ -102,7 +110,9 @@ def add_speaker_stats_from_parts(protocol_parts, row, stats, parameters):
             'body_length': len(part['body']) if part['body'] else 0,
             'body_num_words': len(part['body'].split(' ')) if part['body'] else 0,
             'part_categories': ','.join(part_categories),
-            'name_role': name_role
+            'name_role': name_role,
+            'mk_individual_id': mk_individual_id,
+            'mk_individual_faction': mk_individual_faction
         }
         stats['num_parts'] += 1
         add_speaker_stats_row(speaker_stats_row)
@@ -110,8 +120,34 @@ def add_speaker_stats_from_parts(protocol_parts, row, stats, parameters):
     return speaker_stats_rows
 
 
+def get_mk_individual_faction(mk_id, session):
+    for faction in mk_individual_factions.get(mk_id, []):
+        if faction['start_date'] < session['StartDate'].date():
+            if not faction['finish_date'] or faction['finish_date'] > session['StartDate'].date():
+                return faction['name']
+    return None
+
+
+def get_mk_individual_id_faction(name, session):
+    for tmp_name, tmp_id in mk_individual_names.items():
+        if fuzz.token_set_ratio(tmp_name, name, full_process=True) > 85:
+            faction = get_mk_individual_faction(tmp_id, session)
+            if faction:
+                return tmp_id, faction
+    return None, None
+
+
 def process_row(row, row_index, spec, resource_index, parameters, stats):
-    if spec['name'] == 'kns_committeesession':
+    if spec['name'] == 'mk_individual_factions':
+        mk_individual_factions.setdefault(row['mk_individual_id'], []).append({
+            'name': row['faction_name'],
+            'start_date': row['start_date'],
+            'finish_date': row['finish_date'],
+        })
+    elif spec['name'] == 'mk_individual_names':
+        for name in row['names']:
+            mk_individual_names[name] = row['mk_individual_id']
+    elif spec['name'] == 'kns_committeesession':
         if (
             (not parameters.get("filter-meeting-id") or int(row["CommitteeSessionID"]) in parameters["filter-meeting-id"])
             and (not parameters.get("filter-committee-id") or int(row["CommitteeID"]) in parameters["filter-committee-id"])
@@ -199,6 +235,8 @@ def modify_datapackage(datapackage, parameters, stats):
                     ('body_num_words', 'number'),
                     ('part_categories', 'string'),
                     ('name_role', 'string'),
+                    ('mk_individual_id', 'number'),
+                    ('mk_individual_faction', 'string'),
                 ]
             ]
         }
@@ -225,7 +263,7 @@ def generic_process_resources(resource_iterator, parameters, stats, process_row)
         rows = resource
         spec = resource.spec
         yield generic_process_resource(rows, spec, resource_index, parameters, stats, process_row)
-        yield speaker_stats_resource()
+    yield speaker_stats_resource()
 
 
 def process():

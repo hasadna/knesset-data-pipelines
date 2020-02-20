@@ -62,7 +62,16 @@ committee-meeting-speaker-stats:
   dependencies:
   - pipeline: ./people/committee-meeting-attendees
   - datapackage: data/people/committees/meeting-attendees/datapackage.json
+  - datapackage: data/members/mk_individual/datapackage.json
   pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/members/mk_individual/datapackage.json
+      resource: mk_individual_factions
+  - run: load_resource
+    parameters:
+      url: ../data/members/mk_individual/datapackage.json
+      resource: mk_individual_names
   - run: load_resource
     parameters:
       url: ../data/people/committees/meeting-attendees/datapackage.json
