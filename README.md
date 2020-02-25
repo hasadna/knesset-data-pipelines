@@ -83,6 +83,39 @@ When running using this setup, you might have permission problems, fix it giving
 sudo chown -R $USER . 
 ```
 
+### Running locally without Docker
+
+Following instructions were tested with Ubuntu 18.04
+
+Install system dependencies:
+
+```
+sudo apt-get install python3.6 python3.6-dev build-essential libxml2-dev libxslt1-dev libleveldb1v5 libleveldb-dev \
+                     python3-pip bash jq git openssl antiword python3-venv
+```
+
+Install Python dependencies:
+
+```
+python3.6 -m venv env
+source env/bin/activate
+pip install 'https://github.com/OriHoch/datapackage-pipelines/archive/1.7.1-oh-2.zip#egg=datapackage-pipelines[speedup]'
+pip install wheel
+pip install psycopg2-binary knesset-data requests[socks] botocore boto3 python-dotenv google-cloud-storage sh
+pip install datapackage-pipelines-metrics psutil crcmod jsonpickle tika kvfile pyquery dataflows==0.0.14 pymongo \
+            tabulate jupyter jupyterlab
+pip install -e .
+```
+
+Start environment (these steps are required each time before starting to run pipelines):
+
+```
+source env/bin/activate
+export KNESSET_PIPELINES_DATA_PATH=`pwd`/data
+```
+
+Now you can run pipelines with `dpp` or start the notebook server with `jupyter lab`
+
 ## Contributing
 
 Looking to contribute? check out the [Help Wanted Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) or the [Noob Friendly Issues](https://github.com/hasadna/knesset-data-pipelines/issues?q=is%3Aissue+is%3Aopen+label%3A%22noob+friendly%22) for some ideas.
