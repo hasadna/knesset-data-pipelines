@@ -4,7 +4,6 @@ kns_plenumsession:
   pipeline-type: knesset dataservice
   schemas-bucket: plenum
   dataservice-parameters:
-    incremental-field: LastUpdatedDate
     resource-name: kns_plenumsession
     service-name: api
     method-name: "KNS_PlenumSession"
@@ -47,7 +46,6 @@ kns_plmsessionitem:
   pipeline-type: knesset dataservice
   schemas-bucket: plenum
   dataservice-parameters:
-    incremental-field: LastUpdatedDate
     resource-name: kns_plmsessionitem
     service-name: api
     method-name: "KNS_PlmSessionItem"
@@ -98,7 +96,6 @@ kns_documentplenumsession:
   pipeline-type: knesset dataservice
   schemas-bucket: plenum
   dataservice-parameters:
-    incremental-field: LastUpdatedDate
     resource-name: kns_documentplenumsession
     service-name: api
     method-name: "KNS_DocumentPlenumSession"
