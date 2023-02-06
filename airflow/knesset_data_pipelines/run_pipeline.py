@@ -1,5 +1,10 @@
 import os
+import time
+import json
+import shutil
+import random
 import datetime
+import tempfile
 import warnings
 import traceback
 from glob import glob
@@ -19,6 +24,10 @@ from . import config
 
 
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+
+
+class RequestThrottledException(Exception):
+    pass
 
 
 def get_pipeline_spec(pipeline_id):
@@ -64,9 +73,18 @@ def compose_url_get(url, params=None):
     return p.url
 
 
-def get_response_content(url, params, timeout, proxies):
+def get_response_content(url, params, timeout, proxies, retry_num=0):
     proxies = proxies if proxies else {}
     response = requests.get(url, params=params, timeout=timeout, proxies=proxies)
+    if response.status_code == 503:
+        if retry_num < 20:
+            retry_num += 1
+            sleep_seconds = random.randint(1, 30) + (retry_num * retry_num / 2)
+            print(f'got 503, sleeping {sleep_seconds} seconds and retrying ({retry_num}/20)')
+            time.sleep(sleep_seconds)
+            return get_response_content(url, params, timeout, proxies, retry_num)
+        else:
+            raise RequestThrottledException()
     assert response.status_code == 200, f"invalid response status code: {response.status_code}"
     return response.content
 
@@ -130,11 +148,21 @@ def get_row_from_entry(params, entry):
     return {fieldname: get_field_from_entry(fieldname, field, data) for fieldname, field in params['fields'].items()}
 
 
-def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_rows=None):
+def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_rows=None, stop_on_throttled_error=False, start_url=None, load_from=None):
     if stats is None:
         stats = defaultdict(int)
-    url_base = os.path.join(config.SERVICE_URLS[params['service-name']], params['method-name'])
-    next_url = compose_url_get(url_base)
+    if load_from:
+        print(f'loading from {load_from}')
+        for res in DF.Flow(DF.load(os.path.join(load_from, 'datapackage.json'))).datastream().res_iter.get_iterator():
+            for row in res:
+                stats['rows'] += 1
+                yield row
+        pprint(dict(stats))
+    if start_url:
+        next_url = start_url
+    else:
+        url_base = os.path.join(config.SERVICE_URLS[params['service-name']], params['method-name'])
+        next_url = compose_url_get(url_base)
     while next_url and (not limit_rows or stats['rows'] < limit_rows):
         if stats['rows'] == 0:
             print(next_url)
@@ -142,7 +170,16 @@ def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_
             print(next_url)
             pprint(dict(stats))
         stats['urls'] += 1
-        soup = get_soup(next_url, proxies=proxies)
+        try:
+            soup = get_soup(next_url, proxies=proxies)
+        except RequestThrottledException:
+            if stop_on_throttled_error:
+                traceback.print_exc()
+                stats[f'stopped_on_throttled_error_next_url__{next_url}'] += 1
+                break
+            else:
+                raise
+        assert str(soup).startswith('<?xml version="1.0" encoding="utf-8"?><feed'), f'invalid response: {str(soup)[:100]}'
         try:
             entries = soup.feed.find_all('entry')
         except:
@@ -190,6 +227,48 @@ def get_schema_set_type_kwargs(dataservice_params):
     return res
 
 
+def _run_pipeline(table_name, storage_url, pipeline_id, storage_path, dataservice_params, limit_rows, pipeline_name, dump_to_path, dump_to_db, dump_to_storage,
+                  stop_on_throttled_error=False, start_url=None, load_from=None):
+    if stop_on_throttled_error:
+        assert not dump_to_db, 'stop_on_throttled_error is not supported with dump_to_db'
+        assert not dump_to_storage, 'stop_on_throttled_error is not supported with dump_to_storage'
+    table_name = f'{table_name}{config.KNESSET_DATA_OUTPUT_SUFFIX}'
+    storage_url = f'{storage_url}{config.KNESSET_DATA_OUTPUT_SUFFIX}'
+    print(f'pipeline_id: {pipeline_id}\nstorage_url: {storage_url}\nstorage_path: {storage_path}\ntable_name: {table_name}')
+    stats = defaultdict(int)
+    temp_table_name = f'__temp__{table_name}'
+    DF.Flow(
+        add_dataservice_collection_resource(dataservice_params, stats=stats, limit_rows=limit_rows, stop_on_throttled_error=stop_on_throttled_error, start_url=start_url, load_from=load_from),
+        DF.update_resource('res_1', name=pipeline_name, path=f'{pipeline_name}.csv'),
+        *[DF.set_type(resources=pipeline_name, **kwargs) for kwargs in get_schema_set_type_kwargs(dataservice_params)],
+        *([
+              DF.dump_to_path(storage_path),
+          ] if dump_to_path else []),
+        *([
+              DF.dump_to_sql(
+                  {temp_table_name: {'resource-name': pipeline_name}},
+                  get_db_engine(),
+                  batch_size=100000,
+              ),
+          ] if dump_to_db else []),
+    ).process()
+    if dump_to_db:
+        with get_db_engine().connect() as conn:
+            with conn.begin():
+                conn.execute(dedent(f'''
+                        drop table if exists {table_name};
+                        alter table {temp_table_name} rename to {table_name};
+                    '''))
+    if dump_to_storage:
+        upload_to_storage(storage_path, storage_url, pipeline_name)
+    pprint(dict(stats))
+    if stop_on_throttled_error:
+        for key in stats.keys():
+            if key.startswith('stopped_on_throttled_error_next_url__'):
+                return key.replace('stopped_on_throttled_error_next_url__', '')
+        return None
+
+
 def main(pipeline_id, limit_rows=None, dump_to_db=None, dump_to_path=None, dump_to_storage=None):
     if not dump_to_db and not dump_to_path and not dump_to_storage:
         dump_to_db, dump_to_path, dump_to_storage = True, True, True
@@ -198,52 +277,107 @@ def main(pipeline_id, limit_rows=None, dump_to_db=None, dump_to_path=None, dump_
     limit_rows = int(limit_rows) if limit_rows else None
     pipeline_name, pipeline = get_pipeline_spec(pipeline_id)
     dataservice_params, storage_url, storage_path, table_name = get_pipeline_params(pipeline_name, pipeline)
-    table_name = f'{table_name}{config.KNESSET_DATA_OUTPUT_SUFFIX}'
-    storage_url = f'{storage_url}{config.KNESSET_DATA_OUTPUT_SUFFIX}'
-    print(f'pipeline_id: {pipeline_id}\nstorage_url: {storage_url}\nstorage_path: {storage_path}\ntable_name: {table_name}')
-    stats = defaultdict(int)
-    temp_table_name = f'__temp__{table_name}'
-    DF.Flow(
-        add_dataservice_collection_resource(dataservice_params, stats=stats, limit_rows=limit_rows),
-        DF.update_resource('res_1', name=pipeline_name, path=f'{pipeline_name}.csv'),
-        *[DF.set_type(resources=pipeline_name, **kwargs) for kwargs in get_schema_set_type_kwargs(dataservice_params)],
-        *([
-            DF.dump_to_path(os.path.join(config.KNESSET_PIPELINES_DATA_PATH, f'{pipeline_id}{config.KNESSET_DATA_OUTPUT_SUFFIX}')),
-        ] if dump_to_path else []),
-        *([
-            DF.dump_to_sql(
-                {temp_table_name: {'resource-name': pipeline_name}},
-                get_db_engine(),
-                batch_size=100000,
-            ),
-        ] if dump_to_db else []),
-    ).process()
-    if dump_to_db:
-        with get_db_engine().connect() as conn:
-            with conn.begin():
-                conn.execute(dedent(f'''
-                    drop table if exists {table_name};
-                    alter table {temp_table_name} rename to {table_name};
-                '''))
-    if dump_to_storage:
-        upload_to_storage(os.path.join(config.KNESSET_PIPELINES_DATA_PATH, f'{pipeline_id}{config.KNESSET_DATA_OUTPUT_SUFFIX}'), storage_url, pipeline_name)
-    pprint(dict(stats))
+    _run_pipeline(table_name, storage_url, pipeline_id, storage_path, dataservice_params, limit_rows, pipeline_name, dump_to_path, dump_to_db, dump_to_storage)
 
 
-def list_pipelines():
+def list_pipelines(full=False, filter_pipeline_ids=None):
     for source_spec_yaml in glob(os.path.join(config.KNESSET_DATA_PIPELINES_ROOT_DIR, '**/knesset.source-spec.yaml'), recursive=True):
         pipeline_path = os.path.dirname(source_spec_yaml.replace(config.KNESSET_DATA_PIPELINES_ROOT_DIR, '').lstrip('/'))
         with open(source_spec_yaml) as f:
             source_spec = yaml.safe_load(f)
         for pipeline_name, pipeline in source_spec.items():
             pipeline_id = os.path.join(pipeline_path, pipeline_name)
+            if filter_pipeline_ids and pipeline_id not in filter_pipeline_ids:
+                continue
             pipeline_name, pipeline = get_pipeline_spec(pipeline_id)
             error = False
             try:
-                get_pipeline_params(pipeline_name, pipeline)
+                dataservice_params, storage_url, storage_path, table_name = get_pipeline_params(pipeline_name, pipeline)
             except Exception as e:
                 if str(e) not in ['pipeline dependencies are not supported', 'unknown pipeline-type: None', 'additional-steps is not supported']:
                     raise
                 error = True
             if not error:
-                yield pipeline_id
+                if full:
+                    yield {
+                        'pipeline_id': pipeline_id,
+                        'pipeline_name': pipeline_name,
+                        'dataservice_params': dataservice_params,
+                        'storage_url': storage_url,
+                        'storage_path': storage_path,
+                        'table_name': table_name,
+                    }
+                else:
+                    yield pipeline_id
+
+
+def run_all(filter_pipeline_ids=None):
+    if filter_pipeline_ids:
+        filter_pipeline_ids = [p.strip() for p in filter_pipeline_ids.split(',') if p.strip()]
+    all_pipelines = list(list_pipelines(full=True, filter_pipeline_ids=filter_pipeline_ids))
+    bucket_name = 'knesset-data-pipelines'
+    storage_client = google.cloud.storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    for pipeline in all_pipelines:
+        datapackage_json_url = os.path.join(pipeline['storage_url'].replace('http://', 'https://'), 'datapackage.json')
+        datapackage = requests.get(datapackage_json_url).json()
+        pipeline['old_package_hash'] = datapackage['hash']
+        pipeline['old_package_created'] = bucket.get_blob(datapackage_json_url.replace('https://storage.googleapis.com/knesset-data-pipelines/', '')).time_created
+        pipeline['hours_since_last_update'] = (datetime.datetime.now(datetime.timezone.utc) - pipeline['old_package_created']).total_seconds() / 60 / 60
+    temp_pipeline_path = os.path.join(config.KNESSET_PIPELINES_DATA_PATH, '__airflow_temp_pipeline')
+    temp_pipeline_status_json_filename = os.path.join(temp_pipeline_path, 'status.json')
+    if os.path.exists(temp_pipeline_status_json_filename):
+        with open(temp_pipeline_status_json_filename) as f:
+            old_temp_pipeline_status = json.load(f)
+    else:
+        old_temp_pipeline_status = None
+    if old_temp_pipeline_status is not None:
+        print(f'old_temp_pipeline_status: {old_temp_pipeline_status}')
+    for pipeline in all_pipelines:
+        if old_temp_pipeline_status and old_temp_pipeline_status['pipeline_id'] != pipeline['pipeline_id']:
+            print(f'skipping pipeline {pipeline["pipeline_id"]} because we are waiting to continue previously started pipeline {old_temp_pipeline_status["pipeline_id"]}')
+            continue
+        if pipeline['hours_since_last_update'] <= 24:
+            print(f'skipping pipeline {pipeline["pipeline_id"]} because it was updated {pipeline["hours_since_last_update"]} hours ago')
+            continue
+        if old_temp_pipeline_status:
+            print(f'continuing pipeline {pipeline["pipeline_id"]} from previous run')
+            start_datetime = datetime.datetime.fromisoformat(old_temp_pipeline_status['start_datetime'])
+            start_url = old_temp_pipeline_status.get('stopped_next_url')
+            old_temp_pipeline_status = None
+        else:
+            print(f'running pipeline {pipeline["pipeline_id"]}')
+            start_datetime = datetime.datetime.now(datetime.timezone.utc)
+            start_url = None
+            shutil.rmtree(temp_pipeline_path, ignore_errors=True)
+            os.makedirs(temp_pipeline_path, exist_ok=True)
+        with open(temp_pipeline_status_json_filename, 'w') as f:
+            json.dump({
+                'pipeline_id': pipeline['pipeline_id'],
+                'start_datetime': start_datetime.isoformat(),
+                'start_url': start_url,
+            }, f)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            stopped_next_url = _run_pipeline(
+                table_name=None, storage_url=None, pipeline_id=pipeline['pipeline_id'],
+                storage_path=tmpdir, dataservice_params=pipeline['dataservice_params'],
+                limit_rows=None, pipeline_name=pipeline['pipeline_name'],
+                dump_to_path=True, dump_to_db=False, dump_to_storage=False,
+                stop_on_throttled_error=True, start_url=start_url if os.path.exists(os.path.join(temp_pipeline_path, 'datapackage.json')) else None,
+                load_from=temp_pipeline_path if start_url and os.path.exists(os.path.join(temp_pipeline_path, 'datapackage.json')) else None
+            )
+            for filename in os.listdir(tmpdir):
+                os.unlink(os.path.join(temp_pipeline_path, filename))
+                shutil.move(os.path.join(tmpdir, filename), os.path.join(temp_pipeline_path, filename))
+        if stopped_next_url:
+            print(f'pipeline stopped on url {stopped_next_url}, can continue on next run')
+            with open(temp_pipeline_status_json_filename, 'w') as f:
+                json.dump({
+                    'pipeline_id': pipeline['pipeline_id'],
+                    'start_datetime': start_datetime.isoformat(),
+                    'stopped_datetime': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    'stopped_next_url': stopped_next_url,
+                }, f)
+                break
+        else:
+            shutil.rmtree(temp_pipeline_path, ignore_errors=True)

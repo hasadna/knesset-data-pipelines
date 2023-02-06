@@ -31,5 +31,12 @@ def list_():
         print(f'- {pipeline_id}')
 
 
+@main.command()
+@click.option('--filter-pipeline-ids')
+def run_all(**kwargs):
+    from .run_pipeline import run_all
+    run_all(**kwargs)
+
+
 if __name__ == "__main__":
     main()
