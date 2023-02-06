@@ -1,0 +1,60 @@
+version: '2.4'
+
+services:
+
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: "123456"
+    volumes:
+      - "db:/var/lib/postgresql/data"
+
+  airflow-db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: "123456"
+    volumes:
+      - "airflow-db:/var/lib/postgresql/data"
+
+  airflow-webserver:
+    image: ghcr.io/hasadna/knesset-data-pipelines/knesset-data-pipelines-airflow:latest
+    restart: unless-stopped
+    build: .
+    environment:
+      KNESSET_DATA_PIPELINES_AIRFLOW_ROLE: "webserver"
+    ports:
+      - "8080:8080"
+    volumes:
+      - "airflow-home:/var/airflow"
+    depends_on:
+      - airflow-db
+
+  airflow-scheduler:
+    image: ghcr.io/hasadna/knesset-data-pipelines/knesset-data-pipelines-airflow:latest
+    restart: unless-stopped
+    build: .
+    environment:
+      KNESSET_DATA_PIPELINES_AIRFLOW_ROLE: "scheduler"
+      PGSQL_HOST: "db"
+      KNESSET_PIPELINES_DATA_PATH: "/data"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "True"
+      KNESSET_DATA_PIPELINES_AIRFLOW_INITIALIZE: "yes"
+      KNESSET_DATA_PIPELINES_AIRFLOW_ADMIN_PASSWORD: "123456"
+      GOOGLE_CLOUD_PROJECT: "hasadna-oknesset"
+    volumes:
+      - "airflow-home:/var/airflow"
+      - ".:/srv"
+      - "../data:/data"
+      - "~/.config/gcloud/:/root/.config/gcloud/"
+    depends_on:
+      - airflow-webserver
+      - db
+
+volumes:
+  db:
+  airflow-db:
+  airflow-home:

@@ -1,0 +1,6 @@
+venv
+.env
+.idea
+data
+*.egg-info
+.airflow
