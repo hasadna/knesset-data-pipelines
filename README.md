@@ -2,6 +2,8 @@
 
 Data processing pipelines for loading, processing and visualizing data about the Knesset
 
+We are in the process of migrating to airflow, see [airflow/README.md](airflow/README.md) for details.
+
 Uses the [datapackage pipelines](https://github.com/frictionlessdata/datapackage-pipelines) and [DataFlows](https://github.com/datahq/dataflows) frameworks.
 
 ## Quickstart for data science
