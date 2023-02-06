@@ -9,7 +9,7 @@ jobs:
     steps:
     - env:
         DOCKER_APP_IMAGE_NAME: "ghcr.io/hasadna/knesset-data-pipelines/knesset-data-pipelines-airflow"
-        DOCKER_LEGACY_IMAGE_NAME: "ghcr.io/hasadna/knesset-data-pipelines/knesset-data-pipelines"
+        DOCKER_LEGACY_IMAGE_NAME: "ghcr.io/hasadna/knesset-data-pipelines/knesset-data-pipelines-legacy"
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         K8S_DEPLOY_KEY: ${{ secrets.KNESSET_DATA_K8S_DEPLOY_KEY }}
       run: |
