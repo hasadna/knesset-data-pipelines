@@ -1,6 +1,7 @@
 ### kns dataservice tables
 
 kns_plenumsession:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: plenum
   dataservice-parameters:
@@ -43,6 +44,7 @@ kns_plenumsession:
         description: תאריך עדכון אחרון
 
 kns_plmsessionitem:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: plenum
   dataservice-parameters:
@@ -93,6 +95,7 @@ kns_plmsessionitem:
         description: תאריך עדכון אחרון
 
 kns_documentplenumsession:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: plenum
   dataservice-parameters:

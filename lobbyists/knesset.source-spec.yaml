@@ -1,4 +1,5 @@
 v_lobbyist:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "lobbyists"
   dataservice-parameters:
@@ -54,6 +55,7 @@ v_lobbyist:
 
 
 v_lobbyist_clients:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "lobbyists"
   dataservice-parameters:

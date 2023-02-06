@@ -143,6 +143,7 @@ view_vote_rslts_hdr_approved:
       event-time: vote_time
 
 view_vote_mk_individual:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: votes
   dataservice-parameters:
@@ -176,6 +177,7 @@ view_vote_mk_individual:
         description: First Name English
 
 vote_result_type:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: votes
   dataservice-parameters:

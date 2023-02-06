@@ -2,6 +2,7 @@
 
 
 kns_person:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: members
   dataservice-parameters:
@@ -50,6 +51,7 @@ kns_person:
 # (43=ח"כ, 61=ח"כית)
 # סוגי התפקידים הקיימים בכנסת
 kns_position:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: members
   dataservice-parameters:
@@ -85,6 +87,7 @@ kns_position:
 # כדי לקבל מידע רק על חברי הכנסת, יש לעשות JOIN עם טבלת KNS_PersonToPosition ולפלטר לפי עמודת Position ID
 # (43=ח"כ, 61=ח"כית)
 kns_persontoposition:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: members
   dataservice-parameters:
@@ -161,6 +164,7 @@ kns_persontoposition:
 
 
 kns_mksitecode:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: members
   dataservice-parameters:

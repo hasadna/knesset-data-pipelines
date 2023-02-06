@@ -1,6 +1,7 @@
 ### kns dataservice tables
 
 kns_bill:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
@@ -110,6 +111,7 @@ kns_bill:
         description: תאריך עדכון אחרון
 
 kns_billname:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
@@ -148,6 +150,7 @@ kns_billname:
         type: datetime
 
 kns_billinitiator:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
@@ -183,6 +186,7 @@ kns_billinitiator:
         type: datetime
 
 kns_billhistoryinitiator:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
@@ -229,6 +233,7 @@ kns_billhistoryinitiator:
         type: datetime
 
 kns_billsplit:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
@@ -263,6 +268,7 @@ kns_billsplit:
         type: datetime
 
 kns_billunion:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:
@@ -288,6 +294,7 @@ kns_billunion:
         type: datetime
 
 kns_documentbill:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
   dataservice-parameters:

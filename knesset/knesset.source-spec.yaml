@@ -1,5 +1,6 @@
 
 kns_knessetdates:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "knesset"
   dataservice-parameters:
@@ -46,6 +47,7 @@ kns_knessetdates:
 
 
 kns_govministry:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "knesset"
   dataservice-parameters:
@@ -72,6 +74,7 @@ kns_govministry:
 
 
 kns_itemtype:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "knesset"
   dataservice-parameters:
@@ -97,6 +100,7 @@ kns_itemtype:
 
 
 kns_status:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "knesset"
   dataservice-parameters:

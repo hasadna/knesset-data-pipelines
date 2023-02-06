@@ -47,7 +47,9 @@ class Generator(GeneratorBase):
 
     @classmethod
     def filter_pipeline(cls, pipeline_id, pipeline, base):
-        if pipeline.get("pipeline-type") == "knesset dataservice":
+        if pipeline.get('dpp_disabled'):
+            yield from cls.get_dpp_disabled_pipeline(pipeline_id, pipeline, base)
+        elif pipeline.get("pipeline-type") == "knesset dataservice":
             yield from cls.get_knesset_dataservice_pipeline(pipeline_id, pipeline, base)
         elif pipeline.get("pipeline-type") == "all package":
             yield from cls.get_all_package_pipeline(pipeline_id, pipeline, base)
@@ -83,6 +85,18 @@ class Generator(GeneratorBase):
                 if 'dependencies' in pipeline:
                     del pipeline['dependencies']
             yield os.path.join(base, pipeline_id), pipeline
+
+    @classmethod
+    def get_dpp_disabled_pipeline(cls, pipeline_id, pipeline, base):
+        pipeline_steps = [('knesset.dummy', {'msg': 'running dummy pipeline because dpp is disabled, the package is created elsewhere'})]
+        output_pipeline = {
+            'pipeline': steps(*pipeline_steps)
+        }
+        if pipeline.get('dependencies'):
+            output_pipeline['dependencies'] = pipeline['dependencies']
+        else:
+            output_pipeline['schedule'] = {'crontab': '26 6 * * *'}
+        yield os.path.join(base, pipeline_id), output_pipeline
 
     @classmethod
     def get_knesset_dataservice_pipeline(cls, pipeline_id, pipeline, base):

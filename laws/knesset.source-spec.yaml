@@ -1,6 +1,7 @@
 ### kns dataservice tables
 
 kns_law:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
@@ -70,6 +71,7 @@ kns_law:
         description: תאריך עדכון אחרון
 
 kns_law_binding:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
@@ -133,6 +135,7 @@ kns_law_binding:
         description: תאריך עדכון אחרון
 
 kns_document_law:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
@@ -176,6 +179,7 @@ kns_document_law:
         description: תאריך עדכון אחרון
 
 kns_israel_law:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
@@ -256,6 +260,7 @@ kns_israel_law:
         description: תאריך עדכון אחרון
 
 kns_israel_law_name:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
@@ -291,6 +296,7 @@ kns_israel_law_name:
         description: תאריך עדכון אחרון
 
 kns_israel_law_ministry:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
@@ -318,6 +324,7 @@ kns_israel_law_ministry:
         description: תאריך עדכון אחרון
 
 kns_israel_law_classification:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
@@ -349,6 +356,7 @@ kns_israel_law_classification:
         description: תאריך עדכון אחרון
 
 kns_israel_law_binding:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
   dataservice-parameters:
