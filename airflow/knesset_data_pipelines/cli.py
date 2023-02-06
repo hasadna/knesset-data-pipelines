@@ -14,6 +14,9 @@ def main(load_dotenv):
 @main.command()
 @click.argument("PIPELINE_ID")
 @click.option('--limit-rows')
+@click.option('--dump-to-db', is_flag=True)
+@click.option('--dump-to-path', is_flag=True)
+@click.option('--dump-to-storage', is_flag=True)
 def run(**kwargs):
     """Run a single pipeline based on the old dpp pipeline id, e.g. 'bills/kns_bill'"""
     from .run_pipeline import main

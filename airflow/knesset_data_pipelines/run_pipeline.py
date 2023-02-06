@@ -103,17 +103,20 @@ def get_field_from_entry(fieldname, field, data):
     source_field_null = source_field.get('null')
     source_field_value = get_source_field_value(source_field_type, source_field_text, source_field_null)
     if output_field_type == 'integer':
-        return str(int(source_field_value)) if source_field_value is not None else ''
+        return int(source_field_value) if source_field_value is not None else None
     elif output_field_type == 'string':
         return str(source_field_value) if source_field_value is not None else ''
     elif output_field_type == 'datetime':
         if not source_field_value:
-            return ''
+            return None
         else:
             assert isinstance(source_field_value, datetime.datetime), f'invalid datetime value: {source_field_value}'
-            return source_field_value.strftime('%Y-%m-%d %H:%M:%S')
+            return source_field_value
     elif output_field_type == 'boolean':
-        return 'True' if source_field_value is True else 'False'
+        if source_field_value is None:
+            return None
+        else:
+            return True if source_field_value else False
     else:
         raise Exception(f'unknown output field type: {output_field_type}')
 
@@ -176,7 +179,22 @@ def upload_to_storage(source_path, target_url, pipeline_name):
         blob.upload_from_filename(filepath)
 
 
-def main(pipeline_id, limit_rows=None):
+def get_schema_set_type_kwargs(dataservice_params):
+    res = []
+    for fieldname, field in dataservice_params['fields'].items():
+        res.append({
+            'name': fieldname,
+            'regex': False,
+            'type': field['type'],
+        })
+    return res
+
+
+def main(pipeline_id, limit_rows=None, dump_to_db=None, dump_to_path=None, dump_to_storage=None):
+    if not dump_to_db and not dump_to_path and not dump_to_storage:
+        dump_to_db, dump_to_path, dump_to_storage = True, True, True
+    if dump_to_storage:
+        dump_to_path = True
     limit_rows = int(limit_rows) if limit_rows else None
     pipeline_name, pipeline = get_pipeline_spec(pipeline_id)
     dataservice_params, storage_url, storage_path, table_name = get_pipeline_params(pipeline_name, pipeline)
@@ -188,20 +206,27 @@ def main(pipeline_id, limit_rows=None):
     DF.Flow(
         add_dataservice_collection_resource(dataservice_params, stats=stats, limit_rows=limit_rows),
         DF.update_resource('res_1', name=pipeline_name, path=f'{pipeline_name}.csv'),
-        DF.dump_to_path(os.path.join(config.KNESSET_PIPELINES_DATA_PATH, f'{pipeline_id}{config.KNESSET_DATA_OUTPUT_SUFFIX}')),
-        DF.dump_to_sql(
-            {temp_table_name: {'resource-name': pipeline_name}},
-            get_db_engine(),
-            batch_size=100000,
-        ),
+        *[DF.set_type(resources=pipeline_name, **kwargs) for kwargs in get_schema_set_type_kwargs(dataservice_params)],
+        *([
+            DF.dump_to_path(os.path.join(config.KNESSET_PIPELINES_DATA_PATH, f'{pipeline_id}{config.KNESSET_DATA_OUTPUT_SUFFIX}')),
+        ] if dump_to_path else []),
+        *([
+            DF.dump_to_sql(
+                {temp_table_name: {'resource-name': pipeline_name}},
+                get_db_engine(),
+                batch_size=100000,
+            ),
+        ] if dump_to_db else []),
     ).process()
-    with get_db_engine().connect() as conn:
-        with conn.begin():
-            conn.execute(dedent(f'''
-                drop table if exists {table_name};
-                alter table {temp_table_name} rename to {table_name};
-            '''))
-    upload_to_storage(os.path.join(config.KNESSET_PIPELINES_DATA_PATH, f'{pipeline_id}{config.KNESSET_DATA_OUTPUT_SUFFIX}'), storage_url, pipeline_name)
+    if dump_to_db:
+        with get_db_engine().connect() as conn:
+            with conn.begin():
+                conn.execute(dedent(f'''
+                    drop table if exists {table_name};
+                    alter table {temp_table_name} rename to {table_name};
+                '''))
+    if dump_to_storage:
+        upload_to_storage(os.path.join(config.KNESSET_PIPELINES_DATA_PATH, f'{pipeline_id}{config.KNESSET_DATA_OUTPUT_SUFFIX}'), storage_url, pipeline_name)
     pprint(dict(stats))
 
 
