@@ -200,7 +200,7 @@ mk_individual:
   - datapackage: data/members/kns_person/datapackage.json
   - pipeline: ./knesset/kns_knessetdates
   - datapackage: data/knesset/kns_knessetdates/datapackage.json
-  pre-steps:
+  pipeline:
   - run: load_resource
     parameters:
       url: ../data/members/kns_mksitecode/datapackage.json
@@ -221,51 +221,36 @@ mk_individual:
     parameters:
       url: ../data/knesset/kns_knessetdates/datapackage.json
       resource: kns_knessetdates
-  pipeline-type: knesset dataservice
-  schemas-bucket: members
-  dataservice-parameters:
-    resource-name: mk_individual
-    service-name: members
-    method-name: "View_mk_individual"
-    fields:
-      mk_individual_id:
-        source: "{name}"
-        type: integer
-        primaryKey: true
-      mk_status_id:
-        source: "{name}"
-        type: integer
-      mk_individual_name:
-        source: "{name}"
-        type: string
-      mk_individual_name_eng:
-        source: "{name}"
-        type: string
-      mk_individual_first_name:
-        source: "{name}"
-        type: string
-      mk_individual_first_name_eng:
-        source: "{name}"
-        type: string
-      mk_individual_email:
-        source: "{name}"
-        type: string
-      mk_individual_photo:
-        source: "{name}"
-        type: string
-  additional-steps:
   - run: join_mks
 #    parameters:
-#      filter-knesset-num: [20]
+#      filter-knesset-num: [25]
 #      filter-is-current: true
-  additional-sql-tables:
-    members_mk_individual_names: mk_individual_names
-    members_mk_individual_factions: mk_individual_factions
-    members_mk_individual_faction_chairpersons: mk_individual_faction_chairpersons
-    members_mk_individual_committees: mk_individual_committees
-    members_mk_individual_govministries: mk_individual_govministries
-    members_factions: factions
-    members_faction_memberships: faction_memberships
+#  - run: dump.to_path
+#    parameters:
+#      out-path: ../data/members/mk_individual
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../data/members/mk_individual
+      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/members/mk_individual
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        members_mk_individual:
+          resource-name: mk_individual
+        members_mk_individual_names:
+          resource-name: mk_individual_names
+        members_mk_individual_factions:
+          resource-name: mk_individual_factions
+        members_mk_individual_faction_chairpersons:
+          resource-name: mk_individual_faction_chairpersons
+        members_mk_individual_committees:
+          resource-name: mk_individual_committees
+        members_mk_individual_govministries:
+          resource-name: mk_individual_govministries
+        members_factions:
+          resource-name: factions
+        members_faction_memberships:
+          resource-name: faction_memberships
 
 
 presence:

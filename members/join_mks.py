@@ -60,7 +60,44 @@ aggregations = {"stats": {}}
 kns_mksitecode, kns_person = None, None
 kns_person_descriptor = None
 kns_persontoposition, kns_position = None, None
-mk_individual_resource, mk_individual_descriptor = None, None
+mk_individual_descriptor = {
+  "schema": {
+    "fields": [
+      {
+        "name": "mk_individual_id",
+        "type": "integer"
+      },
+      {
+        "name": "mk_status_id",
+        "type": "integer"
+      },
+      {
+        "name": "mk_individual_name",
+        "type": "string"
+      },
+      {
+        "name": "mk_individual_name_eng",
+        "type": "string"
+      },
+      {
+        "name": "mk_individual_first_name",
+        "type": "string"
+      },
+      {
+        "name": "mk_individual_first_name_eng",
+        "type": "string"
+      },
+      {
+        "name": "mk_individual_email",
+        "type": "string"
+      },
+      {
+        "name": "mk_individual_photo",
+        "type": "string"
+      }
+    ]
+  }
+}
 
 
 mk_altnames = {}
@@ -78,9 +115,9 @@ for descriptor, resource in zip(datapackage["resources"], resources):
     elif descriptor["name"] == "kns_person":
         kns_person = {int(row["PersonID"]): row for row in resource}
         kns_person_descriptor = descriptor
-    elif descriptor["name"] == "mk_individual":
-        mk_individual_resource = resource
-        mk_individual_descriptor = descriptor
+    # elif descriptor["name"] == "mk_individual":
+    #     mk_individual_resource = resource
+    #     mk_individual_descriptor = descriptor
     elif descriptor["name"] == "kns_position":
         kns_position = {int(row["PositionID"]): row for row in resource}
     elif descriptor["name"] == "kns_persontoposition":
@@ -102,24 +139,6 @@ for descriptor, resource in zip(datapackage["resources"], resources):
 KNOWN_MK_PERSON_IDS = {
     955: kns_person[30407]  # Yehuda Glick - has a mismatch in name between mk_individual and kns_person
 }
-
-
-# TODO: remove this mk_individual matching function once this bug is fixed: https://github.com/hasadna/knesset-data/issues/147
-def find_matching_kns_person(mk):
-    for person_id, person in kns_person.items():
-        person_first, person_last, person_email = person["FirstName"].strip(), person["LastName"].strip(), person["Email"]
-        mk_first, mk_last, mk_email = mk["mk_individual_first_name"].strip(), mk["mk_individual_name"].strip(), mk["mk_individual_email"]
-        name_match = (len(person_first) > 1 and len(mk_first) > 1 and person_first == mk_first and person_last == mk_last)
-        email_match = (person_email and mk_email
-                       and len(person_email.strip()) > 5 and len(mk_email.strip()) > 5 and
-                       person_email.strip().lower() == mk_email.strip().lower())
-        if name_match or email_match:
-            return person_id, person
-    person = KNOWN_MK_PERSON_IDS.get(int(mk["mk_individual_id"]))
-    if person:
-        return person["PersonID"], person
-    return None, None
-
 
 mk_individual_committees = []
 mk_individual_factions = []
@@ -237,25 +256,32 @@ mk_individuals = []
 mk_individual_names = []
 
 
-def get_mk_individual_positions_resource(resource):
+def get_mk_individual_positions_resource():
     mks_extra = get_mks_extra()
-    for mk_individual_row in resource:
-        mk_individual_id = int(mk_individual_row["mk_individual_id"])
-        kns_person_id, kns_person_row = None, None
-        mksitecode = kns_mksitecode.get(mk_individual_id)
-        if mksitecode:
-            kns_person_id = int(mksitecode["KnsID"])
-            kns_person_row = kns_person.get(kns_person_id)
-            if not kns_person_row:
-                logging.warning("person mismatch in kns_mksitecode for mk_individual_id {}".format(mk_individual_id))
-                kns_person_id = None
-        if not kns_person_id:
-            kns_person_id, kns_person_row = find_matching_kns_person(mk_individual_row)
-            if not kns_person_id or not kns_person_row:
-                if str(mk_individual_id) in MISSING_MK_INDIVIDUAL_IDS:
-                    logging.warning("Failed to find matching person for mk_invidual {}".format(mk_individual_id))
-                    continue
-                raise Exception("Failed to find matching person for mk_invidual {}".format(mk_individual_id))
+    for kns_person_id, kns_person_row in kns_person.items():
+        mk_individual_id = None
+        for mkindid, mksitecode in kns_mksitecode.items():
+            if int(mksitecode["KnsID"]) == int(kns_person_id):
+                mk_individual_id = mkindid
+                break
+        if not mk_individual_id and int(kns_person_id) not in map(int, kns_mksitecode.keys()):
+            mk_individual_id = int(kns_person_id)
+            kns_mksitecode[int(kns_person_id)] = {
+                'KnsID': kns_person_id,
+                'MKSiteCode': max([k['MKSiteCode'] for k in kns_mksitecode.values()]) + 1,
+                'SiteId': mk_individual_id
+            }
+        assert mk_individual_id, f'no mk_individual_id for kns_person_id {kns_person_id}'
+        mk_individual_row = {
+            'mk_individual_id': int(mk_individual_id),
+            'mk_status_id': 0,
+            'mk_individual_name': kns_person_row["LastName"] or "",
+            'mk_individual_name_eng': '',
+            'mk_individual_first_name': kns_person_row["FirstName"] or '',
+            'mk_individual_first_name_eng': '',
+            'mk_individual_email': kns_person_row['Email'] or '',
+            'mk_individual_photo': '',
+        }
         if parameters.get("filter-is-current") is None or kns_person_row["IsCurrent"] == parameters["filter-is-current"]:
             mk_individual_row.update(**kns_person_row)
             get_person_positions(kns_person_id, mk_individual_row)
@@ -415,8 +441,8 @@ def get_factions_resource():
         yield faction
 
 
-def get_mk_individual_resources(resource):
-    yield counter(get_mk_individual_positions_resource(resource), 'mk_individual_positions')
+def get_mk_individual_resources():
+    yield counter(get_mk_individual_positions_resource(), 'mk_individual_positions')
     yield counter(get_mk_individual_resource(), 'mk_individual')
     yield counter(kns_knessetdates, 'kns_knessetdates')
     yield counter(mk_individual_names, 'mk_individual_names')
@@ -429,7 +455,14 @@ def get_mk_individual_resources(resource):
 
 
 spew(dict(datapackage, resources=[mk_individual_positions_descriptor,
-                                  mk_individual_descriptor,
+                                  {
+                                    PROP_STREAMING: True,
+                                    "encoding": "utf-8",
+                                    "format": "csv",
+                                    "name": "mk_individiual",
+                                    "path": "mk_individiual.csv",
+                                    **mk_individual_descriptor
+                                  },
                                   kns_knessetdates_descriptor,
                                   mk_individual_names_descriptor,
                                   mk_individual_factions_descriptor,
@@ -438,5 +471,5 @@ spew(dict(datapackage, resources=[mk_individual_positions_descriptor,
                                   mk_individual_govministries_descriptor,
                                   factions_descriptor,
                                   faction_memberships_descriptor]),
-     get_mk_individual_resources(mk_individual_resource),
+     get_mk_individual_resources(),
      aggregations["stats"])
