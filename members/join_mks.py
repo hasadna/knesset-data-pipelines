@@ -264,14 +264,16 @@ def get_mk_individual_positions_resource():
             if int(mksitecode["KnsID"]) == int(kns_person_id):
                 mk_individual_id = mkindid
                 break
-        if not mk_individual_id and int(kns_person_id) not in map(int, kns_mksitecode.keys()):
-            mk_individual_id = int(kns_person_id)
-            kns_mksitecode[int(kns_person_id)] = {
-                'KnsID': kns_person_id,
-                'MKSiteCode': max([k['MKSiteCode'] for k in kns_mksitecode.values()]) + 1,
-                'SiteId': mk_individual_id
-            }
-        assert mk_individual_id, f'no mk_individual_id for kns_person_id {kns_person_id}'
+        if not mk_individual_id:
+            if int(kns_person_id) not in map(int, kns_mksitecode.keys()):
+                mk_individual_id = int(kns_person_id)
+            else:
+                mk_individual_id = max([k['SiteId'] for k in kns_mksitecode.values()]) + 1
+        kns_mksitecode[int(kns_person_id)] = {
+            'KnsID': kns_person_id,
+            'MKSiteCode': max([k['MKSiteCode'] for k in kns_mksitecode.values()]) + 1,
+            'SiteId': mk_individual_id
+        }
         mk_individual_row = {
             'mk_individual_id': int(mk_individual_id),
             'mk_status_id': 0,
