@@ -128,6 +128,8 @@ def get_field_from_entry(fieldname, field, data):
     source_field_value = get_source_field_value(source_field_type, source_field_text, source_field_null)
     if output_field_type == 'integer':
         return int(source_field_value) if source_field_value is not None else None
+    elif output_field_type == 'number':
+        return float(source_field_value) if source_field_value is not None else None
     elif output_field_type == 'string':
         return str(source_field_value) if source_field_value is not None else ''
     elif output_field_type == 'datetime':
