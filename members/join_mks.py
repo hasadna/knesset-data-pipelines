@@ -50,7 +50,7 @@ def update_mk_individual_photo(mk):
     photo_url = get_mks_extra().get(mk['mk_individual_id'], {}).get('photo_url')
     if not photo_url:
         photo_url = {'זכר': MK_INDIVIDUAL_PHOTO_MALE,
-                     'נקבה': MK_INDIVIDUAL_PHOTO_FEMALE}[mk['GenderDesc']]
+                     'נקבה': MK_INDIVIDUAL_PHOTO_FEMALE}.get(mk['GenderDesc']) or MK_INDIVIDUAL_PHOTO_FEMALE
     mk['mk_individual_photo'] = photo_url
     return mk
 
