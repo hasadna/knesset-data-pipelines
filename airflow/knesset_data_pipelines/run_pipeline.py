@@ -75,8 +75,14 @@ def compose_url_get(url, params=None):
 
 def get_response_content(url, params, timeout, proxies, retry_num=0):
     proxies = proxies if proxies else {}
-    response = requests.get(url, params=params, timeout=timeout, proxies=proxies)
-    if response.status_code == 503:
+    recoverable_error = False
+    try:
+        response = requests.get(url, params=params, timeout=timeout, proxies=proxies)
+    except requests.exceptions.ReadTimeout:
+        recoverable_error = True
+    if not recoverable_error and response.status_code == 503:
+        recoverable_error = True
+    if recoverable_error:
         if retry_num < 20:
             retry_num += 1
             sleep_seconds = random.randint(1, 30) + (retry_num * retry_num / 2)
