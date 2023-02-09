@@ -125,8 +125,11 @@ def get_source_field_value(type_, text, isnull):
 
 
 def get_field_from_entry(fieldname, field, data):
-    assert field['source'] == '{name}', f'invalid field source: {field["source"]}'
-    source_field = data.get(fieldname.lower(), {})
+    if field['source'] == '{name}':
+        field_source = fieldname
+    else:
+        field_source = field['source']
+    source_field = data.get(field_source.lower(), {})
     output_field_type = field['type']
     source_field_type = source_field.get('type')
     source_field_text = source_field.get('text')
@@ -149,6 +152,12 @@ def get_field_from_entry(fieldname, field, data):
             return None
         else:
             return True if source_field_value else False
+    elif output_field_type == 'date':
+        if not source_field_value:
+            return None
+        else:
+            assert isinstance(source_field_value, datetime.date), f'invalid date value: {source_field_value}'
+            return source_field_value
     else:
         raise Exception(f'unknown output field type: {output_field_type}')
 
