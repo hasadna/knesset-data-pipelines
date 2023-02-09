@@ -88,9 +88,9 @@ def get_response_content(url, params, timeout, proxies, retry_num=0):
             sleep_seconds = random.randint(5, 30) + (retry_num * retry_num / 2)
             if retry_num > 5:
                 sleep_seconds += random.randint(120, 300)
-            elif retry_num > 10:
+            if retry_num > 10:
                 sleep_seconds += random.randint(600, 1200)
-            elif retry_num > 15:
+            if retry_num > 15:
                 sleep_seconds += random.randint(3000, 4000)
             print(f'got 503, sleeping {sleep_seconds} seconds and retrying ({retry_num}/20)')
             time.sleep(sleep_seconds)
