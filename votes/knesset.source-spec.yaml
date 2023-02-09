@@ -1,27 +1,5 @@
 view_vote_rslts_hdr_approved:
-  dependencies:
-  - pipeline: ./votes/vote_rslts_kmmbr_shadow
-  - datapackage: data/votes/vote_rslts_kmmbr_shadow/datapackage.json
-  - pipeline: ./knesset/kns_knessetdates
-  - datapackage: data/knesset/kns_knessetdates/datapackage.json
-  pre-steps:
-  - run: load_resource
-    parameters:
-      url: ../data/votes/vote_rslts_kmmbr_shadow/datapackage.json
-      resource: vote_rslts_kmmbr_shadow
-#  - run: filter
-#    parameters:
-#      resources: vote_rslts_kmmbr_shadow
-#      in:
-#      - vote_id: 8
-#      - vote_id: 9
-#      - vote_id: 10
-#      - vote_id: 11
-#      - vote_id: 12
-  - run: load_resource
-    parameters:
-      url: ../data/knesset/kns_knessetdates/datapackage.json
-      resource: kns_knessetdates
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: votes
   dataservice-parameters:
@@ -123,24 +101,66 @@ view_vote_rslts_hdr_approved:
         source: remark
         type: string
         description: remark
-  additional-steps:
-#  - run: filter
-#    cache: true
+
+# TODO: enable after view_vote_rslts_hdr_approved runs successfully on airflow
+#view_vote_rslts_hdr_approved_extra:
+#  schedule:
+#    crontab: "26 6 * * *"
+#  dependencies:
+#  - pipeline: ./votes/vote_rslts_kmmbr_shadow_extra
+#  - datapackage: data/votes/vote_rslts_kmmbr_shadow_extra/datapackage.json
+#  - pipeline: ./knesset/kns_knessetdates
+#  - datapackage: data/knesset/kns_knessetdates/datapackage.json
+#  - pipeline: ./votes/view_vote_rslts_hdr_approved
+#  - datapackage: data/votes/view_vote_rslts_hdr_approved/datapackage.json
+#  pipeline:
+#  - run: load_resource
 #    parameters:
-#      resources: view_vote_rslts_hdr_approved
-#      in:
-#      - id: 8
-#      - id: 9
-#      - id: 10
-#      - id: 11
-#      - id: 12
-  - run: join_kmmbr_votes
-#    cache: true
-  - run: knesset.add_event_plenum_assembly
-    parameters:
-      resource: view_vote_rslts_hdr_approved
-      event-date: vote_date
-      event-time: vote_time
+#      url: ../data/votes/vote_rslts_kmmbr_shadow_extra/datapackage.json
+#      resource: vote_rslts_kmmbr_shadow_extra
+# #  - run: filter
+# #    parameters:
+# #      resources: vote_rslts_kmmbr_shadow_extra
+# #      in:
+# #      - vote_id: 8
+# #      - vote_id: 9
+# #      - vote_id: 10
+# #      - vote_id: 11
+# #      - vote_id: 12
+#  - run: load_resource
+#    parameters:
+#      url: ../data/knesset/kns_knessetdates/datapackage.json
+#      resource: kns_knessetdates
+#  - run: load_resource
+#    parameters:
+#      url: ../data/votes/view_vote_rslts_hdr_approved/datapackage.json
+#      resource: view_vote_rslts_hdr_approved_extra
+# #  - run: filter
+# #    cache: true
+# #    parameters:
+# #      resources: view_vote_rslts_hdr_approved
+# #      in:
+# #      - id: 8
+# #      - id: 9
+# #      - id: 10
+# #      - id: 11
+# #      - id: 12
+#  - run: join_kmmbr_votes
+# #    cache: true
+#  - run: knesset.add_event_plenum_assembly
+#    parameters:
+#      resource: view_vote_rslts_hdr_approved
+#      event-date: vote_date
+#      event-time: vote_time
+#  - run: knesset.dump_to_path
+#    parameters:
+#      out-path: ../data/votes/view_vote_rslts_hdr_approved_extra
+#      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/votes/view_vote_rslts_hdr_approved_extra
+#  - run: knesset.dump_to_sql
+#    parameters:
+#      tables:
+#        votes_view_vote_rslts_hdr_approved_extra:
+#          resource-name: view_vote_rslts_hdr_approved_extra
 
 view_vote_mk_individual:
   dpp_disabled: true  # migrated to airflow
