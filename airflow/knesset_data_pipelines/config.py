@@ -28,7 +28,7 @@ SERVICE_URLS = {
     # these services use the old urls
     'bills': "http://knesset.gov.il/KnessetOdataService/BillsData.svc",
     'final_laws': "http://knesset.gov.il/KnessetOdataService/FinalLawsData.svc",
-    'votes': "http://knesset.gov.il/KnessetOdataService/VotesData.svc",
+    'votes': "https://knesset.gov.il/Odata/Votes.svc",
     'messages': "http://knesset.gov.il/KnessetOdataService/KnessetMessagesData.svc",
     'mmm': "http://knesset.gov.il/KnessetOdataService/MMMData.svc",
     'lobbyists': "http://knesset.gov.il/Odata/Lobbyists.svc",
