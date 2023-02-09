@@ -56,7 +56,7 @@ def get_datapackage(datapackage, data):
                     existing_fields[new_field['name']].update(new_field)
                 else:
                     descriptor['schema']['fields'].append(new_field)
-        elif descriptor['name'] == 'vote_rslts_kmmbr_shadow':
+        elif descriptor['name'] == 'vote_rslts_kmmbr_shadow_extra':
             data['kmmbr_index'] = i
     del datapackage['resources'][data['kmmbr_index']]
     return datapackage

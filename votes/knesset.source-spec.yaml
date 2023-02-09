@@ -131,7 +131,7 @@ view_vote_rslts_hdr_approved_extra:
   - run: load_resource
     parameters:
       url: ../data/votes/view_vote_rslts_hdr_approved/datapackage.json
-      resource: view_vote_rslts_hdr_approved_extra
+      resource: view_vote_rslts_hdr_approved
 #  - run: filter
 #    cache: true
 #    parameters:
@@ -157,7 +157,7 @@ view_vote_rslts_hdr_approved_extra:
     parameters:
       tables:
         votes_view_vote_rslts_hdr_approved_extra:
-          resource-name: view_vote_rslts_hdr_approved_extra
+          resource-name: view_vote_rslts_hdr_approved
 
 view_vote_mk_individual:
   dpp_disabled: true  # migrated to airflow
@@ -309,7 +309,7 @@ vote_rslts_kmmbr_shadow_extra:
     parameters:
       tables:
         votes_vote_rslts_kmmbr_shadow_extra:
-          resource-name: vote_rslts_kmmbr_shadow_extra
+          resource-name: vote_rslts_kmmbr_shadow
 
 
 #join-votes:
