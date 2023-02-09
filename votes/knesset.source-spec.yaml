@@ -195,26 +195,13 @@ vote_result_type:
         description: result name
 
 vote_rslts_kmmbr_shadow:
-  dependencies:
-  - pipeline: ./members/mk_individual
-  - datapackage: data/members/mk_individual/datapackage.json
-  - pipeline: ./votes/vote_result_type
-  - datapackage: data/votes/vote_result_type/datapackage.json
-  pre-steps:
-  - run: load_resource
-    parameters:
-      url: ../data/members/mk_individual/datapackage.json
-      resource: mk_individual_positions
-  - run: load_resource
-    parameters:
-      url: ../data/votes/vote_result_type/datapackage.json
-      resource: vote_result_type
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: votes
   dataservice-parameters:
-    incremental-field: vote_id
-    incremental-field-type: integer
-    incremental-field-key: [vote_id, kmmbr_id]
+#    incremental-field: vote_id
+#    incremental-field-type: integer
+#    incremental-field-key: [vote_id, kmmbr_id]
     resource-name: vote_rslts_kmmbr_shadow
     service-name: votes
     method-name: "vote_rslts_kmmbr_shadow"
@@ -259,23 +246,56 @@ vote_rslts_kmmbr_shadow:
         source: remark
         type: string
         description: remark
-  additional-steps:
-  - run: sort
-    parameters:
-      resources: vote_rslts_kmmbr_shadow
-      sort-by: "{kmmbr_id}"
-  - run: join
-    parameters:
-      source:
-        name: vote_result_type
-        key: ["result_type_id"]
-        delete: true
-      target:
-        name: vote_rslts_kmmbr_shadow
-        key: ["vote_result"]
-      fields:
-        result_type_name: {}
-  - run: join_kmmbr_mk_individuals
+
+
+# TODO: enable once vote_rslts_kmmbr_shadow ran successfully on airflow
+#vote_rslts_kmmbr_shadow_extra:
+#  schedule:
+#    crontab: "26 6 * * *"
+#  dependencies:
+#  - pipeline: ./members/mk_individual
+#  - datapackage: data/members/mk_individual/datapackage.json
+#  - pipeline: ./votes/vote_result_type
+#  - datapackage: data/votes/vote_result_type/datapackage.json
+#  - datapackage: data/votes/vote_rslts_kmmbr_shadow/datapackage.json
+#  pipeline:
+#  - run: load_resource
+#    parameters:
+#      url: ../data/members/mk_individual/datapackage.json
+#      resource: mk_individual_positions
+#  - run: load_resource
+#    parameters:
+#      url: ../data/votes/vote_result_type/datapackage.json
+#      resource: vote_result_type
+#  - run: load_resource
+#    parameters:
+#      url: ../data/votes/vote_rslts_kmmbr_shadow/datapackage.json
+#      resource: vote_rslts_kmmbr_shadow
+#  - run: sort
+#    parameters:
+#      resources: vote_rslts_kmmbr_shadow
+#      sort-by: "{kmmbr_id}"
+#  - run: join
+#    parameters:
+#      source:
+#        name: vote_result_type
+#        key: ["result_type_id"]
+#        delete: true
+#      target:
+#        name: vote_rslts_kmmbr_shadow
+#        key: ["vote_result"]
+#      fields:
+#        result_type_name: {}
+#  - run: join_kmmbr_mk_individuals
+#  - run: knesset.dump_to_path
+#    parameters:
+#      out-path: ../data/votes/vote_rslts_kmmbr_shadow_extra
+#      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/votes/vote_rslts_kmmbr_shadow_extra
+#  - run: knesset.dump_to_sql
+#    parameters:
+#      tables:
+#        votes_vote_rslts_kmmbr_shadow_extra:
+#          resource-name: vote_rslts_kmmbr_shadow_extra
 
 
 #join-votes:
