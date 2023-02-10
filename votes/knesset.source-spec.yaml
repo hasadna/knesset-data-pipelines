@@ -114,7 +114,7 @@ view_vote_rslts_hdr_approved_extra:
   - run: load_resource
     parameters:
       url: ../data/votes/vote_rslts_kmmbr_shadow_extra/datapackage.json
-      resource: vote_rslts_kmmbr_shadow_extra
+      resource: vote_rslts_kmmbr_shadow
 #  - run: filter
 #    parameters:
 #      resources: vote_rslts_kmmbr_shadow_extra
