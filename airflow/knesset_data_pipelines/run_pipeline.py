@@ -97,14 +97,15 @@ def get_response_content(url, params, timeout, proxies, retry_num=0):
             return get_response_content(url, params, timeout, proxies, retry_num)
         else:
             raise RequestThrottledException()
-    assert response.status_code == 200, f"invalid response status code: {response.status_code}"
-    return response.content
+    return response.status_code, response.content
 
 
 def get_soup(url, params=None, proxies=None):
     params = {} if params is None else params
     timeout = params.pop('__timeout__', config.DEFAULT_REQUEST_TIMEOUT_SECONDS)
-    return BeautifulSoup(get_response_content(url, params, timeout, proxies), 'html.parser')
+    status_code, content = get_response_content(url, params, timeout, proxies)
+    soup = BeautifulSoup(content, 'html.parser') if status_code == 200 else None
+    return status_code, soup
 
 
 def get_source_field_value(type_, text, isnull):
@@ -171,6 +172,27 @@ def get_row_from_entry(params, entry):
     return {fieldname: get_field_from_entry(fieldname, field, data) for fieldname, field in params['fields'].items()}
 
 
+def get_soup_handle_server_error(url, **kwargs):
+    try:
+        skiptoken = int(url.split('$skiptoken=')[1].split('L')[0])
+    except Exception as e:
+        raise Exception(f'failed to parse integer skiptoken for url {url}') from e
+    first_url = url
+    first_skiptoken = skiptoken
+    for i in range(1, 1001):
+        skiptoken -= i
+        assert skiptoken > 0, f'failed to find successful response starting from url {first_url}'
+        url = first_url.replace(f'$skiptoken={first_skiptoken}', f'$skiptoken={skiptoken}')
+        print(f'trying to bypass server error with url {url}')
+        status_code, soup = get_soup(url, **kwargs)
+        if status_code == 200:
+            print('success')
+            return soup
+        else:
+            assert status_code == 500, f'got unexpected status code {status_code} for url {url} (starting from skiptoken {first_skiptoken})'
+    raise Exception(f'failed to find successful response starting from url {first_url}')
+
+
 def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_rows=None, stop_on_throttled_error=False, start_url=None, load_from=None):
     if stats is None:
         stats = defaultdict(int)
@@ -186,6 +208,8 @@ def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_
     else:
         url_base = os.path.join(config.SERVICE_URLS[params['service-name']], params['method-name'])
         next_url = compose_url_get(url_base)
+    has_valid_entry_ids = True
+    processed_entry_ids = set()
     while next_url and (not limit_rows or stats['rows'] < limit_rows):
         if stats['rows'] == 0:
             print(next_url)
@@ -194,7 +218,11 @@ def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_
             pprint(dict(stats))
         stats['urls'] += 1
         try:
-            soup = get_soup(next_url, proxies=proxies)
+            status_code, soup = get_soup(next_url, proxies=proxies)
+            if status_code == 500 and has_valid_entry_ids:
+                soup = get_soup_handle_server_error(next_url, proxies=proxies)
+            else:
+                assert status_code == 200, f'invalid status code: {status_code}, (has_valid_entry_ids is False)'
         except RequestThrottledException:
             if stop_on_throttled_error:
                 traceback.print_exc()
@@ -209,8 +237,18 @@ def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_
             traceback.print_exc()
             entries = []
         for entry in entries:
-            stats['rows'] += 1
-            yield get_row_from_entry(params, entry)
+            if has_valid_entry_ids:
+                try:
+                    entry_id = int(entry.id.text.split('(')[1].split(')')[0].split('L')[0])
+                except:
+                    entry_id = None
+                if entry_id is None:
+                    has_valid_entry_ids = False
+            if not has_valid_entry_ids or entry_id not in processed_entry_ids:
+                stats['rows'] += 1
+                yield get_row_from_entry(params, entry)
+                if has_valid_entry_ids:
+                    processed_entry_ids.add(entry_id)
         try:
             next_link = soup.find('link', rel="next")
             next_url = next_link and next_link.attrs.get('href', None)
