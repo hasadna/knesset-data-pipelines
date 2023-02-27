@@ -179,6 +179,51 @@ kns_cmtsessionitem:
         description: תאריך עדכון אחרון
 
 
+kns_documentcommitteesession_dataservice:
+  dpp_disabled: true  # migrated to airflow
+  pipeline-type: knesset dataservice
+  schemas-bucket: "committees"
+  dataservice-parameters:
+    # incremental-field: LastUpdatedDate
+    resource-name: kns_documentcommitteesession
+    service-name: api
+    method-name: "KNS_DocumentCommitteeSession"
+    fields:
+      DocumentCommitteeSessionID:
+        source: "{name}"
+        type: integer
+        description: קוד המסמך
+        primaryKey: true
+      CommitteeSessionID:
+        source: "{name}"
+        type: integer
+        description: קוד ישיבת הוועדה
+      GroupTypeID:
+        source: "{name}"
+        type: integer
+        description: קוד סוג המסמך
+      GroupTypeDesc:
+        source: "{name}"
+        type: string
+        description: תיאור סוג המסמך
+      ApplicationID:
+        source: "{name}"
+        type: integer
+        description: קוד פורמט המסמך
+      ApplicationDesc:
+        source: "{name}"
+        type: string
+        description: תיאור פורמט המסמך (Word, PDF, TIFF)
+      FilePath:
+        source: "{name}"
+        type: string
+        description: הנתיב אל המסמך
+      LastUpdatedDate:
+        source: "{name}"
+        type: datetime
+        description: תאריך עדכון אחרון
+
+
 kns_documentcommitteesession:
   pipeline-type: knesset dataservice
   schemas-bucket: "committees"
