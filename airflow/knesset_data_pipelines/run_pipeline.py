@@ -23,6 +23,9 @@ from sqlalchemy.engine.create import create_engine
 from . import config
 
 
+RECOVERABLE_SERVER_ERRORS = [500, 504]
+
+
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 
@@ -166,16 +169,22 @@ def get_row_from_entry(params, entry):
     return {fieldname: get_field_from_entry(fieldname, field, data) for fieldname, field in params['fields'].items()}
 
 
-def get_soup_handle_server_error(url, **kwargs):
+def get_next_skiptoken(first_skiptoken, i, processed_entry_ids):
+    if len(processed_entry_ids) > i:
+        skiptoken = processed_entry_ids[-(i+1)]
+    else:
+        skiptoken = processed_entry_ids[0] - i - len(processed_entry_ids)
+    assert skiptoken > 0, f'failed to find next skiptoken starting from {first_skiptoken} after {i} tries'
+    return skiptoken
+
+
+def get_soup_handle_server_error(first_url, processed_entry_ids=None, **kwargs):
     try:
-        skiptoken = int(url.split('$skiptoken=')[1].split('L')[0])
+        first_skiptoken = int(first_url.split('$skiptoken=')[1].split('L')[0])
     except Exception as e:
-        raise Exception(f'failed to parse integer skiptoken for url {url}') from e
-    first_url = url
-    first_skiptoken = skiptoken
+        raise Exception(f'failed to parse integer skiptoken for url {first_url}') from e
     for i in range(1, 1001):
-        skiptoken -= i
-        assert skiptoken > 0, f'failed to find successful response starting from url {first_url}'
+        skiptoken = get_next_skiptoken(first_skiptoken, i, processed_entry_ids)
         url = first_url.replace(f'$skiptoken={first_skiptoken}', f'$skiptoken={skiptoken}')
         print(f'trying to bypass server error with url {url}')
         status_code, soup = get_soup(url, **kwargs)
@@ -183,7 +192,7 @@ def get_soup_handle_server_error(url, **kwargs):
             print('success')
             return soup
         else:
-            assert status_code == 500, f'got unexpected status code {status_code} for url {url} (starting from skiptoken {first_skiptoken})'
+            assert status_code in RECOVERABLE_SERVER_ERRORS, f'got unexpected status code {status_code} for url {url} (starting from skiptoken {first_skiptoken})'
     raise Exception(f'failed to find successful response starting from url {first_url}')
 
 
@@ -203,7 +212,7 @@ def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_
         url_base = os.path.join(config.SERVICE_URLS[params['service-name']], params['method-name'])
         next_url = compose_url_get(url_base)
     has_valid_entry_ids = True
-    processed_entry_ids = set()
+    processed_entry_ids = []
     while next_url and (not limit_rows or stats['rows'] < limit_rows):
         if stats['rows'] == 0:
             print(next_url)
@@ -217,13 +226,13 @@ def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_
             except RequestThrottledException:
                 if has_valid_entry_ids:
                     traceback.print_exc()
-                    print(f'got throttled error for url {next_url}, will try to handle it as server error')
-                    status_code = 500
+                    print(f'got throttled error for url {next_url}, will try to handle it as server error {RECOVERABLE_SERVER_ERRORS[0]}')
+                    status_code = RECOVERABLE_SERVER_ERRORS[0]
                 else:
                     print(f'got throttled error for url {next_url}, but has_valid_entry_ids is False, will raise the exception')
                     raise
-            if status_code == 500 and has_valid_entry_ids:
-                soup = get_soup_handle_server_error(next_url, proxies=proxies)
+            if status_code in RECOVERABLE_SERVER_ERRORS and has_valid_entry_ids:
+                soup = get_soup_handle_server_error(next_url, proxies=proxies, processed_entry_ids=processed_entry_ids)
             else:
                 assert status_code == 200, f'invalid status code: {status_code}, (has_valid_entry_ids is False)'
         except RequestThrottledException:
@@ -251,7 +260,7 @@ def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_
                 stats['rows'] += 1
                 yield get_row_from_entry(params, entry)
                 if has_valid_entry_ids:
-                    processed_entry_ids.add(entry_id)
+                    processed_entry_ids.append(entry_id)
         try:
             next_link = soup.find('link', rel="next")
             next_url = next_link and next_link.attrs.get('href', None)
