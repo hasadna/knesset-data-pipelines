@@ -33,7 +33,7 @@ SERVICE_URLS = {
     'mmm': "http://knesset.gov.il/KnessetOdataService/MMMData.svc",
     'lobbyists': "http://knesset.gov.il/Odata/Lobbyists.svc",
 }
-DEFAULT_REQUEST_TIMEOUT_SECONDS = 15
+DEFAULT_REQUEST_TIMEOUT_SECONDS = 360
 
 PGSQL_USER = os.environ.get('PGSQL_USER', 'postgres')
 PGSQL_PASSWORD = os.environ.get('PGSQL_PASSWORD', '123456')
