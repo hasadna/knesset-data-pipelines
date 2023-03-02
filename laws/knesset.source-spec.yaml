@@ -1,6 +1,7 @@
 ### kns dataservice tables
 
 kns_law:
+  description: "חוקים"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
@@ -71,6 +72,7 @@ kns_law:
         description: תאריך עדכון אחרון
 
 kns_law_binding:
+  description: "קישור בין חוקים לחוקי אב"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
@@ -135,6 +137,7 @@ kns_law_binding:
         description: תאריך עדכון אחרון
 
 kns_document_law:
+  description: "מסמכים המקושרים לחוקים"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
@@ -179,6 +182,7 @@ kns_document_law:
         description: תאריך עדכון אחרון
 
 kns_israel_law:
+  description: "חוקי אב"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
@@ -260,6 +264,7 @@ kns_israel_law:
         description: תאריך עדכון אחרון
 
 kns_israel_law_name:
+  description: "שמות חוקי אב"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
@@ -296,6 +301,7 @@ kns_israel_law_name:
         description: תאריך עדכון אחרון
 
 kns_israel_law_ministry:
+  description: "משרדים הקשורים לחוקי אב"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
@@ -324,6 +330,7 @@ kns_israel_law_ministry:
         description: תאריך עדכון אחרון
 
 kns_israel_law_classification:
+  description: "סיווג חוקי אב"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws
@@ -356,6 +363,7 @@ kns_israel_law_classification:
         description: תאריך עדכון אחרון
 
 kns_israel_law_binding:
+  description: "חוקי אב שהוחלפו"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: laws

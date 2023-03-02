@@ -2,6 +2,7 @@
 
 
 kns_person:
+  description: "חברי כנסת ואנשים נוספים כגון מנהלי ועדות"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: members
@@ -51,6 +52,7 @@ kns_person:
 # (43=ח"כ, 61=ח"כית)
 # סוגי התפקידים הקיימים בכנסת
 kns_position:
+  description: "סוגי התפקידים הקיימים בכנסת"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: members
@@ -87,6 +89,7 @@ kns_position:
 # כדי לקבל מידע רק על חברי הכנסת, יש לעשות JOIN עם טבלת KNS_PersonToPosition ולפלטר לפי עמודת Position ID
 # (43=ח"כ, 61=ח"כית)
 kns_persontoposition:
+  description: "קשר בין חברי כנסת לתפקידים שלהם"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: members
@@ -188,6 +191,7 @@ kns_mksitecode:
 
 
 mk_individual:
+  description: "מידע מפורט אודות חברי הכנסת כולל מידע מקושר ומורחב מטבלאות ומקורות שונים"
   dependencies:
   - pipeline: ./members/kns_mksitecode
   - datapackage: data/members/kns_mksitecode/datapackage.json
@@ -254,6 +258,7 @@ mk_individual:
 
 
 presence:
+  description: "מידע על הנוכחות של חברי הכנסת"
   schedule:
     crontab: "10 1 * * *"
   dependencies:

@@ -1,4 +1,5 @@
 view_vote_rslts_hdr_approved:
+  description: נתונים אודות הצבעות, כולל כמה הצביעו בעד/נגד/נמנעים
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: votes
@@ -103,6 +104,7 @@ view_vote_rslts_hdr_approved:
         description: remark
 
 view_vote_rslts_hdr_approved_extra:
+  description: מידע מורחב אודות ההצבעות הכולל מידע מקושר ממקורות שונים
   dependencies:
     - pipeline: ./votes/vote_rslts_kmmbr_shadow_extra
     - datapackage: data/votes/vote_rslts_kmmbr_shadow_extra/datapackage.json
@@ -212,6 +214,7 @@ vote_result_type:
         description: result name
 
 vote_rslts_kmmbr_shadow:
+  description: פירוט איזה חבר כנסת הצביע באיזה אופן בכל הצבעה
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: votes
@@ -266,6 +269,7 @@ vote_rslts_kmmbr_shadow:
 
 
 vote_rslts_kmmbr_shadow_extra:
+  description: הרחבת המידע על כל חבר כנסת בכל הצבעה עם מידע מקושר מטבלאות אחרות
   dependencies:
   - pipeline: ./members/mk_individual
   - datapackage: data/members/mk_individual/datapackage.json

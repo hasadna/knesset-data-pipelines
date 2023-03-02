@@ -1,4 +1,5 @@
 kns_committee:
+  description: "רשימת הועדות מסוגים שונות"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "committees"
@@ -83,6 +84,7 @@ kns_committee:
 
 
 kns_jointcommittee:
+  description: "רשימה המקשרת בין רשומות בטבלת kns_committee שמייצגות ועדות משותפות"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "committees"
@@ -135,6 +137,7 @@ kns_cmtsitecode:
 
 
 kns_cmtsessionitem:
+  description: "כל שורה מייצגת נושא שמקושר לישיבת ועדה. יכולים להיות מספר נושאים לכל ישיבה."
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "committees"
@@ -319,6 +322,12 @@ sync-documents:
 
 
 kns_committeesession:
+  description: |
+    כל ישיבות הועדה, כולל מידע מקושר וקישור לפרוטוקול הישיבה בפורמטים שונים.
+    הפרוטוקולים זמינים בפורמטים הבאים: קבצי המקור, קבצים טקסטואליים וקובץ מחולק לפי דוברים.
+    ניתן להוריד את הקבצים מהתיקיות הבאות באמצעות הוספת הנתיב שמופיע בנתונים לכתובות הבאות:
+    עבור קבצי טקסט - https://production.oknesset.org/pipelines/data/committees/meeting_protocols_text/
+    עבור קבצים מחולקים לדוברים - https://production.oknesset.org/pipelines/data/committees/meeting_protocols_parts/
   dependencies:
   - pipeline: ./committees/kns_committee
   - datapackage: data/committees/kns_committee/datapackage.json

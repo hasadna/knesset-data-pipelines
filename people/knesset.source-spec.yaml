@@ -19,7 +19,7 @@ source-data-stats:
   - run: source_data_stats
 
 committee-meeting-attendees:
-  description: extract all the attendee names from the meeting protocols
+  description: רשימת משתתפים בפגישות ועדה
   dependencies:
   - pipeline: ./committees/kns_committeesession
   - datapackage: data/committees/kns_committeesession/datapackage.json
@@ -58,7 +58,7 @@ committee-meeting-attendees:
           resource-name: kns_committeesession
 
 committee-meeting-speaker-stats:
-  description: extract stats for each protocol part
+  description: סטטיסטיקות עבור כל חלק דיבור בפרוטוקולים של ישיבות ועדה
   dependencies:
   - pipeline: ./people/committee-meeting-attendees
   - datapackage: data/people/committees/meeting-attendees/datapackage.json
@@ -120,7 +120,7 @@ committee-meeting-speaker-stats:
 #      out-path: data/committees/meeting-speakers
 
 committee-meeting-attendees-mks-stats:
-  description: aggregate stats from the attendees / mk_individual data
+  description: אגרגציה של נתונים אודות המשתתפים בועדות וקישורם לנתונים אודות חברי הכנסת
   dependencies:
   - pipeline: ./members/mk_individual
   - datapackage: data/members/mk_individual/datapackage.json
@@ -149,6 +149,7 @@ committee-meeting-attendees-mks-stats:
           resource-name: mk_attendance
 
 committee-meeting-attendees-mks-full-stats:
+  description: "הרחבת וקישור המידע אודות חברי הכנסת למידע על נוכחותם בועדות"
   dependencies:
   - pipeline: ./members/mk_individual
   - datapackage: data/members/mk_individual/datapackage.json

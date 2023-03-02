@@ -86,6 +86,10 @@ render_committees:
       resource: meetings_stats
   - run: render_committees
 
+render_homepage:
+  pipeline:
+  - run: render_homepage
+
 create_members:
   dependencies:
   - pipeline: ./people/committee-meeting-attendees
@@ -149,6 +153,7 @@ sync-dist:
   dependencies:
   - pipeline: ./committees/dist/render_meetings
   - pipeline: ./committees/dist/render_committees
+  - pipeline: ./committees/dist/render_homepage
   - pipeline: ./committees/dist/create_members
   - pipeline: ./committees/dist/create_factions
   pipeline:

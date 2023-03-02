@@ -1,6 +1,7 @@
 ### kns dataservice tables
 
 kns_plenumsession:
+  description: "ישיבות המליאה"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: plenum
@@ -44,6 +45,7 @@ kns_plenumsession:
         description: תאריך עדכון אחרון
 
 kns_plmsessionitem:
+  description: "פריטים המקושרים לישיבות המליאה"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: plenum
@@ -95,6 +97,7 @@ kns_plmsessionitem:
         description: תאריך עדכון אחרון
 
 kns_documentplenumsession:
+  description: "מסמכי ישיבות המליאה"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: plenum

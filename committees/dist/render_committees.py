@@ -1,7 +1,6 @@
 from datapackage_pipelines.wrapper import ingest, spew
-import os, subprocess, logging
 from datapackage_pipelines_knesset.committees.dist.template_functions import build_template, get_jinja_env, get_context
-from datapackage_pipelines_knesset.committees.dist.constants import COMMITTEE_DETAIL_URL, COMMITTEE_LIST_KNESSET_URL, MEMBER_URL, COMMITTEES_INDEX_URL, HOMEPAGE_URL
+from datapackage_pipelines_knesset.committees.dist.constants import COMMITTEE_DETAIL_URL, COMMITTEE_LIST_KNESSET_URL, MEMBER_URL, COMMITTEES_INDEX_URL
 from datapackage_pipelines_knesset.committees.dist.committees_common import get_committee_name, get_meeting_path, get_meeting_topics, is_future_meeting, has_protocol
 
 
@@ -145,15 +144,6 @@ build_template(jinja_env,
                get_committee_index_context(knesset_num_committees),
                COMMITTEES_INDEX_URL)
 stats["built index"] = 1
-
-build_template(jinja_env, "homepage.html", get_homepage_context(), HOMEPAGE_URL)
-
-if os.environ.get("SKIP_STATIC") != "1":
-    logging.info("Copying static files from ./static to ./dist/static")
-    subprocess.check_call(["mkdir", "-p", "../../data/committees/dist/dist"])
-    subprocess.check_call(["cp", "-rf", "static", "../../data/committees/dist/dist/"])
-else:
-    logging.info("Skipping copying static files because SKIP_STATIC=1")
 
 
 spew(dict(datapackage, resources=[]), [], stats)

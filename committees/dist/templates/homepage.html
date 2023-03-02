@@ -5,20 +5,40 @@
 
 {% block divcontent %}
     <div class="row">
-        <div>
-                    <h2 style="text-align:center;">חוזרים בקרוב</h2>
-                    <h2 style="text-align:center;">עם כנסת פתוחה 2.0</h2>
-                    גולשות וגולשים יקרים,
-                    <br/><br/>
-                    בימים אלה אנחנו בונים אתר חדש של כנסת פתוחה, שיכיל את כל המידע המעודכן מהכנסת, יכולות חיפוש משוכללות ואפשרויות מתקדמות לניתוח הנתונים.
-                    <br/>
-                    כדי שזה יקרה, מתנדבי ומתנדבות הסדנא משקיעים כעת את כל מרצם במשימה מורכבת זו, ואינם יכולים עוד להמשיך ולתחזק את האתר הישן, באופן שיבטיח שהמידע בו תמיד יהיה מלא ואמין.
-                    <br/><br/>
-                    <b>רוצים לעזור?</b>
-                    <br/><br/>
-                    בואו <a style="text-decoration:underline; color:blue" href="http://www.hasadna.org.il/%D7%94%D7%AA%D7%A0%D7%93%D7%91%D7%95%D7%AA/">להתנדב</a> בפיתוח האתר / <a style="text-decoration:underline; color:blue" href="https://www.jgive.com/he/donation_targets/3268?currency=ILS">תרמו</a>  לסדנא
-                    <br/><br/>
-                    ואם אתם ממש לא יכולים בלי פוליטיקה ופוליטיקאים - אנחנו ממליצים על אתר <a style="text-decoration:underline; color:blue" href="https://kikar.org/">ככר המדינה</a> של הסדנא,  שם תוכלו לעקוב אחר ההתבטאויות של הח"כים בפייסבוק וגם לראות מי <a style="text-decoration:underline; color:blue" href="https://kikar.org/billboards/">הח"כית הכי פופולרית עכשיו</a>
-        </div>
+        <h1>כנסת פתוחה</h1>
+        פרויקט כנסת פתוחה מנגיש נתונים מעודכנים אודות הכנסת. הנתונים הלקחים ברובם מממשקי הנתונים הרשמיים של הכנסת ומעודכים באופן יומי.
+        להלן תיאור הנתונים הזמינים ואופן הגישה אליהם -
+        <h2>נתונים זמינים באתר</h2>
+        <ul>
+            <li><a href="/members/index.html">ח"כים וסיעות</a> - מכיל מידע אודות הח"כים והחלוקה לסיעות בכל כנסת. עבור כל ח"כ וסיעה מופיעים נתונים קשורים - סיעות, ועדות, ומשרדים ממשלתיים שהח"כ חבר בהם.</li>
+            <li><a href="/committees/index.html">ועדות</a> - מופיעות רשימת הועדות בכל כנסת, עבור כל ועדה ניתן לראות את רשימת הישיבות ולקרוא את הפרוטוקול (אם קיים) בצורה נוחה עם חלוקה לדוברים.</li>
+        </ul>
+        <h2>נתונים זמינים במסד הנתונים</h2>
+        מסד הנתונים של כנסת פתוחה מכיל מידע רב ומגוון הנגיש דרך מספר ממשקים:
+        <br/>
+        <ul>
+            <li><a href="https://production.oknesset.org/pipelines/data/">קבצי נתונים</a> - בעיקר קבצי CSV</li>
+            <li><a href="https://redash.hasadna.org.il/">גישה למסד הנתונים באמצעות Redash</a> - ניתן לגשת באופן חופשי באמצעות ביצוע כניסה עם כתובת מייל של ספק מוכר כגון GMAIL, אם לא מצליח, צרו איתנו קשר ונתן לכם גישה. לאחר הכניסה ניתן להריץ new query ולבחור בdata source בשם next-oknesset</li>
+        </ul>
+        <br/>
+        להלן תיאור של חלק מהנתונים הזמינים בשני הממשקים הנ"ל. הרשימה חלקית וייתכן שקיימים נתונים נוספים שלא מופיעים פה,
+        מומלץ להתייעץ איתנו אם יש צורך בנתונים נוספים, ייתכן שהם קיימים או שניתן להנגיש אותם.
+        <br/>
+        {% for data_cat in data_categories %}
+            <h4>{{ data_cat.title }}</h4>
+            <table>
+            {% for data_item in data_cat.data_items %}
+            <tr>
+                <td style="border: 1px solid black;padding: 5px;">{{ data_cat.id }}/{{ data_item.id }}</td>
+                <td style="border: 1px solid black;padding: 5px;">{{ data_item.description }}</td>
+            </tr>
+            {% endfor %}
+            </table>
+        {% endfor %}
+    </div>
+    <div class="row">
+        <b>נשמח לעזרה!</b>
+        <br/><br/>
+         אפשר<a style="text-decoration:underline; color:blue" href="http://www.hasadna.org.il/%D7%94%D7%AA%D7%A0%D7%93%D7%91%D7%95%D7%AA/">להתנדב</a> בפיתוח האתר / <a style="text-decoration:underline; color:blue" href="https://www.jgive.com/he/donation_targets/3268?currency=ILS">תרמו</a>  לסדנא
     </div>
 {% endblock %}

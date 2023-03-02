@@ -1,5 +1,6 @@
 
 kns_knessetdates:
+  description: "תאריכי תחילה וסיום של כל כנסת ומידע כללי אודות הכנסת"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "knesset"
@@ -47,6 +48,7 @@ kns_knessetdates:
 
 
 kns_govministry:
+  description: "משרדים ממשלתיים"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "knesset"
@@ -74,6 +76,7 @@ kns_govministry:
 
 
 kns_itemtype:
+  description: "סוגי פריטים"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "knesset"
@@ -100,6 +103,7 @@ kns_itemtype:
 
 
 kns_status:
+  description: "סטטוסים"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "knesset"

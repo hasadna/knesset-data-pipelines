@@ -1,4 +1,5 @@
 v_lobbyist:
+  description: "שדלנים"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "lobbyists"
@@ -55,6 +56,7 @@ v_lobbyist:
 
 
 v_lobbyist_clients:
+  description: "לקוחות של שדלנים"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "lobbyists"
