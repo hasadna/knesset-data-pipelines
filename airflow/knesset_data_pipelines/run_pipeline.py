@@ -24,6 +24,7 @@ from . import config
 
 
 RECOVERABLE_SERVER_ERRORS = [500, 504]
+RECOVERABLE_THROTTLE_ERRORS = [503, 403]
 
 
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
@@ -83,12 +84,12 @@ def get_response_content(url, params, timeout, proxies, retry_num=0):
         response = requests.get(url, params=params, timeout=timeout, proxies=proxies)
     except requests.exceptions.ReadTimeout:
         recoverable_error = 'ReadTimeout'
-    if recoverable_error is None and response.status_code == 503:
-        recoverable_error = '503'
+    if recoverable_error is None and response.status_code in RECOVERABLE_THROTTLE_ERRORS:
+        recoverable_error = str(response.status_code)
     if recoverable_error:
         if retry_num < 5:
             retry_num += 1
-            sleep_seconds = random.randint(5, 30) + (retry_num * retry_num / 2)
+            sleep_seconds = (random.randint(5, 30) + (retry_num * retry_num / 2)) * 60
             print(f'got {recoverable_error}, sleeping {sleep_seconds} seconds and retrying ({retry_num}/5)')
             time.sleep(sleep_seconds)
             return get_response_content(url, params, timeout, proxies, retry_num)
