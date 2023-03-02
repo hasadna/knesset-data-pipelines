@@ -22,4 +22,4 @@ def is_future_meeting(meeting):
 
 
 def has_protocol(meeting):
-    return meeting["num_speech_parts"] > 1
+    return meeting["num_speech_parts"] > 1 or (meeting.get('parts_filesize') and meeting['parts_filesize'] > 20)

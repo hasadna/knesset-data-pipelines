@@ -84,8 +84,8 @@ def get_response_content(url, params, timeout, proxies, retry_num=0):
         response = requests.get(url, params=params, timeout=timeout, proxies=proxies)
     except requests.exceptions.ReadTimeout:
         recoverable_error = 'ReadTimeout'
-    if recoverable_error is None and response.status_code in RECOVERABLE_THROTTLE_ERRORS:
-        recoverable_error = str(response.status_code)
+    if recoverable_error is None and int(response.status_code) in RECOVERABLE_THROTTLE_ERRORS:
+        recoverable_error = response.status_code
     if recoverable_error:
         if retry_num < 5:
             retry_num += 1
@@ -95,7 +95,7 @@ def get_response_content(url, params, timeout, proxies, retry_num=0):
             return get_response_content(url, params, timeout, proxies, retry_num)
         else:
             raise RequestThrottledException()
-    return response.status_code, response.content
+    return int(response.status_code), response.content
 
 
 def get_soup(url, params=None, proxies=None):
@@ -193,7 +193,7 @@ def get_soup_handle_server_error(first_url, processed_entry_ids=None, **kwargs):
             print('success')
             return soup
         else:
-            assert status_code in RECOVERABLE_SERVER_ERRORS, f'got unexpected status code {status_code} for url {url} (starting from skiptoken {first_skiptoken})'
+            assert int(status_code) in RECOVERABLE_SERVER_ERRORS, f'got unexpected status code {status_code} for url {url} (starting from skiptoken {first_skiptoken})'
     raise Exception(f'failed to find successful response starting from url {first_url}')
 
 
@@ -232,7 +232,7 @@ def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_
                 else:
                     print(f'got throttled error for url {next_url}, but has_valid_entry_ids is False, will raise the exception')
                     raise
-            if status_code in RECOVERABLE_SERVER_ERRORS and has_valid_entry_ids:
+            if int(status_code) in RECOVERABLE_SERVER_ERRORS and has_valid_entry_ids:
                 soup = get_soup_handle_server_error(next_url, proxies=proxies, processed_entry_ids=processed_entry_ids)
             else:
                 assert status_code == 200, f'invalid status code: {status_code}, (has_valid_entry_ids is False)'
