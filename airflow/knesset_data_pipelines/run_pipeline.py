@@ -81,7 +81,7 @@ def get_response_content(url, params, timeout, proxies, retry_num=0):
     proxies = proxies if proxies else {}
     recoverable_error = None
     try:
-        response = requests.get(url, params=params, timeout=timeout, proxies=proxies)
+        response = requests.get(url.replace("'", "%27"), params=params, timeout=timeout, proxies=proxies)
     except requests.exceptions.ReadTimeout:
         recoverable_error = 'ReadTimeout'
     if recoverable_error is None and int(response.status_code) in RECOVERABLE_THROTTLE_ERRORS:
