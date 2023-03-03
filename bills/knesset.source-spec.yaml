@@ -1,6 +1,7 @@
 ### kns dataservice tables
 
 kns_bill:
+  description: "הצעות חוק"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
@@ -111,6 +112,7 @@ kns_bill:
         description: תאריך עדכון אחרון
 
 kns_billname:
+  description: "שמות הצעות חוק כולל היסטוריית שינויים בשמות"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
@@ -150,6 +152,7 @@ kns_billname:
         type: datetime
 
 kns_billinitiator:
+  description: "חברי הכנסת שהציעו או הצטרפו להצעת חוק"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
@@ -186,6 +189,7 @@ kns_billinitiator:
         type: datetime
 
 kns_billhistoryinitiator:
+  description: "היסטוריית שינויים ביוזמים ומצטרפים להצעת חוק"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
@@ -233,6 +237,7 @@ kns_billhistoryinitiator:
         type: datetime
 
 kns_billsplit:
+  description: "היסטוריית פיצול הצעות חוק"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
@@ -268,6 +273,7 @@ kns_billsplit:
         type: datetime
 
 kns_billunion:
+  description: "היסטוריית איחוד של הצעות חוק"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills
@@ -294,6 +300,7 @@ kns_billunion:
         type: datetime
 
 kns_documentbill:
+  description: "מסמכי הצעות חוק"
   dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: bills

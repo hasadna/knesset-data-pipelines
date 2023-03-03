@@ -1,5 +1,5 @@
 source-data-stats:
-  description: calculate some stats about the source data
+  # description: calculate some stats about the source data
   dependencies:
   - pipeline: ./committees/kns_committeesession
   - datapackage: data/committees/kns_committeesession/datapackage.json
@@ -232,7 +232,7 @@ plenum-session-voters-stats:
       target: gs://knesset-data-pipelines/data/people/plenum/session_voters_stats/
 
 mk-voted-against-majority:
-  description: for each vote - collect mks that voted against party majority
+  # description: for each vote - collect mks that voted against party majority
   dependencies:
   - pipeline: ./members/mk_individual
   - datapackage: data/members/mk_individual/datapackage.json
