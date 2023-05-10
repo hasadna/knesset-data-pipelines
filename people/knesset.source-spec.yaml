@@ -236,8 +236,8 @@ mk-voted-against-majority:
   dependencies:
   - pipeline: ./members/mk_individual
   - datapackage: data/members/mk_individual/datapackage.json
-  - pipeline: ./votes/view_vote_rslts_hdr_approved
-  - datapackage: data/votes/view_vote_rslts_hdr_approved/datapackage.json
+  - pipeline: ./votes/view_vote_rslts_hdr_approved_extra
+  - datapackage: data/votes/view_vote_rslts_hdr_approved_extra/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
@@ -250,7 +250,7 @@ mk-voted-against-majority:
   - run: load_resource
     parameters:
 #      limit-rows: 5
-      url: ../data/votes/view_vote_rslts_hdr_approved/datapackage.json
+      url: ../data/votes/view_vote_rslts_hdr_approved_extra/datapackage.json
       resource: view_vote_rslts_hdr_approved
   - run: mk_voted_against_majority
     parameters:
