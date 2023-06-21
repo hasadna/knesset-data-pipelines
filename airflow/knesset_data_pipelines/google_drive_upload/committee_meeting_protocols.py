@@ -71,7 +71,7 @@ def get_or_create_google_drive_folder(service, name, parent_id):
     response = service.files().list(
         q=f"name='{name}' and '{parent_id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false",
         fields='files(id, name)',
-        driveId=config.GOOGLE_DRIVE_KNESSET_DATA_DRIVE_ID,
+        driveId=config.GOOGLE_COMMITTEE_MEETING_PROTOCOLS_DRIVE_ID,
         includeItemsFromAllDrives=True,
         corpora='drive',
         supportsAllDrives=True,
@@ -92,14 +92,14 @@ def get_or_create_google_drive_folder(service, name, parent_id):
 
 def upload_to_google_drive(filepath, target_folders, target_filename, service):
     print(f"Uploading {filepath} to Google Drive folders {target_folders} with filename {target_filename}")
-    parent_folder_id = config.GOOGLE_DRIVE_KNESSET_DATA_FOLDER_ID
+    parent_folder_id = config.GOOGLE_COMMITTEE_MEETING_PROTOCOLS_FOLDER_ID
     for target_folder in target_folders:
         parent_folder_id = get_or_create_google_drive_folder(service, target_folder, parent_folder_id)
     target_filename = target_filename.replace("'", "`")
     response = service.files().list(
         q=f"name='{target_filename}' and '{parent_folder_id}' in parents and trashed=false",
         fields='files(id, name)',
-        driveId=config.GOOGLE_DRIVE_KNESSET_DATA_DRIVE_ID,
+        driveId=config.GOOGLE_COMMITTEE_MEETING_PROTOCOLS_DRIVE_ID,
         includeItemsFromAllDrives=True,
         corpora='drive',
         supportsAllDrives=True,
@@ -131,14 +131,25 @@ def main(download_from_url=False, knesset_num=None, limit=None):
                     url = f'https://production.oknesset.org/pipelines/data/committees/download_document_committee_session/{download_filename}'
                     stream_download(url, filepath)
                 assert os.path.exists(filepath), f'file {filepath} does not exist'
+                session_title = '-'
+                if session.get('Note'):
+                    session_title = session['Note']
+                elif session.get('topics'):
+                    session_title = ', '.join(session['topics'])
+                if len(session_title) > 500:
+                    session_title = session_title[:500] + '...'
+                target_file_name = ' '.join([
+                    'כנסת', str(session["KnessetNum"]),
+                    session['committee_name'],
+                    'ישיבה', str(session["Number"]),
+                    session["StartDate"].split('T')[0],
+                    session_title,
+                    f'({session["CommitteeSessionID"]})',
+                ]) + '.' + ext
                 upload_to_google_drive(
                     filepath,
-                    [
-                        'committee_meeting_protocols',
-                        f'Knesset {session["KnessetNum"]}',
-                        session['committee_name'],
-                    ],
-                    f'{session["Number"]} - {session["StartDate"]} - {session["Note"]} - {session["CommitteeSessionID"]}.{ext}',
+                    [],
+                    target_file_name,
                     service
                 )
                 if limit and stats['num_downloaded_sessions'] >= limit:
