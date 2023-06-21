@@ -1,4 +1,6 @@
 import os
+import tempfile
+from contextlib import contextmanager
 
 
 KNESSET_DATA_PIPELINES_AIRFLOW_ROOT_DIR = os.environ.get('KNESSET_DATA_PIPELINES_AIRFLOW_ROOT_DIR')
@@ -40,3 +42,15 @@ PGSQL_PASSWORD = os.environ.get('PGSQL_PASSWORD', '123456')
 PGSQL_HOST = os.environ.get('PGSQL_HOST', 'localhost')
 PGSQL_PORT = os.environ.get('PGSQL_PORT', '5432')
 PGSQL_DB = os.environ.get('PGSQL_DB', 'postgres')
+
+GOOGLE_SERVICE_ACCOUNT_JSON = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
+GOOGLE_DRIVE_KNESSET_DATA_DRIVE_ID = os.environ.get('GOOGLE_DRIVE_KNESSET_DATA_DRIVE_ID') or '0AN7OjKkFHgaJUk9PVA'
+GOOGLE_DRIVE_KNESSET_DATA_FOLDER_ID = os.environ.get('GOOGLE_DRIVE_KNESSET_DATA_FOLDER_ID') or '1IrB0nEgaG3s4MiVbjb41JjteWl9F0zuR'
+
+
+@contextmanager
+def get_google_service_account_json_file_name():
+    with tempfile.NamedTemporaryFile('w', suffix='.json') as f:
+        f.write(GOOGLE_SERVICE_ACCOUNT_JSON)
+        f.flush()
+        yield f.name

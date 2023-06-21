@@ -11,6 +11,10 @@ def main(load_dotenv):
     pass
 
 
+from .google_drive_upload.cli import google_drive_upload
+main.add_command(google_drive_upload)
+
+
 @main.command()
 @click.argument("PIPELINE_ID")
 @click.option('--limit-rows')
