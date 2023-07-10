@@ -48,9 +48,9 @@ def get_execution_dates(execution_date, external_dag_id, **kwargs):
         session.close()
 
 
-for params_error, pipeline_id, pipeline_dependencies in list_pipelines(all_=True, with_dependencies=True):
+for params_error, pipeline_id, pipeline_dependencies, pipeline_schedule in list_pipelines(all_=True, with_dependencies=True):
     pipeline_dag_id = pipeline_id.replace('/', '.')
-    with DAG(pipeline_dag_id, **dag_kwargs) as dag:
+    with DAG(pipeline_dag_id, **dag_kwargs, schedule_interval='10 0 * * *' if pipeline_schedule else None) as dag:
         if params_error:
             main_task = KubernetesPodOperator(
                 namespace='oknesset',

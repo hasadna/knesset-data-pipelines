@@ -392,6 +392,17 @@ def run_dpp_shell():
     ]))
 
 
+def get_pipeline_schedule(pipeline):
+    if pipeline.get('schedule'):
+        return True
+    for dependency in pipeline.get('dependencies', []):
+        if dependency.get('pipeline'):
+            return True
+    if pipeline.get('pipeline-type') == 'knesset dataservice':
+        return True
+    return False
+
+
 def list_pipelines(full=False, filter_pipeline_ids=None, all_=False, with_dependencies=False):
     for source_spec_yaml in glob(os.path.join(config.KNESSET_DATA_PIPELINES_ROOT_DIR, '**/knesset.source-spec.yaml'), recursive=True):
         if all_:
@@ -409,7 +420,7 @@ def list_pipelines(full=False, filter_pipeline_ids=None, all_=False, with_depend
             error, dataservice_params, storage_url, storage_path, table_name = try_get_pipeline_params(pipeline_name, pipeline)
             if all_:
                 if with_dependencies:
-                    yield error, pipeline_id, get_pipeline_dependencies(pipeline)
+                    yield error, pipeline_id, get_pipeline_dependencies(pipeline), get_pipeline_schedule(pipeline)
                 else:
                     yield error, pipeline_id
             elif not error:
