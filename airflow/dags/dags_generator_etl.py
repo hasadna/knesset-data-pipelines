@@ -74,6 +74,7 @@ for params_error, pipeline_id, pipeline_dependencies in list_pipelines(all_=True
                     k8s.V1EnvVar(name='GOOGLE_APPLICATION_CREDENTIALS', value='/secret_service_key'),
                     k8s.V1EnvVar(name='DISABLE_MEMBER_PERCENTS', value='yes'),
                     k8s.V1EnvVar(name='TIKA_SERVER_ENDPOINT', value='http://tika:9998'),
+                    k8s.V1EnvVar(name='PYTHONUNBUFFERED', value='1'),
                 ],
                 container_resources=k8s.V1ResourceRequirements(
                     requests={'cpu': '0.5', 'memory': '1.5Gi'},
