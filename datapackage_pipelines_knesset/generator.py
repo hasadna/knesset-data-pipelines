@@ -11,6 +11,15 @@ def decode_escaped(escaped):
     return __escape_decoder(escaped)[0]
 
 
+def remove_pipeline_dependencies(pipeline):
+    dependencies = []
+    for dependency in pipeline.get('dependencies', []):
+        if dependency.get('pipeline'):
+            continue
+        dependencies.append(dependency)
+    pipeline['dependencies'] = dependencies
+
+
 def parse_dotenv(dotenv):
     for line in dotenv.splitlines():
         line = line.strip()
@@ -47,6 +56,7 @@ class Generator(GeneratorBase):
 
     @classmethod
     def filter_pipeline(cls, pipeline_id, pipeline, base):
+        remove_pipeline_dependencies(pipeline)  # pipeline dependencies are handled in Airflow
         if pipeline.get('dpp_disabled'):
             yield from cls.get_dpp_disabled_pipeline(pipeline_id, pipeline, base)
         elif pipeline.get("pipeline-type") == "knesset dataservice":
