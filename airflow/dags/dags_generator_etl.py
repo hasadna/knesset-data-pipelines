@@ -1,5 +1,3 @@
-import datetime
-
 import requests
 from ruamel import yaml
 from airflow import DAG
@@ -75,7 +73,6 @@ for params_error, pipeline_id, pipeline_dependencies in list_pipelines(all_=True
             ExternalTaskSensor(
                 task_id=f'wait_{dependency_dag_id}',
                 external_dag_id=dependency_dag_id,
-                execution_delta=datetime.timedelta(hours=3),
                 mode='reschedule',
                 dag=dag
             ) >> main_task
