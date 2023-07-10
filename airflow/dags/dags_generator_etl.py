@@ -8,6 +8,9 @@ from airflow.operators.python import PythonOperator
 from airflow.sensors.external_task import ExternalTaskSensor
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from kubernetes.client import models as k8s
+from airflow.models import DagRun
+from airflow import settings
+from sqlalchemy.orm import sessionmaker
 
 from knesset_data_pipelines.run_pipeline import list_pipelines, main as run_pipeline
 
@@ -26,9 +29,22 @@ PIPELINES_DOCKER_IMAGE = yaml.safe_load(requests.get('https://raw.githubusercont
 
 
 def get_execution_dates(execution_date, **kwargs):
-    now = execution_date
-    hours_ago = now - datetime.timedelta(hours=6)
-    return [hours_ago + datetime.timedelta(minutes=x) for x in range((now-hours_ago).seconds//60)]
+    Session = sessionmaker()
+    session = Session(bind=settings.engine)
+    delta = datetime.timedelta(hours=6)
+    earliest_time = execution_date - delta
+    try:
+        latest_run = session.query(DagRun).filter(
+            DagRun.dag_id == kwargs['external_dag_id'],
+            DagRun.execution_date >= earliest_time,
+            DagRun.state == 'success'
+        ).order_by(DagRun.execution_date.desc()).first()
+        if latest_run:
+            return [latest_run.execution_date]
+        else:
+            return []
+    finally:
+        session.close()
 
 
 for params_error, pipeline_id, pipeline_dependencies in list_pipelines(all_=True, with_dependencies=True):
