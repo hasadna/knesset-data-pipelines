@@ -7,6 +7,7 @@ import datetime
 import tempfile
 import warnings
 import traceback
+import subprocess
 from glob import glob
 from pprint import pprint
 from textwrap import dedent
@@ -25,6 +26,11 @@ from . import config
 
 RECOVERABLE_SERVER_ERRORS = [500, 504]
 RECOVERABLE_THROTTLE_ERRORS = [503, 403]
+
+# these errors indicate that the pipeline cannot run using the standard dataservice flow but have to run via Docker
+UNSUPPORTED_PIPELINE_PARAMS_ERRORS = ['pipeline dependencies are not supported', 'unknown pipeline-type: None', 'additional-steps is not supported']
+
+PIPELINES_DEV_DOCKER_IMAGE = 'orihoch/knesset-data-pipelines@sha256:329c7619fbdb4603d485df327c17cec556bc1ece1db2f11bc64854e94a5ce88a'
 
 
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
@@ -69,6 +75,18 @@ def get_pipeline_params(pipeline_name, pipeline):
     #     ('knesset.dump_to_path', {'storage-url': storage_url, 'out-path': '../{}'.format(storage_path)}),
     #     ('knesset.dump_to_sql', {'engine': 'env://DPP_DB_ENGINE', 'tables': tables}),
     # ]
+
+
+def try_get_pipeline_params(pipeline_name, pipeline):
+    error = False
+    dataservice_params, storage_url, storage_path, table_name = None, None, None, None
+    try:
+        dataservice_params, storage_url, storage_path, table_name = get_pipeline_params(pipeline_name, pipeline)
+    except Exception as e:
+        if str(e) not in UNSUPPORTED_PIPELINE_PARAMS_ERRORS:
+            raise
+        error = True
+    return error, dataservice_params, storage_url, storage_path, table_name
 
 
 def compose_url_get(url, params=None):
@@ -350,12 +368,36 @@ def main(pipeline_id, limit_rows=None, dump_to_db=None, dump_to_path=None, dump_
         dump_to_path = True
     limit_rows = int(limit_rows) if limit_rows else None
     pipeline_name, pipeline = get_pipeline_spec(pipeline_id)
-    dataservice_params, storage_url, storage_path, table_name = get_pipeline_params(pipeline_name, pipeline)
-    _run_pipeline(table_name, storage_url, pipeline_id, storage_path, dataservice_params, limit_rows, pipeline_name, dump_to_path, dump_to_db, dump_to_storage)
+    error, dataservice_params, storage_url, storage_path, table_name = try_get_pipeline_params(pipeline_name, pipeline)
+    if error:
+        _run_pipeline_docker(pipeline_id)
+    else:
+        _run_pipeline(table_name, storage_url, pipeline_id, storage_path, dataservice_params, limit_rows, pipeline_name, dump_to_path, dump_to_db, dump_to_storage)
 
 
-def list_pipelines(full=False, filter_pipeline_ids=None):
+def _run_pipeline_docker(pipeline_id):
+    print(f'Running pipeline via Docker: {pipeline_id}')
+    print('WARNING! pipeline dependencies will be ignored, they are only handled when running via Airflow')
+    exit(subprocess.call([
+        'docker', 'run', '-it', '--entrypoint', '/usr/local/bin/dpp', '-v', f'{config.KNESSET_DATA_PIPELINES_ROOT_DIR}:/pipelines',
+        PIPELINES_DEV_DOCKER_IMAGE, 'run', '--verbose', '--no-use-cache', f'./{pipeline_id}'
+    ]))
+
+
+def run_dpp_shell():
+    exit(subprocess.call([
+        'docker', 'run', '-it', '--entrypoint', '/bin/bash', '-v',
+        f'{config.KNESSET_DATA_PIPELINES_ROOT_DIR}:/pipelines',
+        PIPELINES_DEV_DOCKER_IMAGE
+    ]))
+
+
+def list_pipelines(full=False, filter_pipeline_ids=None, all_=False, with_dependencies=False):
     for source_spec_yaml in glob(os.path.join(config.KNESSET_DATA_PIPELINES_ROOT_DIR, '**/knesset.source-spec.yaml'), recursive=True):
+        if all_:
+            assert not full, 'full and all_ are mutually exclusive'
+        if with_dependencies:
+            assert all_, 'with_dependencies is only supported with all_'
         pipeline_path = os.path.dirname(source_spec_yaml.replace(config.KNESSET_DATA_PIPELINES_ROOT_DIR, '').lstrip('/'))
         with open(source_spec_yaml) as f:
             source_spec = yaml.safe_load(f)
@@ -364,14 +406,13 @@ def list_pipelines(full=False, filter_pipeline_ids=None):
             if filter_pipeline_ids and pipeline_id not in filter_pipeline_ids:
                 continue
             pipeline_name, pipeline = get_pipeline_spec(pipeline_id)
-            error = False
-            try:
-                dataservice_params, storage_url, storage_path, table_name = get_pipeline_params(pipeline_name, pipeline)
-            except Exception as e:
-                if str(e) not in ['pipeline dependencies are not supported', 'unknown pipeline-type: None', 'additional-steps is not supported']:
-                    raise
-                error = True
-            if not error:
+            error, dataservice_params, storage_url, storage_path, table_name = try_get_pipeline_params(pipeline_name, pipeline)
+            if all_:
+                if with_dependencies:
+                    yield error, pipeline_id, get_pipeline_dependencies(pipeline)
+                else:
+                    yield error, pipeline_id
+            elif not error:
                 if full:
                     yield {
                         'pipeline_id': pipeline_id,
@@ -383,6 +424,14 @@ def list_pipelines(full=False, filter_pipeline_ids=None):
                     }
                 else:
                     yield pipeline_id
+
+
+def get_pipeline_dependencies(pipeline):
+    res = []
+    for dependency in pipeline.get('dependencies', []):
+        if dependency.get('pipeline'):
+            res.append(dependency['pipeline'])
+    return res
 
 
 def run_all(filter_pipeline_ids=None):

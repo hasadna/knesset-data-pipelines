@@ -1,7 +1,7 @@
 # Pulled Feb 6, 2023
 FROM --platform=linux/amd64 python:3.8@sha256:3e6443f94e3c82d4cce045f777042c67cff0fa3cdaa55b3ac7c36101e9b0405c
 
-ARG KNESSET_DATA_PIPELINES_VERSION=c8911024342d12d3e0ddc7558c6946d77992ac70
+ARG KNESSET_DATA_PIPELINES_VERSION=467962784b807d7882b6ec6b7d9217afd19482d2
 RUN cd /opt &&\
     curl -LO "https://github.com/hasadna/knesset-data-pipelines/archive/${KNESSET_DATA_PIPELINES_VERSION}.zip" &&\
     unzip "${KNESSET_DATA_PIPELINES_VERSION}.zip" &&\

@@ -28,10 +28,10 @@ def run(**kwargs):
 
 
 @main.command('list')
-def list_():
+def list_(**kwargs):
     """List all pipelines"""
     from .run_pipeline import list_pipelines
-    for pipeline_id in list_pipelines():
+    for _, pipeline_id in list_pipelines(all_=True):
         print(f'- {pipeline_id}')
 
 
@@ -40,6 +40,12 @@ def list_():
 def run_all(**kwargs):
     from .run_pipeline import run_all
     run_all(**kwargs)
+
+
+@main.command()
+def dpp_shell():
+    from .run_pipeline import run_dpp_shell
+    run_dpp_shell()
 
 
 if __name__ == "__main__":
