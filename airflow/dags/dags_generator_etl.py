@@ -1,3 +1,5 @@
+import datetime
+
 import requests
 from ruamel import yaml
 from airflow import DAG
@@ -21,6 +23,12 @@ dag_kwargs = dict(
 
 
 PIPELINES_DOCKER_IMAGE = yaml.safe_load(requests.get('https://raw.githubusercontent.com/OriHoch/knesset-data-k8s/master/apps/pipelines/values-hasadna-auto-updated.yaml').text)['image']
+
+
+def get_execution_dates(execution_date, **kwargs):
+    now = execution_date
+    hours_ago = now - datetime.timedelta(hours=6)
+    return [hours_ago + datetime.timedelta(minutes=x) for x in range((now-hours_ago).seconds//60)]
 
 
 for params_error, pipeline_id, pipeline_dependencies in list_pipelines(all_=True, with_dependencies=True):
@@ -73,6 +81,7 @@ for params_error, pipeline_id, pipeline_dependencies in list_pipelines(all_=True
             ExternalTaskSensor(
                 task_id=f'wait_{dependency_dag_id}',
                 external_dag_id=dependency_dag_id,
+                execution_date_fn=get_execution_dates,
                 mode='reschedule',
                 dag=dag
             ) >> main_task
