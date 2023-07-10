@@ -1,4 +1,5 @@
 import datetime
+from functools import partial
 
 import requests
 from ruamel import yaml
@@ -28,14 +29,14 @@ dag_kwargs = dict(
 PIPELINES_DOCKER_IMAGE = yaml.safe_load(requests.get('https://raw.githubusercontent.com/OriHoch/knesset-data-k8s/master/apps/pipelines/values-hasadna-auto-updated.yaml').text)['image']
 
 
-def get_execution_dates(execution_date, **kwargs):
+def get_execution_dates(execution_date, external_dag_id, **kwargs):
     Session = sessionmaker()
     session = Session(bind=settings.engine)
     delta = datetime.timedelta(hours=6)
     earliest_time = execution_date - delta
     try:
         latest_run = session.query(DagRun).filter(
-            DagRun.dag_id == kwargs['external_dag_id'],
+            DagRun.dag_id == external_dag_id,
             DagRun.execution_date >= earliest_time,
             DagRun.state == 'success'
         ).order_by(DagRun.execution_date.desc()).first()
@@ -97,7 +98,7 @@ for params_error, pipeline_id, pipeline_dependencies in list_pipelines(all_=True
             ExternalTaskSensor(
                 task_id=f'wait_{dependency_dag_id}',
                 external_dag_id=dependency_dag_id,
-                execution_date_fn=get_execution_dates,
+                execution_date_fn=partial(get_execution_dates, external_dag_id=dependency_dag_id),
                 mode='reschedule',
                 dag=dag
             ) >> main_task
