@@ -430,7 +430,7 @@ def get_pipeline_dependencies(pipeline):
     res = []
     for dependency in pipeline.get('dependencies', []):
         if dependency.get('pipeline'):
-            res.append(dependency['pipeline'])
+            res.append(dependency['pipeline'].replace('./', ''))
     return res
 
 
