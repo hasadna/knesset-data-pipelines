@@ -28,11 +28,12 @@ def run(**kwargs):
 
 
 @main.command('list')
+@click.option('--filter-pipeline-ids', help='comma separated list of pipeline ids to filter')
 def list_(**kwargs):
     """List all pipelines"""
     from .run_pipeline import list_pipelines
-    for _, pipeline_id in list_pipelines(all_=True):
-        print(f'- {pipeline_id}')
+    for error, pipeline_id, pipeline_dependencies, pipeline_schedule in list_pipelines(**kwargs, all_=True, with_dependencies=True):
+        print(f'- {pipeline_id}{" (e)" if error else ""} (dependencies: {pipeline_dependencies}){" (scheduled)" if pipeline_schedule else ""}')
 
 
 @main.command()

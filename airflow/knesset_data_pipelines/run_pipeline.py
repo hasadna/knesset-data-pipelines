@@ -392,7 +392,7 @@ def run_dpp_shell():
     ]))
 
 
-def get_pipeline_schedule(pipeline):
+def get_pipeline_schedule(pipeline_id, pipeline):
     if pipeline.get('schedule'):
         return True
     for dependency in pipeline.get('dependencies', []):
@@ -400,15 +400,15 @@ def get_pipeline_schedule(pipeline):
             return True
     if pipeline.get('pipeline-type') == 'knesset dataservice':
         return True
+    for dep_pipeline_id, dep_pipeline_name, dep_pipeline in _iterate_pipelines():
+        for dependency in dep_pipeline.get('dependencies', []):
+            if dependency.get('pipeline') == f'./{pipeline_id}':
+                return True
     return False
 
 
-def list_pipelines(full=False, filter_pipeline_ids=None, all_=False, with_dependencies=False):
+def _iterate_pipelines(filter_pipeline_ids=None):
     for source_spec_yaml in glob(os.path.join(config.KNESSET_DATA_PIPELINES_ROOT_DIR, '**/knesset.source-spec.yaml'), recursive=True):
-        if all_:
-            assert not full, 'full and all_ are mutually exclusive'
-        if with_dependencies:
-            assert all_, 'with_dependencies is only supported with all_'
         pipeline_path = os.path.dirname(source_spec_yaml.replace(config.KNESSET_DATA_PIPELINES_ROOT_DIR, '').lstrip('/'))
         with open(source_spec_yaml) as f:
             source_spec = yaml.safe_load(f)
@@ -417,24 +417,34 @@ def list_pipelines(full=False, filter_pipeline_ids=None, all_=False, with_depend
             if filter_pipeline_ids and pipeline_id not in filter_pipeline_ids:
                 continue
             pipeline_name, pipeline = get_pipeline_spec(pipeline_id)
-            error, dataservice_params, storage_url, storage_path, table_name = try_get_pipeline_params(pipeline_name, pipeline)
-            if all_:
-                if with_dependencies:
-                    yield error, pipeline_id, get_pipeline_dependencies(pipeline), get_pipeline_schedule(pipeline)
-                else:
-                    yield error, pipeline_id
-            elif not error:
-                if full:
-                    yield {
-                        'pipeline_id': pipeline_id,
-                        'pipeline_name': pipeline_name,
-                        'dataservice_params': dataservice_params,
-                        'storage_url': storage_url,
-                        'storage_path': storage_path,
-                        'table_name': table_name,
-                    }
-                else:
-                    yield pipeline_id
+            yield pipeline_id, pipeline_name, pipeline
+
+
+def list_pipelines(full=False, filter_pipeline_ids=None, all_=False, with_dependencies=False):
+    if all_:
+        assert not full, 'full and all_ are mutually exclusive'
+    if with_dependencies:
+        assert all_, 'with_dependencies is only supported with all_'
+    filter_pipeline_ids = filter_pipeline_ids.split(',') if filter_pipeline_ids else None
+    for pipeline_id, pipeline_name, pipeline in _iterate_pipelines(filter_pipeline_ids):
+        error, dataservice_params, storage_url, storage_path, table_name = try_get_pipeline_params(pipeline_name, pipeline)
+        if all_:
+            if with_dependencies:
+                yield error, pipeline_id, get_pipeline_dependencies(pipeline), get_pipeline_schedule(pipeline_id, pipeline)
+            else:
+                yield error, pipeline_id
+        elif not error:
+            if full:
+                yield {
+                    'pipeline_id': pipeline_id,
+                    'pipeline_name': pipeline_name,
+                    'dataservice_params': dataservice_params,
+                    'storage_url': storage_url,
+                    'storage_path': storage_path,
+                    'table_name': table_name,
+                }
+            else:
+                yield pipeline_id
 
 
 def get_pipeline_dependencies(pipeline):
