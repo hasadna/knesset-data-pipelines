@@ -2,6 +2,7 @@ import datetime
 import decimal
 import os
 import logging
+from textwrap import dedent
 
 import copy
 from datapackage_pipelines.utilities.extended_json import json
@@ -149,7 +150,7 @@ class SQLTempTableDumper(SQLDumper):
             temp_tables = {}
             self.rename_table_names = {}
             for table_name, table_config in parameters.get('tables', {}).items():
-                temp_table_name = str(uuid.uuid1()).replace('-', '')
+                temp_table_name = '__tmp__' + table_name
                 temp_tables[temp_table_name] = table_config
                 self.rename_table_names[temp_table_name] = table_name
             parameters['tables'] = temp_tables
@@ -164,14 +165,15 @@ class SQLTempTableDumper(SQLDumper):
     def finalize(self):
         if os.environ.get('DUMP_TO_SQL'):
             connection = self.engine.connect()
-            for temp_table_name, table_name in self.rename_table_names.items():
-                logging.info('renaming sql table {} --> {}'.format(temp_table_name, table_name))
-                try:
-                    connection.execute('drop table "{}"'.format(table_name))
-                except Exception:
-                    pass
-                connection.execute('alter table "{}" rename to "{}"'.format(temp_table_name, table_name))
-            connection.close()
+            try:
+                for temp_table_name, table_name in self.rename_table_names.items():
+                    logging.info('renaming sql table {} --> {}'.format(temp_table_name, table_name))
+                    connection.execute(dedent('''
+                        drop table if exists "{table_name}";
+                        alter table "{temp_table_name}" rename to "{table_name}";
+                    ''').format(table_name=table_name, temp_table_name=temp_table_name))
+            finally:
+                connection.close()
             super(SQLTempTableDumper, self).finalize()
 
 
