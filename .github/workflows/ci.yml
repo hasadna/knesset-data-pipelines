@@ -18,17 +18,18 @@ jobs:
         uci github actions self-checkout --config-user-name "knesset-data-pipelines-ci" &&\
         uci github actions docker-login &&\
         uci docker build-cache \
-          --cache-from "${DOCKER_APP_IMAGE_NAME}:latest" \
-          -- -t app airflow &&\
-        uci docker tag-push \
-          --source-tag-name app \
-          --push-tag-name "${DOCKER_APP_IMAGE_NAME}:${GITHUB_SHA}" &&\
-        uci docker build-cache \
           --cache-from "${DOCKER_LEGACY_IMAGE_NAME}:latest" \
           -- -t legacy . &&\
         uci docker tag-push \
           --source-tag-name legacy \
           --push-tag-name "${DOCKER_LEGACY_IMAGE_NAME}:${GITHUB_SHA}" &&\
+        uci docker build-cache \
+          --cache-from "${DOCKER_APP_IMAGE_NAME}:latest" \
+          --build-arg KNESSET_DATA_PIPELINES_VERSION="${GITHUB_SHA}" \
+          -- -t app airflow &&\
+        uci docker tag-push \
+          --source-tag-name app \
+          --push-tag-name "${DOCKER_APP_IMAGE_NAME}:${GITHUB_SHA}" &&\
         if [ "${GITHUB_REF}" == "refs/heads/master" ]; then
           docker tag app "${DOCKER_APP_IMAGE_NAME}:latest" &&\
           docker push "${DOCKER_APP_IMAGE_NAME}:latest" &&\
