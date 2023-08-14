@@ -264,11 +264,17 @@ presence:
   dependencies:
   - pipeline: ./members/mk_individual
   - datapackage: data/members/mk_individual/datapackage.json
+  - pipeline: ./members/kns_mksitecode
+  - datapackage: data/members/kns_mksitecode/datapackage.json
   pipeline:
   - run: load_resource
     parameters:
       url: ../data/members/mk_individual/datapackage.json
       resource: mk_individual
+  - run: load_resource
+    parameters:
+      url: ../data/members/kns_mksitecode/datapackage.json
+      resource: kns_mksitecode
   - run: read_presence
     parameters:
       # old presence data from oknesset

@@ -7,21 +7,25 @@ parameters, datapackage, resources = ingest()
 aggregations = {"stats": {}}
 
 
-mk_individual = {row["mk_individual_id"]: row for row in list(resources)[0]}
+resources_list = list(resources)
+mk_individual = {row["mk_individual_id"]: row for row in resources_list[0]}
+site_id_to_kns_id = {row["SiteId"]: row["KnsID"] for row in resources_list[1]}
 
 
 def flush_day(current_day):
     mk_ids_hours = current_day.get("mk_ids_hours", {})
     for mk_id, hours in mk_ids_hours.items():
-        if mk_id in mk_individual:
-            yield {"mk_id": mk_id,
-                   "mk_name": mk_individual[mk_id]["mk_individual_first_name"] + " " + mk_individual[mk_id]["mk_individual_name"],
-                   "date": datetime.date(current_day["year"], current_day["month"], current_day["day"]),
-                   "year": current_day["year"],
-                   "month": current_day["month"],
-                   "day": current_day["day"],
-                   "year_week_number": ((datetime.date(current_day["year"], current_day["month"], current_day["day"]) - datetime.date(current_day["year"], 1, 1)).days // 7) + 1,
-                   "total_attended_hours": len(hours)}
+        if mk_id not in mk_individual:
+            mk_id = site_id_to_kns_id.get(mk_id)
+        assert mk_id in mk_individual, f"mk_id {mk_id} not found"
+        yield {"mk_id": mk_id,
+               "mk_name": mk_individual[mk_id]["mk_individual_first_name"] + " " + mk_individual[mk_id]["mk_individual_name"],
+               "date": datetime.date(current_day["year"], current_day["month"], current_day["day"]),
+               "year": current_day["year"],
+               "month": current_day["month"],
+               "day": current_day["day"],
+               "year_week_number": ((datetime.date(current_day["year"], current_day["month"], current_day["day"]) - datetime.date(current_day["year"], 1, 1)).days // 7) + 1,
+               "total_attended_hours": len(hours)}
 
 
 def get_presence_lines():
