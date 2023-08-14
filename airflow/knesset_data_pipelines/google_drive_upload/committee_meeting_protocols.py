@@ -12,7 +12,7 @@ from knesset_data_pipelines import config
 
 
 def iterate_knesset_committee_sessions(knesset_num):
-    print(f'getting sessions for knesset_num {knesset_num}')
+    # print(f'getting sessions for knesset_num {knesset_num}')
     for committee_session in requests.get(f'https://backend.oknesset.org/committee_sessions?knesset_num={knesset_num}').json()['data']:
         yield committee_session
 
@@ -44,7 +44,7 @@ def iterate_committee_sessions(stats, only_knesset_num=None):
 
 
 def stream_download(url, filepath):
-    print(f'downloading {url} to {filepath}')
+    # print(f'downloading {url} to {filepath}')
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
@@ -91,36 +91,43 @@ def get_or_create_google_drive_folder(service, name, parent_id):
 
 
 def upload_to_google_drive(filepath, target_folders, target_filename, service):
-    print(f"Uploading {filepath} to Google Drive folders {target_folders} with filename {target_filename}")
-    parent_folder_id = config.GOOGLE_COMMITTEE_MEETING_PROTOCOLS_FOLDER_ID
-    for target_folder in target_folders:
-        parent_folder_id = get_or_create_google_drive_folder(service, target_folder, parent_folder_id)
-    target_filename = target_filename.replace("'", "`")
-    response = service.files().list(
-        q=f"name='{target_filename}' and '{parent_folder_id}' in parents and trashed=false",
-        fields='files(id, name)',
-        driveId=config.GOOGLE_COMMITTEE_MEETING_PROTOCOLS_DRIVE_ID,
-        includeItemsFromAllDrives=True,
-        corpora='drive',
-        supportsAllDrives=True,
-    ).execute()
-    files = response.get('files', [])
-    if len(files) == 0:
-        file_metadata = {
-            'name': target_filename,
-            'parents': [parent_folder_id],
-        }
-        media = MediaFileUpload(filepath, resumable=True)
-        file = service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
-        print(f"Uploaded id {file.get('id')}")
-    else:
-        print(f"File already exists in Google Drive: id {files[0]['id']}")
+    try:
+        # print(f"Uploading {filepath} to Google Drive folders {target_folders} with filename {target_filename}")
+        parent_folder_id = config.GOOGLE_COMMITTEE_MEETING_PROTOCOLS_FOLDER_ID
+        for target_folder in target_folders:
+            parent_folder_id = get_or_create_google_drive_folder(service, target_folder, parent_folder_id)
+        target_filename = target_filename.replace("'", "`").replace('\\', ' ')
+        response = service.files().list(
+            q=f"name='{target_filename}' and '{parent_folder_id}' in parents and trashed=false",
+            fields='files(id, name)',
+            driveId=config.GOOGLE_COMMITTEE_MEETING_PROTOCOLS_DRIVE_ID,
+            includeItemsFromAllDrives=True,
+            corpora='drive',
+            supportsAllDrives=True,
+        ).execute()
+        files = response.get('files', [])
+        if len(files) == 0:
+            file_metadata = {
+                'name': target_filename,
+                'parents': [parent_folder_id],
+            }
+            media = MediaFileUpload(filepath, resumable=True)
+            file = service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
+            print(f"Uploaded id {file.get('id')}")
+        else:
+            pass
+            # print(f"File already exists in Google Drive: id {files[0]['id']}")
+    except Exception:
+        print(f"Failed to upload {filepath} to Google Drive folders {target_folders} with filename {target_filename}")
+        raise
 
 
-def main(download_from_url=False, knesset_num=None, limit=None):
+def main(download_from_url=False, knesset_num=None, limit=None, only_session_id=None):
     with get_google_drive_service() as service:
         stats = defaultdict(int)
         for session in iterate_committee_sessions(stats, only_knesset_num=knesset_num):
+            if only_session_id and session['CommitteeSessionID'] != only_session_id:
+                continue
             download_filename = session['download_filename']
             if download_filename:
                 ext = download_filename.split('.')[-1]
