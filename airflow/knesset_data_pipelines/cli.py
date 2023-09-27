@@ -1,3 +1,5 @@
+import importlib
+
 import click
 import dotenv
 
@@ -11,8 +13,11 @@ def main(load_dotenv):
     pass
 
 
-from .google_drive_upload.cli import google_drive_upload
-main.add_command(google_drive_upload)
+for module_name, function_name in [
+    ('.google_drive_upload.cli', 'google_drive_upload'),
+    ('.committees.cli', 'committees'),
+]:
+    main.add_command(getattr(importlib.import_module(module_name, __package__), function_name))
 
 
 @main.command()

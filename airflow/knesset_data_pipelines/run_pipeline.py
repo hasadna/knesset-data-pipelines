@@ -19,9 +19,8 @@ from ruamel import yaml
 import google.cloud.storage
 from bs4 import BeautifulSoup
 from bs4.builder import XMLParsedAsHTMLWarning
-from sqlalchemy.engine.create import create_engine
 
-from . import config
+from . import config, db
 
 
 RECOVERABLE_SERVER_ERRORS = [500, 504]
@@ -287,13 +286,6 @@ def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_
             next_url = None
 
 
-def get_db_engine():
-    return create_engine(
-        f'postgresql+psycopg2://{config.PGSQL_USER}:{config.PGSQL_PASSWORD}@{config.PGSQL_HOST}:{config.PGSQL_PORT}/{config.PGSQL_DB}',
-        echo=False
-    )
-
-
 def upload_to_storage(source_path, target_url, pipeline_name):
     print(f'uploading {source_path} to {target_url}')
     assert target_url.startswith('http://storage.googleapis.com/knesset-data-pipelines/')
@@ -339,13 +331,13 @@ def _run_pipeline(table_name, storage_url, pipeline_id, storage_path, dataservic
         *([
               DF.dump_to_sql(
                   {temp_table_name: {'resource-name': pipeline_name}},
-                  get_db_engine(),
+                  db.get_db_engine(),
                   batch_size=100000,
               ),
           ] if dump_to_db else []),
     ).process()
     if dump_to_db:
-        with get_db_engine().connect() as conn:
+        with db.get_db_engine().connect() as conn:
             with conn.begin():
                 conn.execute(dedent(f'''
                         drop table if exists {table_name};

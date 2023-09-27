@@ -263,43 +263,44 @@ kns_documentcommitteesession:
       out-path: ../data/committees/meeting_protocols_parts
 
 
-background_material_titles:
-  dependencies:
-#  - pipeline: ./committees/kns_documentcommitteesession
-  - datapackage: data/committees/kns_documentcommitteesession/datapackage.json
-  - pipeline: ./committees/kns_committeesession
-  - datapackage: data/committees/kns_committeesession/datapackage.json
-  - pipeline: ./committees/kns_committee
-  - datapackage: data/committees/kns_committee/datapackage.json
-  pipeline:
-  - run: load_resource
-    parameters:
-      url: ../data/committees/background_material_titles/datapackage.json
-      resource: document_background_material_titles
-      required: false
-  - run: load_resource
-    parameters:
-      url: ../data/committees/kns_committee/datapackage.json
-      resource: kns_committee
-  - run: load_resource
-    parameters:
-      url: ../data/committees/kns_committeesession/datapackage.json
-      resource: kns_committeesession
-  - cache: true
-    run: load_resource
-    parameters:
-      url: ../data/committees/kns_documentcommitteesession/datapackage.json
-      resource: kns_documentcommitteesession
-  - run: background_material_titles
-  - run: knesset.dump_to_path
-    parameters:
-      out-path: ../data/committees/background_material_titles
-      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/committees/background_material_titles
-  - run: knesset.dump_to_sql
-    parameters:
-      tables:
-        committees_document_background_material_titles:
-          resource-name: document_background_material_titles
+# moved to Airflow
+#background_material_titles:
+#  dependencies:
+##  - pipeline: ./committees/kns_documentcommitteesession
+#  - datapackage: data/committees/kns_documentcommitteesession/datapackage.json
+#  - pipeline: ./committees/kns_committeesession
+#  - datapackage: data/committees/kns_committeesession/datapackage.json
+#  - pipeline: ./committees/kns_committee
+#  - datapackage: data/committees/kns_committee/datapackage.json
+#  pipeline:
+#  - run: load_resource
+#    parameters:
+#      url: ../data/committees/background_material_titles/datapackage.json
+#      resource: document_background_material_titles
+#      required: false
+#  - run: load_resource
+#    parameters:
+#      url: ../data/committees/kns_committee/datapackage.json
+#      resource: kns_committee
+#  - run: load_resource
+#    parameters:
+#      url: ../data/committees/kns_committeesession/datapackage.json
+#      resource: kns_committeesession
+#  - cache: true
+#    run: load_resource
+#    parameters:
+#      url: ../data/committees/kns_documentcommitteesession/datapackage.json
+#      resource: kns_documentcommitteesession
+#  - run: background_material_titles
+#  - run: knesset.dump_to_path
+#    parameters:
+#      out-path: ../data/committees/background_material_titles
+#      storage-url: http://storage.googleapis.com/knesset-data-pipelines/data/committees/background_material_titles
+#  - run: knesset.dump_to_sql
+#    parameters:
+#      tables:
+#        committees_document_background_material_titles:
+#          resource-name: document_background_material_titles
 
 
 sync-documents:
