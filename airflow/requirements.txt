@@ -309,7 +309,7 @@ jsonschema==4.19.1
     #   tableschema
 jsonschema-specifications==2023.7.1
     # via jsonschema
-kubernetes==23.6.0
+kubernetes==28.1.0
     # via apache-airflow-providers-cncf-kubernetes
 kubernetes-asyncio==24.2.3
     # via apache-airflow-providers-cncf-kubernetes
