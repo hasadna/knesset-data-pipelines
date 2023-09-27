@@ -184,7 +184,7 @@ flask==2.2.5
     #   flask-wtf
 flask-appbuilder==4.3.6
     # via apache-airflow
-flask-babel==2.0.0
+flask-babel==3.1.0
     # via flask-appbuilder
 flask-caching==2.0.2
     # via apache-airflow
