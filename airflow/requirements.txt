@@ -127,7 +127,7 @@ clickclick==20.10.2
     # via connexion
 colorama==0.4.6
     # via flask-appbuilder
-colorlog==4.8.0
+colorlog==6.7.0
     # via apache-airflow
 configupdater==3.1.1
     # via apache-airflow
