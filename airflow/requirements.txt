@@ -352,7 +352,7 @@ marshmallow==3.20.1
     #   marshmallow-sqlalchemy
 marshmallow-oneofschema==3.0.1
     # via apache-airflow
-marshmallow-sqlalchemy==0.26.1
+marshmallow-sqlalchemy==0.29.0
     # via flask-appbuilder
 mdit-py-plugins==0.4.0
     # via apache-airflow
