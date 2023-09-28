@@ -57,11 +57,8 @@ def iterate_new_titles():
                 committees_kns_documentcommitteesession doc
                 join committees_kns_committeesession sess
                     on sess."CommitteeSessionID" = doc."CommitteeSessionID"
-                left join committees_document_background_material_titles title
-                    on title."DocumentCommitteeSessionID" = doc."DocumentCommitteeSessionID"
             where
-                title.title is null
-                and doc."GroupTypeID" = 87
+                doc."GroupTypeID" = 87
                 and doc."FilePath" is not null
                 and sess."StartDate" > '2020-01-01'
             group by sess."CommitteeSessionID", sess."CommitteeID"
@@ -79,7 +76,6 @@ def iterate_new_titles():
                     'FilePath': str(title['FilePath']),
                     'title': str(title['title']),
                 }
-            break
 
 
 def get_titles(committee, row):
@@ -104,6 +100,8 @@ def get_titles(committee, row):
                 if f'{row["FilePath"]}--{row["title"]}' not in yielded_rows:
                     yield row
                     yielded_rows.add(f'{row["FilePath"]}--{row["title"]}')
+        if len(yielded_rows) > 0:
+            print(f'got {len(yielded_rows)} titles')
 
 
 def main():

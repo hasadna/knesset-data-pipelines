@@ -23,10 +23,10 @@ def get_committees_tree():
                     'category_desc': row.category_desc,
                 } for row in conn.execute('''
                     select
-                        "CommitteeID" committee_id,
-                        "ParentCommitteeID" parent_committee_id,
-                        "Name" name,
-                        "CategoryDesc" category_desc
+                        "CommitteeID" as committee_id,
+                        "ParentCommitteeID" as parent_committee_id,
+                        "Name" as name,
+                        "CategoryDesc" as category_desc
                     from committees_kns_committee
                 ''')
             }
