@@ -103,7 +103,7 @@ certifi==2023.7.22
     #   kubernetes
     #   kubernetes-asyncio
     #   requests
-cffi==1.15.1
+cffi==1.16.0
     # via cryptography
 chardet==5.2.0
     # via
