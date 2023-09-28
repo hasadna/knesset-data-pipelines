@@ -60,7 +60,7 @@ def iterate_new_titles():
             where
                 doc."GroupTypeID" = 87
                 and doc."FilePath" is not null
-                and sess."StartDate" > '2020-01-01'
+                and sess."StartDate" > '2019-01-01'
             group by sess."CommitteeSessionID", sess."CommitteeID"
         ''')):
             committee = committees.get(row.committee_id)
