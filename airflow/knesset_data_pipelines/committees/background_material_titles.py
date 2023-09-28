@@ -10,49 +10,14 @@ from .. import db, config
 from ..get_retry_response_content import get_retry_response_content
 
 
-ALLOWED_COMMITTEE_NAME_CONTAINS = (
-    'האישה',
-    'בנשים',
-    ' נשים',
-    'הנשים',
-)
-WOMEN_SLUG_COMMITTEE_IDS = [2156, 2227, 4200]
-URL_TEMPLATE = 'https://main.knesset.gov.il/Activity/committees/{slug}/Pages/CommitteeMaterial.aspx?ItemID={id}'
-
-
-def get_committee_url_slug(committee):
-    if committee['committee_id'] in WOMEN_SLUG_COMMITTEE_IDS or committee['root_committee_id'] in WOMEN_SLUG_COMMITTEE_IDS:
-        return 'Women'
-    else:
-        print(f"WARNING! committee doesn't have a known url slug, assuming 'Women' slug: {committee['committee_id']}")
-        return 'Women'
-
-
-def is_allowed_committee(committee, committees):
-    for name_contains in ALLOWED_COMMITTEE_NAME_CONTAINS:
-        if name_contains in committee['name']:
-            return True
-        if committee['category_desc'] and name_contains in committee['category_desc']:
-            return True
-        for parent_committee_id in committee['parent_committee_ids']:
-            if is_allowed_committee(committees[parent_committee_id], committees):
-                return True
-    return False
-
-
 def iterate_new_titles():
     committees = get_committees_tree()
-    committees = {
-        committee_id: committee
-        for committee_id, committee
-        in committees.items()
-        if is_allowed_committee(committee, committees)
-    }
     with db.get_db_engine().connect() as conn:
         for row in conn.execute(dedent('''
             select
                 sess."CommitteeSessionID" committee_session_id,
-                sess."CommitteeID" committee_id
+                sess."CommitteeID" committee_id,
+                sess."SessionUrl" session_url
             from
                 committees_kns_documentcommitteesession doc
                 join committees_kns_committeesession sess
@@ -60,14 +25,11 @@ def iterate_new_titles():
             where
                 doc."GroupTypeID" = 87
                 and doc."FilePath" is not null
-                and sess."StartDate" > '2019-01-01'
-            group by sess."CommitteeSessionID", sess."CommitteeID"
+            group by sess."CommitteeSessionID", sess."CommitteeID", sess."SessionUrl"
         ''')):
             committee = committees.get(row.committee_id)
             if not committee:
                 continue
-            committee['url_slug'] = get_committee_url_slug(committee)
-            assert committee['url_slug']
             for title in get_titles(committee, row):
                 yield {
                     'DocumentCommitteeSessionID': 0,
@@ -78,17 +40,18 @@ def iterate_new_titles():
                 }
 
 
-def get_titles(committee, row):
-    url = URL_TEMPLATE.format(slug=committee['url_slug'], id=row['committee_session_id'])
-    print(f'get_titles: {url}')
+def get_titles_from_committee_material(committee, row, committee_material_url):
+    print(f'get_titles_from_committee_material: {committee_material_url}')
     try:
-        content = get_retry_response_content(url, None, None, None, retry_num=1, num_retries=10,
-                                             seconds_between_retries=10,
-                                             skip_not_found_errors=True)
+        content = get_retry_response_content(
+            f'https://main.knesset.gov.il{committee_material_url}', None, None, None, retry_num=1, num_retries=10,
+            seconds_between_retries=10,
+            skip_not_found_errors=True
+        )
     except Exception:
         traceback.print_exc()
         content = None
-        print('failed to get background material titles for {} {}'.format(committee['url_slug'], row['committee_session_id']))
+        print(f'failed to get background material titles for {committee_material_url}')
     if content:
         page = pq(content)
         yielded_rows = set()
@@ -102,6 +65,26 @@ def get_titles(committee, row):
                     yielded_rows.add(f'{row["FilePath"]}--{row["title"]}')
         if len(yielded_rows) > 0:
             print(f'got {len(yielded_rows)} titles')
+
+
+def get_titles(committee, row):
+    print(f'get_titles: {row.session_url}')
+    try:
+        session_content = get_retry_response_content(
+            row.session_url, None, None, None, retry_num=1, num_retries=10,
+            seconds_between_retries=10, skip_not_found_errors=True
+        )
+    except Exception:
+        traceback.print_exc()
+        session_content = None
+        print(f'failed to get background material titles session url for {row.session_url}')
+    if session_content:
+        page = pq(session_content)
+        yielded_rows = set()
+        for aelt in map(pq, page.find('a')):
+            contents = ''.join(map(str, aelt.contents()))
+            if 'חומר' in contents and 'רקע' in contents and aelt.attr.href.strip().endswith(f'CommitteeMaterial.aspx?ItemID={row.committee_session_id}'):
+                yield from get_titles_from_committee_material(committee, row, aelt.attr.href.strip())
 
 
 def main():
