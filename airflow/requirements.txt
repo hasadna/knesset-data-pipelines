@@ -626,7 +626,7 @@ urllib3==1.26.16
     #   kubernetes
     #   kubernetes-asyncio
     #   requests
-wcwidth==0.2.6
+wcwidth==0.2.7
     # via blessed
 websocket-client==1.6.3
     # via kubernetes
