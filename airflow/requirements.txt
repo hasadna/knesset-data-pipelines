@@ -513,7 +513,7 @@ rfc3339-validator==0.1.4
     # via apache-airflow
 rfc3986==2.0.0
     # via tableschema
-rich==13.5.3
+rich==13.6.0
     # via
     #   apache-airflow
     #   flask-limiter
