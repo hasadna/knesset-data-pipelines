@@ -630,7 +630,7 @@ wcwidth==0.2.6
     # via blessed
 websocket-client==1.6.3
     # via kubernetes
-werkzeug==2.2.3
+werkzeug==3.0.0
     # via
     #   apache-airflow
     #   connexion
