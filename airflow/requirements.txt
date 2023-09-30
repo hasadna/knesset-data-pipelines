@@ -169,7 +169,7 @@ exceptiongroup==1.1.3
     # via
     #   anyio
     #   cattrs
-flask==2.2.5
+flask==3.0.0
     # via
     #   apache-airflow
     #   connexion
