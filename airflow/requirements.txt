@@ -109,7 +109,7 @@ chardet==5.2.0
     # via
     #   datapackage
     #   tabulator
-charset-normalizer==3.2.0
+charset-normalizer==3.3.0
     # via
     #   aiohttp
     #   requests
