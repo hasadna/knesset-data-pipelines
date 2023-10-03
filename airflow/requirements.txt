@@ -59,7 +59,7 @@ attrs==23.1.0
     #   referencing
 awesome-slugify==1.6.5
     # via dataflows
-babel==2.12.1
+babel==2.13.0
     # via flask-babel
 backoff==2.2.1
     # via
