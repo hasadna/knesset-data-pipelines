@@ -68,7 +68,7 @@ backoff==2.2.1
     #   opentelemetry-exporter-otlp-proto-http
 beautifulsoup4==4.11.2
     # via -r requirements.in
-bitarray==2.8.1
+bitarray==2.8.2
     # via
     #   bitstring
     #   pybloom-live
