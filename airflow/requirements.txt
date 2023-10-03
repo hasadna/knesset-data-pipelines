@@ -489,7 +489,7 @@ referencing==0.30.2
     # via
     #   jsonschema
     #   jsonschema-specifications
-regex==2023.8.8
+regex==2023.10.3
     # via awesome-slugify
 requests[socks]==2.28.2
     # via
