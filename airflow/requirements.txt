@@ -188,7 +188,7 @@ flask-babel==2.0.0
     # via flask-appbuilder
 flask-caching==2.0.2
     # via apache-airflow
-flask-jwt-extended==4.5.2
+flask-jwt-extended==4.5.3
     # via flask-appbuilder
 flask-limiter==3.5.0
     # via flask-appbuilder
