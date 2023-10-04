@@ -78,7 +78,7 @@ blessed==1.20.0
     # via inquirer
 blinker==1.6.2
     # via apache-airflow
-boto3==1.28.56
+boto3==1.28.60
     # via tabulator
 botocore==1.31.56
     # via
