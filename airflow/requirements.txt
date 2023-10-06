@@ -250,7 +250,7 @@ gunicorn==21.2.0
     # via apache-airflow
 h11==0.14.0
     # via httpcore
-httpcore==0.18.0
+httpcore==1.0.0
     # via httpx
 httplib2==0.22.0
     # via
