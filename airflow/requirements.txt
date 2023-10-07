@@ -76,7 +76,7 @@ bitstring==4.1.2
     # via dataflows
 blessed==1.20.0
     # via inquirer
-blinker==1.6.2
+blinker==1.6.3
     # via apache-airflow
 boto3==1.28.56
     # via tabulator
