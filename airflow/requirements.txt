@@ -331,7 +331,7 @@ lxml==4.9.3
     # via pyquery
 mako==1.2.4
     # via alembic
-markdown==3.4.4
+markdown==3.5
     # via apache-airflow
 markdown-it-py==3.0.0
     # via
