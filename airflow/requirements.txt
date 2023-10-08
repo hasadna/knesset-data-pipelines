@@ -186,7 +186,7 @@ flask-appbuilder==4.3.6
     # via apache-airflow
 flask-babel==2.0.0
     # via flask-appbuilder
-flask-caching==2.0.2
+flask-caching==2.1.0
     # via apache-airflow
 flask-jwt-extended==4.5.2
     # via flask-appbuilder
