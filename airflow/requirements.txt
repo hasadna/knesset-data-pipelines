@@ -628,7 +628,7 @@ urllib3==1.26.16
     #   requests
 wcwidth==0.2.6
     # via blessed
-websocket-client==1.6.3
+websocket-client==1.6.4
     # via kubernetes
 werkzeug==2.2.3
     # via
