@@ -639,7 +639,7 @@ werkzeug==2.2.3
     #   flask-login
 wrapt==1.15.0
     # via deprecated
-wtforms==3.0.1
+wtforms==3.1.0
     # via
     #   flask-appbuilder
     #   flask-wtf
