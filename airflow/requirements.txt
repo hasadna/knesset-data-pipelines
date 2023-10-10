@@ -135,7 +135,7 @@ connexion[flask]==2.14.2
     # via apache-airflow
 cron-descriptor==1.4.0
     # via apache-airflow
-croniter==1.4.1
+croniter==2.0.0
     # via apache-airflow
 cryptography==41.0.4
     # via
