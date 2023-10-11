@@ -144,7 +144,7 @@ cryptography==41.0.4
     #   tableschema-sql
 cssselect==1.2.0
     # via pyquery
-dataflows==0.3.16
+dataflows==0.4.5
     # via -r requirements.in
 datapackage==1.15.2
     # via dataflows
