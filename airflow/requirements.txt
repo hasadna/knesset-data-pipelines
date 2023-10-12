@@ -235,7 +235,7 @@ google-re2==1.1
     # via apache-airflow
 google-resumable-media==2.6.0
     # via google-cloud-storage
-googleapis-common-protos==1.60.0
+googleapis-common-protos==1.61.0
     # via
     #   google-api-core
     #   opentelemetry-exporter-otlp-proto-grpc
