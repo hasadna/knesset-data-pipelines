@@ -418,7 +418,7 @@ protobuf==4.24.3
     #   google-api-core
     #   googleapis-common-protos
     #   opentelemetry-proto
-psutil==5.9.5
+psutil==5.9.6
     # via apache-airflow
 pyasn1==0.5.0
     # via
