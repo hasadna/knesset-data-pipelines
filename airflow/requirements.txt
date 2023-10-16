@@ -80,7 +80,7 @@ blinker==1.6.2
     # via apache-airflow
 boto3==1.28.56
     # via tabulator
-botocore==1.31.56
+botocore==1.31.64
     # via
     #   boto3
     #   s3transfer
