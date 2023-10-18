@@ -165,10 +165,6 @@ email-validator==1.3.1
     # via flask-appbuilder
 et-xmlfile==1.1.0
     # via openpyxl
-exceptiongroup==1.1.3
-    # via
-    #   anyio
-    #   cattrs
 flask==2.2.5
     # via
     #   apache-airflow
@@ -528,8 +524,6 @@ rsa==4.9
     # via google-auth
 ruamel-yaml==0.17.21
     # via -r requirements.in
-ruamel-yaml-clib==0.2.7
-    # via ruamel-yaml
 s3transfer==0.7.0
     # via boto3
 setproctitle==1.3.2
@@ -600,8 +594,6 @@ typing-extensions==4.8.0
     # via
     #   alembic
     #   apache-airflow
-    #   asgiref
-    #   cattrs
     #   flask-limiter
     #   limits
     #   opentelemetry-sdk
@@ -619,7 +611,7 @@ unidecode==0.4.21
     # via awesome-slugify
 uritemplate==4.1.1
     # via google-api-python-client
-urllib3==1.26.16
+urllib3==1.26.18
     # via
     #   botocore
     #   google-auth
