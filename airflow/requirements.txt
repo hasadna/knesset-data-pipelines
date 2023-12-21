@@ -16,7 +16,7 @@ annotated-types==0.5.0
     # via pydantic
 anyio==4.0.0
     # via httpcore
-apache-airflow==2.7.1
+apache-airflow==2.8.0
     # via
     #   apache-airflow-providers-cncf-kubernetes
     #   apache-airflow-providers-common-sql
@@ -39,7 +39,9 @@ apache-airflow-providers-imap==3.3.2
 apache-airflow-providers-sqlite==3.4.3
     # via apache-airflow
 apispec[yaml]==6.3.0
-    # via flask-appbuilder
+    # via
+    #   apispec
+    #   flask-appbuilder
 argcomplete==3.1.2
     # via apache-airflow
 asgiref==3.7.2
@@ -53,7 +55,6 @@ attrs==23.1.0
     # via
     #   aiohttp
     #   apache-airflow
-    #   cattrs
     #   jsonlines
     #   jsonschema
     #   referencing
@@ -94,8 +95,6 @@ cachetools==5.3.1
     # via
     #   google-auth
     #   kvfile
-cattrs==23.1.2
-    # via apache-airflow
 certifi==2023.7.22
     # via
     #   httpcore
@@ -132,7 +131,9 @@ colorlog==4.8.0
 configupdater==3.1.1
     # via apache-airflow
 connexion[flask]==2.14.2
-    # via apache-airflow
+    # via
+    #   apache-airflow
+    #   connexion
 cron-descriptor==1.4.0
     # via apache-airflow
 croniter==1.4.1
@@ -166,9 +167,7 @@ email-validator==1.3.1
 et-xmlfile==1.1.0
     # via openpyxl
 exceptiongroup==1.1.3
-    # via
-    #   anyio
-    #   cattrs
+    # via anyio
 flask==2.2.5
     # via
     #   apache-airflow
@@ -182,7 +181,7 @@ flask==2.2.5
     #   flask-session
     #   flask-sqlalchemy
     #   flask-wtf
-flask-appbuilder==4.3.6
+flask-appbuilder==4.3.10
     # via apache-airflow
 flask-babel==2.0.0
     # via flask-appbuilder
@@ -208,6 +207,10 @@ frozenlist==1.4.0
     # via
     #   aiohttp
     #   aiosignal
+fsspec==2023.12.2
+    # via
+    #   apache-airflow
+    #   universal-pathlib
 google-api-core==2.12.0
     # via
     #   google-api-python-client
@@ -501,6 +504,7 @@ requests[socks]==2.28.2
     #   google-cloud-storage
     #   kubernetes
     #   opentelemetry-exporter-otlp-proto-http
+    #   requests
     #   requests-oauthlib
     #   requests-toolbelt
     #   tableschema
@@ -601,7 +605,6 @@ typing-extensions==4.8.0
     #   alembic
     #   apache-airflow
     #   asgiref
-    #   cattrs
     #   flask-limiter
     #   limits
     #   opentelemetry-sdk
@@ -617,6 +620,8 @@ unicodecsv==0.14.1
     #   tabulator
 unidecode==0.4.21
     # via awesome-slugify
+universal-pathlib==0.1.4
+    # via apache-airflow
 uritemplate==4.1.1
     # via google-api-python-client
 urllib3==1.26.16
@@ -635,6 +640,7 @@ werkzeug==2.2.3
     #   apache-airflow
     #   connexion
     #   flask
+    #   flask-appbuilder
     #   flask-jwt-extended
     #   flask-login
 wrapt==1.15.0
