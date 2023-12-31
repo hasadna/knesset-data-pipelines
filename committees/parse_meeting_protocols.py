@@ -32,7 +32,7 @@ def get_filenames(row, parameters):
                                                  str(row["CommitteeSessionID"]),
                                                  "csv" if parameters['type'] == "parts" else "txt")
     full_output_filename = parameters["out-path"] + "/" + output_filename
-    download_filename = "../data/committees/download_document_committee_session/" + original_filename
+    download_filename = os.path.join(parameters['download-from-path'], original_filename)
     full_output_hash_filename = parameters['out-path'] + "/" + output_filename + '.hash'
     return (original_filename,         # source DOC relative filename
             ext,                       # source DOC file extension (docx / doc)
