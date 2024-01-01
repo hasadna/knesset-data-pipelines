@@ -261,7 +261,14 @@ kns_documentcommitteesession:
       download-from-path: ../data/committees/download_document_committee_session/
       # download-from-remote-storage: https://storage.googleapis.com/knesset-data-pipelines/data/committees/download_document_committee_session/
       out-path: ../data/committees/meeting_protocols_parts
-
+  - run: knesset.dump_to_path
+    parameters:
+      out-path: ../data/committees/kns_documentcommitteesession
+  - run: knesset.dump_to_sql
+    parameters:
+      tables:
+        committees_kns_documentcommitteesession:
+          resource-name: kns_documentcommitteesession
 
 # moved to Airflow
 #background_material_titles:
