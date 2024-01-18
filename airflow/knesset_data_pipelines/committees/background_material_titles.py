@@ -13,7 +13,7 @@ from ..get_retry_response_content import get_retry_response_content
 def iterate_new_titles():
     committees = get_committees_tree()
     with db.get_db_engine().connect() as conn:
-        for row in conn.execute(dedent('''
+        for row in list(conn.execute(dedent('''
             select
                 sess."CommitteeSessionID" committee_session_id,
                 sess."CommitteeID" committee_id,
@@ -26,7 +26,7 @@ def iterate_new_titles():
                 doc."GroupTypeID" = 87
                 and doc."FilePath" is not null
             group by sess."CommitteeSessionID", sess."CommitteeID", sess."SessionUrl"
-        ''')):
+        '''))):
             committee = committees.get(row.committee_id)
             if not committee:
                 continue
