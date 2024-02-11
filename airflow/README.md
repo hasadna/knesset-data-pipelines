@@ -1,16 +1,19 @@
 # Knesset Data Pipelines Airflow
 
-This is the Airflow implementation of the Knesset Data Pipelines project. It is a work in progress, during which we 
-will be migrating the existing pipelines to Airflow.
+This is the Airflow implementation of the Knesset Data Pipelines project.
 
-The Airflow project is defined under `airflow` subdirectory, all the following commands are assumed to run from there.
+The Airflow project is defined under `airflow` subdirectory of knesset-data-pipelines, all the following commands are
+assumed to run from this subdirectory.
+
+The airflow pipelines themselves can all run locally using the knesset-data-pipelines CLI, so there is no need to
+install Airflow unless you want to check some Airflow specific detail.
 
 ## Local Development
 
 Prerequisites:
 
-* System dependencies: https://airflow.apache.org/docs/apache-airflow/stable/installation.html#system-dependencies
 * Python 3.8
+* Docker Compose
 
 Create virtualenv and install dependencies
 
@@ -18,14 +21,7 @@ Create virtualenv and install dependencies
 python3.8 -m venv venv &&\
 . venv/bin/activate &&\
 pip install --upgrade pip setuptools wheel &&\
-bin/pip_install_airflow.sh &&\
 pip install -e .
-```
-
-Authenticate with gcloud:
-
-```
-gcloud auth application-default login
 ```
 
 Start a Database:
@@ -40,7 +36,21 @@ Run commands from the CLI:
 knesset-data-pipelines --help
 ```
 
-Optionally, to use Airflow locally:
+Depending on the specific command, you will probably need to run dependant pipelines or download some packages or
+data to the database.
+
+## Local Airflow Development
+
+Use the following steps only if you need to check some Airflow specific functionality, most of the times it won't
+be necessary.
+
+Install the Airflow system dependencies: https://airflow.apache.org/docs/apache-airflow/stable/installation.html#system-dependencies
+
+Install the project Airflow dependencies:
+
+```
+bin/pip_install_airflow.sh
+```
 
 Create a `.env` file with the following contents:
 
