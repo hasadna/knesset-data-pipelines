@@ -236,7 +236,7 @@ def get_person_positions(person_id, mk_individual_row):
                                                  'committee_id': kns_persontoposition_row['CommitteeID'],
                                                  'committee_name': kns_persontoposition_row['CommitteeName'],
                                                  'position_id': position_id,
-                                                 'position_name': COMMITTEE_POSITIONS[position_id],
+                                                 'position_name': COMMITTEE_POSITIONS.get(position_id, ''),
                                                  'start_date': mk_position_start_date,
                                                  'finish_date': mk_position_finish_date,
                                                  'knesset': kns_persontoposition_row['KnessetNum']})
@@ -245,7 +245,7 @@ def get_person_positions(person_id, mk_individual_row):
                                                     'govministry_id': kns_persontoposition_row['GovMinistryID'],
                                                     'govministry_name': kns_persontoposition_row['GovMinistryName'],
                                                     'position_id': position_id,
-                                                    'position_name': GOV_MINISTRY_POSITIONS[position_id],
+                                                    'position_name': GOV_MINISTRY_POSITIONS.get(position_id, ''),
                                                     'start_date': mk_position_start_date,
                                                     'finish_date': mk_position_finish_date,
                                                     'knesset': kns_persontoposition_row['KnessetNum']})
