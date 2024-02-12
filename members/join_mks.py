@@ -224,14 +224,14 @@ def get_person_positions(person_id, mk_individual_row):
                                                            'start_date': mk_position_start_date,
                                                            'finish_date': mk_position_finish_date,
                                                            'knesset': kns_persontoposition_row['KnessetNum']})
-            elif position_id == FACTION_MEMBER_POSITION:
+            elif position_id == FACTION_MEMBER_POSITION or kns_persontoposition_row['FactionID']:
                 mk_individual_factions.append({'mk_individual_id': mk_individual_row['mk_individual_id'],
                                                'faction_id': kns_persontoposition_row['FactionID'],
                                                'faction_name': kns_persontoposition_row['FactionName'],
                                                'start_date': mk_position_start_date,
                                                'finish_date': mk_position_finish_date,
                                                'knesset': kns_persontoposition_row['KnessetNum']})
-            elif position_id in COMMITTEE_POSITIONS:
+            elif position_id in COMMITTEE_POSITIONS or kns_persontoposition_row['CommitteeID']:
                 mk_individual_committees.append({'mk_individual_id': mk_individual_row['mk_individual_id'],
                                                  'committee_id': kns_persontoposition_row['CommitteeID'],
                                                  'committee_name': kns_persontoposition_row['CommitteeName'],
@@ -240,7 +240,7 @@ def get_person_positions(person_id, mk_individual_row):
                                                  'start_date': mk_position_start_date,
                                                  'finish_date': mk_position_finish_date,
                                                  'knesset': kns_persontoposition_row['KnessetNum']})
-            elif position_id in GOV_MINISTRY_POSITIONS:
+            elif position_id in GOV_MINISTRY_POSITIONS or kns_persontoposition_row['GovMinistryID']:
                 mk_individual_govministries.append({'mk_individual_id': mk_individual_row['mk_individual_id'],
                                                     'govministry_id': kns_persontoposition_row['GovMinistryID'],
                                                     'govministry_name': kns_persontoposition_row['GovMinistryName'],
