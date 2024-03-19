@@ -1,5 +1,6 @@
 import os
 from textwrap import dedent
+import time
 import traceback
 import json
 
@@ -12,22 +13,30 @@ from ..get_retry_response_content import get_retry_response_content
 def get_members_id():
     """Return an iterable of all valid mk_individual_id
     """
-    return range(1, 6000)
+    return range(1, 1000)
 
-def iterate_members():
+def iterate_members(slow: bool = False):
+    delay=10
+    if slow:
+        delay = 20
     for member_id in get_members_id():
         URL = f"https://knesset.gov.il/WebSiteApi/knessetapi/MKs/GetMkdetailsHeader?mkId={member_id}&languageKey=en"
         print(f"getting {URL}")
         try:
             content = get_retry_response_content(
                 URL, None, None, None, retry_num=1,
-                num_retries=10, seconds_between_retries=10,
+                num_retries=10, seconds_between_retries=delay,
                 skip_not_found_errors=True)
+            if slow:
+                time.sleep(1)
         except Exception:
             traceback.print_exc()
             print(f'failed to get {URL}')
         else:
             data = json.loads(content)
+            if not data:
+                print(f" failed to parse {content=}")
+                continue
             name = data.get('Name', '')
             if not name:
                 continue
@@ -36,11 +45,11 @@ def iterate_members():
                 "mk_individual_id": member_id,
             }
 
-def main():
+def main(slow=False):
     table_name = 'member_english_names'
     temp_table_name = f'__temp__{table_name}'
     DF.Flow(
-        iterate_members(),
+        iterate_members(slow=slow),
         DF.update_resource(-1, name='member_english_names', path='member_english_names.csv'),
         DF.dump_to_path(os.path.join(config.KNESSET_PIPELINES_DATA_PATH, 'members', 'member_english_names')),
         DF.dump_to_sql(
