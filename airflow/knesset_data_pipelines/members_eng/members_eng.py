@@ -1,4 +1,5 @@
 import os
+import requests
 from textwrap import dedent
 import time
 import traceback
@@ -13,7 +14,11 @@ from ..get_retry_response_content import get_retry_response_content
 def get_members_id():
     """Return an iterable of all valid mk_individual_id
     """
-    return range(1, 1000)
+    url = "https://backend.oknesset.org/members"
+    for item in requests.get(f"{url}?is_current=true").json():
+        yield item['mk_individual_id']
+    for item in requests.get(f"{url}?is_current=false").json():
+        yield item['mk_individual_id']
 
 def iterate_members(slow: bool = False):
     delay=10
