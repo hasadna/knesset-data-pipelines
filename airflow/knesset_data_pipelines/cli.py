@@ -16,6 +16,7 @@ def main(load_dotenv):
 for module_name, function_name in [
     ('.google_drive_upload.cli', 'google_drive_upload'),
     ('.committees.cli', 'committees'),
+    ( '.members_eng.cli', 'members_eng'),
 ]:
     main.add_command(getattr(importlib.import_module(module_name, __package__), function_name))
 
