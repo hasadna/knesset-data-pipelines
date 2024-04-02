@@ -238,11 +238,11 @@ kns_documentcommitteesession:
       resource: kns_documentcommitteesession_dataservice
   - run: knesset.rename_resource
     parameters: {src: kns_documentcommitteesession_dataservice, dst: kns_documentcommitteesession}
-  - run: filter
-    cached: true
-    parameters:
-      in:
-      - CommitteeSessionID: 2072573
+  # - run: filter
+  #   cached: true
+  #   parameters:
+  #     in:
+  #     - CommitteeSessionID: 2072573
   - run: download_document_committee_session
     parameters:
       out-path: ../data/committees/download_document_committee_session
