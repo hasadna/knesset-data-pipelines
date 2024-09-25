@@ -14,7 +14,7 @@ ENV KNESSET_DATA_PIPELINES_AIRFLOW_ROOT_DIR=/srv
 WORKDIR /srv
 COPY bin/ bin/
 COPY requirements.txt ./
-RUN pip install --upgrade pip setuptools wheel && bin/pip_install_airflow.sh
+RUN pip install --upgrade pip "setuptools==70" wheel && bin/pip_install_airflow.sh
 COPY dags/ dags/
 COPY knesset_data_pipelines/ knesset_data_pipelines/
 COPY setup.py ./
