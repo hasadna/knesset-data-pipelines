@@ -26,7 +26,7 @@ SERVICE_URLS = {
     'laws': "http://knesset.gov.il/Odata_old/LawsData.svc",
     'members': "http://knesset.gov.il/Odata_old/KnessetMembersData.svc",
     'committees': "http://knesset.gov.il/Odata_old/CommitteeScheduleData.svc",
-    'api': 'http://knesset.gov.il/Odata/ParliamentInfo.svc/',
+    'api': 'https://knesset.gov.il/Odata/ParliamentInfo.svc/',
     # these services use the old urls
     'bills': "http://knesset.gov.il/KnessetOdataService/BillsData.svc",
     'final_laws': "http://knesset.gov.il/KnessetOdataService/FinalLawsData.svc",

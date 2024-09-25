@@ -46,8 +46,8 @@ class BaseDataserviceProcessor(BaseProcessor):
                     return get_retry_response_content(url, params, timeout, proxies, retry_num, num_retries, seconds_between_retries)
                 except Exception:
                     if url in [
-                        'http://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_DocumentCommitteeSession?$skiptoken=450820L',
-                        'http://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_DocumentCommitteeSession?$skiptoken=462074L',
+                        'https://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_DocumentCommitteeSession?$skiptoken=450820L',
+                        'https://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_DocumentCommitteeSession?$skiptoken=462074L',
                     ]:
                         logging.info(traceback.format_exc())
                         return ''
