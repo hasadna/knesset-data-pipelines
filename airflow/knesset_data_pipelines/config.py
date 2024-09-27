@@ -1,6 +1,7 @@
 import os
 import tempfile
 from contextlib import contextmanager
+from knesset_data.dataservice.constants import SERVICE_URLS as KNESSET_SERVICE_URLS
 
 
 KNESSET_DATA_PIPELINES_AIRFLOW_ROOT_DIR = os.environ.get('KNESSET_DATA_PIPELINES_AIRFLOW_ROOT_DIR')
@@ -35,6 +36,7 @@ SERVICE_URLS = {
     'mmm': "http://knesset.gov.il/KnessetOdataService/MMMData.svc",
     'lobbyists': "http://knesset.gov.il/Odata/Lobbyists.svc",
 }
+KNESSET_SERVICE_URLS.update(SERVICE_URLS)
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 360
 
 PGSQL_USER = os.environ.get('PGSQL_USER', 'postgres')
