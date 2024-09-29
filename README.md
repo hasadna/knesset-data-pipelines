@@ -20,7 +20,7 @@ Install Docker for [Windows](https://store.docker.com/editions/community/docker-
 Pull the latest Docker image
 
 ```
-docker pull orihoch/knesset-data-pipelines
+docker pull ghcr.io/hasadna/knesset-data-pipelines/knesset-data-pipelines-legacy
 ```
 
 #### Run Jupyter Lab
@@ -36,7 +36,7 @@ Start the Jupyter lab server:
 ```
 docker run -it -p 8888:8888 --entrypoint jupyter \
            -v /opt/knesset-data-pipelines:/pipelines \
-           orihoch/knesset-data-pipelines lab --allow-root --ip 0.0.0.0 --no-browser \
+           ghcr.io/hasadna/knesset-data-pipelines/knesset-data-pipelines-legacy lab --allow-root --ip 0.0.0.0 --no-browser \
                 --NotebookApp.token= --NotebookApp.custom_display_url=http://localhost:8888/
 ```
 
@@ -75,7 +75,7 @@ Run with Docker, mounting the local directory
 ```
 docker run -it -p 8888:8888 --entrypoint jupyter \
            -v `pwd`:/pipelines \
-           orihoch/knesset-data-pipelines lab --allow-root --ip 0.0.0.0 --no-browser \
+           ghcr.io/hasadna/knesset-data-pipelines/knesset-data-pipelines-legacy lab --allow-root --ip 0.0.0.0 --no-browser \
                 --NotebookApp.token= --NotebookApp.custom_display_url=http://localhost:8888/
 ```
 
