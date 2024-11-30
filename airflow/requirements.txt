@@ -611,7 +611,7 @@ unidecode==0.4.21
     # via awesome-slugify
 uritemplate==4.1.1
     # via google-api-python-client
-urllib3==1.26.16
+urllib3==1.26.18
     # via
     #   botocore
     #   google-auth
