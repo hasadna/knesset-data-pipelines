@@ -165,6 +165,7 @@ class SQLTempTableDumper(SQLDumper):
     def finalize(self):
         if os.environ.get('DUMP_TO_SQL'):
             connection = self.engine.connect()
+            transaction = connection.begin()
             try:
                 for temp_table_name, table_name in self.rename_table_names.items():
                     logging.info('renaming sql table {} --> {}'.format(temp_table_name, table_name))
@@ -172,6 +173,10 @@ class SQLTempTableDumper(SQLDumper):
                         drop table if exists "{table_name}";
                         alter table "{temp_table_name}" rename to "{table_name}";
                     ''').format(table_name=table_name, temp_table_name=temp_table_name))
+                transaction.commit()
+            except:
+                transaction.rollback()
+                raise
             finally:
                 connection.close()
             super(SQLTempTableDumper, self).finalize()
