@@ -16,6 +16,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         K8S_DEPLOY_KEY: ${{ secrets.KNESSET_DATA_K8S_DEPLOY_KEY }}
       run: |
+        date +%s > VERSION.txt &&\
         curl -s https://raw.githubusercontent.com/OriHoch/uumpa-ci-toolbox/b28739781cf844b3494bfa404ced1ff9c0803e05/bin/github_actions_install.sh \
           | bash -s 65a0704332e63d51f63981dbb25cd83682dc4078 OriHoch/uumpa-ci-toolbox &&\
         uci github actions self-checkout --config-user-name "knesset-data-pipelines-ci" &&\
