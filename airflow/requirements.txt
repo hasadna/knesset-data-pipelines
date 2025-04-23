@@ -4,7 +4,7 @@
 #
 #    pip-compile requirements.in
 #
-aiohttp==3.8.5
+aiohttp==3.9.0
     # via
     #   apache-airflow-providers-http
     #   kubernetes-asyncio
@@ -39,7 +39,9 @@ apache-airflow-providers-imap==3.3.2
 apache-airflow-providers-sqlite==3.4.3
     # via apache-airflow
 apispec[yaml]==6.3.0
-    # via flask-appbuilder
+    # via
+    #   apispec
+    #   flask-appbuilder
 argcomplete==3.1.2
     # via apache-airflow
 asgiref==3.7.2
@@ -110,9 +112,7 @@ chardet==5.2.0
     #   datapackage
     #   tabulator
 charset-normalizer==3.2.0
-    # via
-    #   aiohttp
-    #   requests
+    # via requests
 click==8.1.3
     # via
     #   -r requirements.in
@@ -132,7 +132,9 @@ colorlog==4.8.0
 configupdater==3.1.1
     # via apache-airflow
 connexion[flask]==2.14.2
-    # via apache-airflow
+    # via
+    #   apache-airflow
+    #   connexion
 cron-descriptor==1.4.0
     # via apache-airflow
 croniter==1.4.1
@@ -497,6 +499,7 @@ requests[socks]==2.28.2
     #   google-cloud-storage
     #   kubernetes
     #   opentelemetry-exporter-otlp-proto-http
+    #   requests
     #   requests-oauthlib
     #   requests-toolbelt
     #   tableschema
