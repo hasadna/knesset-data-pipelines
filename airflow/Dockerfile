@@ -1,6 +1,13 @@
 # Pulled Feb 6, 2023
-FROM --platform=linux/amd64 python:3.8@sha256:3e6443f94e3c82d4cce045f777042c67cff0fa3cdaa55b3ac7c36101e9b0405c
+ARG BASE_IMAGE=python:3.8@sha256:3e6443f94e3c82d4cce045f777042c67cff0fa3cdaa55b3ac7c36101e9b0405c
 
+FROM --platform=linux/amd64 $BASE_IMAGE as base
+WORKDIR /srv
+RUN curl -LsSf https://astral.sh/uv/0.6.14/install.sh | XDG_BIN_HOME=/usr/local/bin sh
+COPY pyproject.toml uv.lock ./
+RUN uv export --no-dev --no-emit-project > requirements.txt
+
+FROM --platform=linux/amd64 $BASE_IMAGE
 ARG KNESSET_DATA_PIPELINES_VERSION=467962784b807d7882b6ec6b7d9217afd19482d2
 RUN cd /opt &&\
     curl -LO "https://github.com/hasadna/knesset-data-pipelines/archive/${KNESSET_DATA_PIPELINES_VERSION}.zip" &&\
@@ -13,11 +20,12 @@ ENV KNESSET_DATA_PIPELINES_AIRFLOW_ROOT_DIR=/srv
 
 WORKDIR /srv
 COPY bin/ bin/
-COPY requirements.txt ./
+COPY --from=base /srv/requirements.txt ./
 RUN pip install --upgrade pip "setuptools==70" wheel && bin/pip_install_airflow.sh
 COPY dags/ dags/
+COPY pipelines/ pipelines/
 COPY knesset_data_pipelines/ knesset_data_pipelines/
-COPY setup.py ./
+COPY pyproject.toml ./
 RUN pip install -e .
 
 ENV AIRFLOW_HOME=/var/airflow
