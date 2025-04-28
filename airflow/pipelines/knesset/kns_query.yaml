@@ -1,0 +1,44 @@
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_Query"
+  fields:
+    QueryID:
+      source: "{name}"
+      type: integer
+    Number:
+      source: "{name}"
+      type: integer
+    KnessetNum:
+      source: "{name}"
+      type: string
+    Name:
+      source: "{name}"
+      type: string
+    TypeID:
+      source: "{name}"
+      type: integer
+    TypeDesc:
+      source: "{name}"
+      type: string
+    StatusID:
+      source: "{name}"
+      type: integer
+    PersonID:
+      source: "{name}"
+      type: integer
+    GovMinistryID:
+      source: "{name}"
+      type: integer
+    SubmitDate:
+      source: "{name}"
+      type: datetime
+    ReplyMinisterDate:
+      source: "{name}"
+      type: datetime
+    ReplyDatePlanned:
+      source: "{name}"
+      type: datetime
+    LastUpdatedDate:
+      source: "{name}"
+      type: datetime

@@ -39,15 +39,26 @@ class RequestThrottledException(Exception):
     pass
 
 
+def post_process_airflow_pipeline(pipeline_path, pipeline_name, pipeline):
+    if 'schemas-bucket' not in pipeline:
+        pipeline['schemas-bucket'] = pipeline_path
+    return pipeline
+
+
 def get_pipeline_spec(pipeline_id):
     *pipeline_path, pipeline_name = pipeline_id.split("/")
     pipeline_path = '/'.join(pipeline_path)
     source_spec_yaml = os.path.join(config.KNESSET_DATA_PIPELINES_ROOT_DIR, pipeline_path, 'knesset.source-spec.yaml')
-    assert os.path.exists(source_spec_yaml)
-    with open(source_spec_yaml) as f:
-        source_spec = yaml.safe_load(f)
-    pipeline = source_spec[pipeline_name]
-    return pipeline_name, pipeline
+    if os.path.exists(source_spec_yaml):
+        with open(source_spec_yaml) as f:
+            source_spec = yaml.safe_load(f)
+        if pipeline_name in source_spec:
+            return pipeline_name, source_spec[pipeline_name]
+    source_spec_yaml = os.path.join(config.KNESSET_DATA_PIPELINES_ROOT_DIR, 'airflow/pipelines', pipeline_path, f'{pipeline_name}.yaml')
+    if os.path.exists(source_spec_yaml):
+        with open(source_spec_yaml) as f:
+            return pipeline_name, post_process_airflow_pipeline(pipeline_path, pipeline_name, yaml.safe_load(f))
+    raise Exception(f'pipeline {pipeline_id} not found')
 
 
 def get_pipeline_params(pipeline_name, pipeline):
@@ -410,6 +421,13 @@ def _iterate_pipelines(filter_pipeline_ids=None):
                 continue
             pipeline_name, pipeline = get_pipeline_spec(pipeline_id)
             yield pipeline_id, pipeline_name, pipeline
+    for pipeline_yaml in glob(os.path.join(config.KNESSET_DATA_PIPELINES_ROOT_DIR, 'airflow/pipelines/**/*.yaml'), recursive=True):
+        pipeline_path, pipeline_name = pipeline_yaml.split('/')[-2:]
+        pipeline_name = pipeline_name.replace('.yaml', '')
+        pipeline_id = f'{pipeline_path}/{pipeline_name}'
+        with open(pipeline_yaml) as f:
+            pipeline = post_process_airflow_pipeline(pipeline_path, pipeline_name, yaml.safe_load(f))
+        yield pipeline_id, pipeline_name, pipeline
 
 
 def list_pipelines(full=False, filter_pipeline_ids=None, all_=False, with_dependencies=False):

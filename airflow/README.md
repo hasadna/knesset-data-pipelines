@@ -12,28 +12,25 @@ install Airflow unless you want to check some Airflow specific detail.
 
 Prerequisites:
 
-* Python 3.8
+* Python 3.8 + [uv](https://pypi.org/project/uv/)
 * Docker Compose
 
 Create virtualenv and install dependencies
 
 ```
-python3.8 -m venv venv &&\
-. venv/bin/activate &&\
-pip install --upgrade pip setuptools wheel &&\
-pip install -e .
+uv sync
 ```
 
 Start a Database:
 
 ```
-docker-compose up -d db
+docker compose up -d db
 ```
 
 Run commands from the CLI:
 
 ```
-knesset-data-pipelines --help
+uv run knesset-data-pipelines --help
 ```
 
 Depending on the specific command, you will probably need to run dependant pipelines or download some packages or

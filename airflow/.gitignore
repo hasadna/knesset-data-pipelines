@@ -4,3 +4,4 @@ venv
 data
 *.egg-info
 .airflow
+.venv
