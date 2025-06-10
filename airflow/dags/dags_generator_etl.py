@@ -60,12 +60,18 @@ for params_error, pipeline_id, pipeline_dependencies, pipeline_schedule in list_
                 arguments=['run', '--verbose', '--no-use-cache', f'./{pipeline_id}'],
                 volumes=[
                     k8s.V1Volume(name='k8s-ops', secret=k8s.V1SecretVolumeSource(secret_name='ops')),
-                    k8s.V1Volume(name='data', nfs=k8s.V1NFSVolumeSource(server='172.16.0.9', path='/mnt/sdb3/srv/default/oknesset/pipelines/data/oknesset-nfs-gcepd')),
+                    k8s.V1Volume(
+                        name='data',
+                        persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name='airflow-scheduler')
+                    ),
                 ],
                 volume_mounts=[
                     k8s.V1VolumeMount(name='k8s-ops', mount_path='/secret_service_key', sub_path='secret.json', read_only=True),
                     k8s.V1VolumeMount(name='data', mount_path='/pipelines/data', sub_path='data'),
                     k8s.V1VolumeMount(name='data', mount_path='/pipelines/dist', sub_path='dist'),
+                ],
+                env_from=[
+                    k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='hasadna-proxy1'))
                 ],
                 env_vars=[
                     k8s.V1EnvVar(name='DPP_DB_ENGINE', value_from=k8s.V1EnvVarSource(secret_key_ref=k8s.V1SecretKeySelector(name='publicdb', key='DPP_DB_ENGINE'))),
@@ -80,9 +86,6 @@ for params_error, pipeline_id, pipeline_dependencies, pipeline_schedule in list_
                     requests={'cpu': '0.5', 'memory': '1.5Gi'},
                     limits={'cpu': '1.5', 'memory': '2Gi'},
                 ),
-                node_selector={
-                    'oknesset-allowed-ip': 'true'
-                },
                 random_name_suffix=True,
                 task_id=pipeline_dag_id,
                 dag=dag
