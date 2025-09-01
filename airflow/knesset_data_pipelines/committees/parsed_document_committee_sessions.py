@@ -29,6 +29,7 @@ def legacy_fix(type_, row):
     )
     if os.path.exists(legacy_file):
         row[f'{type_}_parsed_filename'] = new_relfile
+        os.makedirs(os.path.dirname(new_file), exist_ok=True)
         shutil.move(legacy_file, new_file)
         if os.path.exists(legacy_hash_file):
             shutil.move(legacy_hash_file, new_hash_file)
