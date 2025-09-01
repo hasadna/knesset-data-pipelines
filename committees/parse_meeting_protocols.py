@@ -8,9 +8,6 @@ import hashlib
 import knesset_data
 
 
-raise Exception("Disabled until running legacy fix")
-
-
 BASE_HASH_OBJ = hashlib.md5()
 BASE_HASH_OBJ.update(knesset_data.__version__.encode())
 with open(__file__, 'rb') as f:
