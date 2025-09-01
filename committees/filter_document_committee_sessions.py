@@ -7,6 +7,7 @@ yielded_session_ids = set()
 def process_row(row, row_index, spec, resource_index, parameters, stats):
     if spec['name'] == 'kns_documentcommitteesession':
         session_id = row['CommitteeSessionID']
+        # this if condition should match the one in /airflow/knesset_data_pipelines/committees/parsed_document_committee_sessions.py
         if (row['GroupTypeID'] != 23
             or row['ApplicationDesc'] != 'DOC'
             or (not row["FilePath"].lower().endswith('.doc')
