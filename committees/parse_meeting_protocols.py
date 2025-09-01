@@ -8,6 +8,9 @@ import hashlib
 import knesset_data
 
 
+raise Exception("Disabled until running legacy fix")
+
+
 BASE_HASH_OBJ = hashlib.md5()
 BASE_HASH_OBJ.update(knesset_data.__version__.encode())
 with open(__file__, 'rb') as f:
@@ -27,9 +30,9 @@ def get_filenames(row, parameters):
                                      str(row["DocumentCommitteeSessionID"])[1],
                                      str(row["DocumentCommitteeSessionID"]) + "." + row["ApplicationDesc"])
     ext = os.path.splitext(original_filename)[1].lower()
-    output_filename = "files/{}/{}/{}.{}".format(str(row["CommitteeSessionID"])[0],
-                                                 str(row["CommitteeSessionID"])[1],
-                                                 str(row["CommitteeSessionID"]),
+    output_filename = "files/{}/{}/{}.{}".format(str(row["DocumentCommitteeSessionID"])[0],
+                                                 str(row["DocumentCommitteeSessionID"])[1],
+                                                 str(row["DocumentCommitteeSessionID"]),
                                                  "csv" if parameters['type'] == "parts" else "txt")
     full_output_filename = parameters["out-path"] + "/" + output_filename
     download_filename = os.path.join(parameters['download-from-path'], original_filename)
