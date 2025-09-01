@@ -62,7 +62,7 @@ for params_error, pipeline_id, pipeline_dependencies, pipeline_schedule in list_
                     k8s.V1Volume(name='k8s-ops', secret=k8s.V1SecretVolumeSource(secret_name='ops')),
                     k8s.V1Volume(
                         name='data',
-                        persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name='airflow-scheduler')
+                        persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(claim_name='data2')
                     ),
                 ],
                 volume_mounts=[
