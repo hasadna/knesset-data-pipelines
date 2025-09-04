@@ -1,6 +1,7 @@
 import os
 import shutil
 from textwrap import dedent
+from collections import defaultdict
 
 import dataflows as DF
 
@@ -66,10 +67,32 @@ def parse_retry(type_, error, document_session_id, retry_report):
                 print(f'document session {document_session_id} {type_} retry {retry}')
 
 
+def update_row_stats(row, stats):
+    document_session_id = str(row['DocumentCommitteeSessionID'])
+    download_filepath = os.path.join(
+        config.KNESSET_PIPELINES_DATA_PATH,
+        'committees', 'download_document_committee_session', row['download_filename']
+    )
+    if os.path.exists(download_filepath):
+        stats['download exists'] += 1
+    for type_ in ['text', 'parts']:
+        filepath = os.path.join(
+            config.KNESSET_PIPELINES_DATA_PATH,
+            'committees', f'meeting_protocols_{type_}', 'files',
+            document_session_id[0], document_session_id[1], f'{document_session_id}.{"txt" if type_ == "text" else "csv"}'
+        )
+        if os.path.exists(filepath):
+            stats[f'{type_} exists'] += 1
+        if os.path.exists(f'{filepath}.hash'):
+            stats[f'{type_} hash exists'] += 1
+
+
 def process_rows(rows):
+    stats = defaultdict(int)
     retry_report = []
     protocol_session_rows = {}
     for row in rows:
+        stats['total_rows'] += 1
         # this if condition should match the one in /committees/filter_document_committee_sessions.py
         if (row['GroupTypeID'] != 23
             or row['ApplicationDesc'] != 'DOC'
@@ -77,6 +100,8 @@ def process_rows(rows):
                 and not row["FilePath"].lower().endswith('.docx'))):
             yield row
         else:
+            stats['protocol_rows'] += 1
+            update_row_stats(row, stats)
             # parse_retry('text', row['text_error'], row['DocumentCommitteeSessionID'], retry_report)
             # parse_retry('parts', row['parts_error'], row['DocumentCommitteeSessionID'], retry_report)
             protocol_session_rows.setdefault(row['CommitteeSessionID'], []).append(row)
@@ -86,9 +111,12 @@ def process_rows(rows):
             if len(good_rows) > 0:
                 rows = good_rows
         row = rows[0]
-        legacy_fix('text', row)
-        legacy_fix('parts', row)
+        # legacy_fix('text', row)
+        # legacy_fix('parts', row)
+        stats['yielded_protocol_rows'] += 1
         yield row
+    for k, v in stats.items():
+        print(f'{k}: {v}')
 
 
 def main():
