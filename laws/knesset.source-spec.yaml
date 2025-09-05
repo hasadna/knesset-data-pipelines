@@ -1,75 +1,76 @@
 ### kns dataservice tables
 
-kns_law:
-  description: "חוקים"
-  dpp_disabled: true  # migrated to airflow
-  pipeline-type: knesset dataservice
-  schemas-bucket: laws
-  dataservice-parameters:
-    incremental-field: LastUpdatedDate
-    resource-name: kns_law
-    service-name: api
-    method-name: "KNS_Law"
-    fields:
-      LawID:
-        source: "{name}"
-        type: integer
-        description: קוד החוק
-        primaryKey: true
-      TypeID:
-        source: "{name}"
-        type: integer
-        description: קוד סוג החוק
-      TypeDesc:
-        source: "{name}"
-        type: string
-        description: תיאור סוג החוק (תיקון טעות, חוקים אחרים)
-      SubTypeID:
-        source: "{name}"
-        type: integer
-        description: קוד סוג משנה (רק לחוקים אחרים)
-      SubTypeDesc:
-        source: "{name}"
-        type: string
-        description: >
-          תיאור סוג משנה (רק לחוקים אחרים)
-          (חוק בנוסח חדש, חוק בנוסח משולב, פקודות מועצת המדינה הזמנית, פקודות מנדטוריות, עות'מאני)
-      KnessetNum:
-        source: "{name}"
-        type: integer
-        description: מספר הכנסת
-      Name:
-        source: "{name}"
-        type: string
-        description: שם החוק
-      PublicationDate:
-        source: "{name}"
-        type: datetime
-        description: >
-          תאריך פרסום ברשומות
-          (או בסדרת הפרסום הרלוונטית בהתאם לסוג החוק, למשל עיתון רשמי לפקודות מועצת המדינה הזמנית)
-      PublicationSeriesID:
-        source: "{name}"
-        type: integer
-        description: קוד סדרת פרסום
-      PublicationSeriesDesc:
-        source: "{name}"
-        type: string
-        description: >
-          תיאור סדרת הפרסום
-          (ספר החוקים, דיני מדינת ישראל, עיתון רשמי - מועצת המדינה הזמנית, עיתון רשמי מנדטורי, חוקי ארץ ישראל, חוקי תקציב)
-      MagazineNumber:
-        source: "{name}"
-        type: string
-        description: מספר חוברת בסדרת הפרסום
-      PageNumber:
-        source: "{name}"
-        type: string
-        description: מספר עמוד
-      LastUpdatedDate:
-        source: "{name}"
-        type: datetime
-        description: תאריך עדכון אחרון
+# in v4 this was merged into kns_bills
+#kns_law:
+#  description: "חוקים"
+#  dpp_disabled: true  # migrated to airflow
+#  pipeline-type: knesset dataservice
+#  schemas-bucket: laws
+#  dataservice-parameters:
+#    incremental-field: LastUpdatedDate
+#    resource-name: kns_law
+#    service-name: api
+#    method-name: "KNS_Law"
+#    fields:
+#      LawID:
+#        source: "{name}"
+#        type: integer
+#        description: קוד החוק
+#        primaryKey: true
+#      TypeID:
+#        source: "{name}"
+#        type: integer
+#        description: קוד סוג החוק
+#      TypeDesc:
+#        source: "{name}"
+#        type: string
+#        description: תיאור סוג החוק (תיקון טעות, חוקים אחרים)
+#      SubTypeID:
+#        source: "{name}"
+#        type: integer
+#        description: קוד סוג משנה (רק לחוקים אחרים)
+#      SubTypeDesc:
+#        source: "{name}"
+#        type: string
+#        description: >
+#          תיאור סוג משנה (רק לחוקים אחרים)
+#          (חוק בנוסח חדש, חוק בנוסח משולב, פקודות מועצת המדינה הזמנית, פקודות מנדטוריות, עות'מאני)
+#      KnessetNum:
+#        source: "{name}"
+#        type: integer
+#        description: מספר הכנסת
+#      Name:
+#        source: "{name}"
+#        type: string
+#        description: שם החוק
+#      PublicationDate:
+#        source: "{name}"
+#        type: datetime
+#        description: >
+#          תאריך פרסום ברשומות
+#          (או בסדרת הפרסום הרלוונטית בהתאם לסוג החוק, למשל עיתון רשמי לפקודות מועצת המדינה הזמנית)
+#      PublicationSeriesID:
+#        source: "{name}"
+#        type: integer
+#        description: קוד סדרת פרסום
+#      PublicationSeriesDesc:
+#        source: "{name}"
+#        type: string
+#        description: >
+#          תיאור סדרת הפרסום
+#          (ספר החוקים, דיני מדינת ישראל, עיתון רשמי - מועצת המדינה הזמנית, עיתון רשמי מנדטורי, חוקי ארץ ישראל, חוקי תקציב)
+#      MagazineNumber:
+#        source: "{name}"
+#        type: string
+#        description: מספר חוברת בסדרת הפרסום
+#      PageNumber:
+#        source: "{name}"
+#        type: string
+#        description: מספר עמוד
+#      LastUpdatedDate:
+#        source: "{name}"
+#        type: datetime
+#        description: תאריך עדכון אחרון
 
 kns_law_binding:
   description: "קישור בין חוקים לחוקי אב"
@@ -136,50 +137,51 @@ kns_law_binding:
         type: datetime
         description: תאריך עדכון אחרון
 
-kns_document_law:
-  description: "מסמכים המקושרים לחוקים"
-  dpp_disabled: true  # migrated to airflow
-  pipeline-type: knesset dataservice
-  schemas-bucket: laws
-  dataservice-parameters:
-    incremental-field: LastUpdatedDate
-    resource-name: kns_document_law
-    service-name: api
-    method-name: "KNS_DocumentLaw"
-    fields:
-      DocumentLawID:
-        source: "{name}"
-        type: integer
-        description: קוד המסמך
-        primaryKey: true
-      LawID:
-        source: "{name}"
-        type: integer
-        description: קוד החוק
-      GroupTypeID:
-        source: "{name}"
-        type: integer
-        description: קוד סוג המסמך
-      GroupTypeDesc:
-        source: "{name}"
-        type: string
-        description: תיאור סוג המסמך
-      ApplicationID:
-        source: "{name}"
-        type: integer
-        description: קוד פורמט המסמך
-      ApplicationDesc:
-        source: "{name}"
-        type: string
-        description: תיאור פורמט המסמך (Word, PDF, TIFF)
-      FilePath:
-        source: "{name}"
-        type: string
-        description: הנתיב אל המסמך
-      LastUpdatedDate:
-        source: "{name}"
-        type: datetime
-        description: תאריך עדכון אחרון
+# in v4 this was merged into kns_bills
+#kns_document_law:
+#  description: "מסמכים המקושרים לחוקים"
+#  dpp_disabled: true  # migrated to airflow
+#  pipeline-type: knesset dataservice
+#  schemas-bucket: laws
+#  dataservice-parameters:
+#    incremental-field: LastUpdatedDate
+#    resource-name: kns_document_law
+#    service-name: api
+#    method-name: "KNS_DocumentLaw"
+#    fields:
+#      DocumentLawID:
+#        source: "{name}"
+#        type: integer
+#        description: קוד המסמך
+#        primaryKey: true
+#      LawID:
+#        source: "{name}"
+#        type: integer
+#        description: קוד החוק
+#      GroupTypeID:
+#        source: "{name}"
+#        type: integer
+#        description: קוד סוג המסמך
+#      GroupTypeDesc:
+#        source: "{name}"
+#        type: string
+#        description: תיאור סוג המסמך
+#      ApplicationID:
+#        source: "{name}"
+#        type: integer
+#        description: קוד פורמט המסמך
+#      ApplicationDesc:
+#        source: "{name}"
+#        type: string
+#        description: תיאור פורמט המסמך (Word, PDF, TIFF)
+#      FilePath:
+#        source: "{name}"
+#        type: string
+#        description: הנתיב אל המסמך
+#      LastUpdatedDate:
+#        source: "{name}"
+#        type: datetime
+#        description: תאריך עדכון אחרון
 
 kns_israel_law:
   description: "חוקי אב"

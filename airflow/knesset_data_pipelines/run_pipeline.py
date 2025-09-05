@@ -151,51 +151,68 @@ def get_source_field_value(type_, text, isnull):
         raise Exception(f'unknown prop type: {type_}')
 
 
-def get_field_from_entry(fieldname, field, data):
-    if field['source'] == '{name}':
-        field_source = fieldname
-    else:
-        field_source = field['source']
-    source_field = data.get(field_source.lower(), {})
-    output_field_type = field['type']
-    source_field_type = source_field.get('type')
-    source_field_text = source_field.get('text')
-    source_field_null = source_field.get('null')
-    source_field_value = get_source_field_value(source_field_type, source_field_text, source_field_null)
-    if output_field_type == 'integer':
-        return int(source_field_value) if source_field_value is not None else None
-    elif output_field_type == 'number':
-        return float(source_field_value) if source_field_value is not None else None
-    elif output_field_type == 'string':
-        return str(source_field_value) if source_field_value is not None else ''
-    elif output_field_type == 'datetime':
-        if not source_field_value:
-            return None
+def get_field_from_entry(fieldname, field, data, v4=False):
+    try:
+        if field['source'] == '{name}':
+            if v4 and field.get('primaryKey'):
+                field_source = 'ID'
+            else:
+                field_source = fieldname
         else:
-            assert isinstance(source_field_value, datetime.datetime), f'invalid datetime value: {source_field_value}'
-            return source_field_value
-    elif output_field_type == 'boolean':
-        if source_field_value is None:
-            return None
+            field_source = field['source']
+        output_field_type = field['type']
+        if v4:
+            source_field_value = data.get(field_source.lower())
         else:
-            return True if source_field_value else False
-    elif output_field_type == 'date':
-        if not source_field_value:
-            return None
+            source_field = data.get(field_source.lower(), {})
+            source_field_type = source_field.get('type')
+            source_field_text = source_field.get('text')
+            source_field_null = source_field.get('null')
+            source_field_value = get_source_field_value(source_field_type, source_field_text, source_field_null)
+        if output_field_type == 'integer':
+            return int(source_field_value) if source_field_value is not None else None
+        elif output_field_type == 'number':
+            return float(source_field_value) if source_field_value is not None else None
+        elif output_field_type == 'string':
+            return str(source_field_value) if source_field_value is not None else ''
+        elif output_field_type == 'datetime':
+            if not source_field_value:
+                return None
+            elif v4:
+                split_on = '.' if '.' in source_field_value else '+'
+                return datetime.datetime.strptime(source_field_value.split(split_on)[0], "%Y-%m-%dT%H:%M:%S")
+            else:
+                assert isinstance(source_field_value, datetime.datetime), f'invalid datetime value: {source_field_value}'
+                return source_field_value
+        elif output_field_type == 'boolean':
+            if source_field_value is None:
+                return None
+            else:
+                return True if source_field_value else False
+        elif output_field_type == 'date':
+            if not source_field_value:
+                return None
+            elif v4:
+                return datetime.datetime.strptime(source_field_value.split('.')[0], "%Y-%m-%dT%H:%M:%S").date()
+            else:
+                assert isinstance(source_field_value, datetime.date), f'invalid date value: {source_field_value}'
+                return source_field_value
         else:
-            assert isinstance(source_field_value, datetime.date), f'invalid date value: {source_field_value}'
-            return source_field_value
-    else:
-        raise Exception(f'unknown output field type: {output_field_type}')
+            raise Exception(f'unknown output field type: {output_field_type}')
+    except Exception as e:
+        raise Exception(f'fieldname: {fieldname}\nfield: {field}\ndata: {data}\nv4: {v4}') from e
 
 
-def get_row_from_entry(params, entry):
-    data = {tag.name.split(':')[1].lower(): {
-        'type': tag.attrs.get('m:type', '').lower(),
-        'text': tag.text,
-        'null': tag.attrs.get('m:null', '') == 'true',
-    } for tag in entry.content.find('m:properties').children}
-    return {fieldname: get_field_from_entry(fieldname, field, data) for fieldname, field in params['fields'].items()}
+def get_row_from_entry(params, entry, v4=False):
+    if v4:
+        data = {k.lower(): v for k, v in entry.items()}
+    else:
+        data = {tag.name.split(':')[1].lower(): {
+            'type': tag.attrs.get('m:type', '').lower(),
+            'text': tag.text,
+            'null': tag.attrs.get('m:null', '') == 'true',
+        } for tag in entry.content.find('m:properties').children}
+    return {fieldname: get_field_from_entry(fieldname, field, data, v4=v4) for fieldname, field in params['fields'].items()}
 
 
 def get_next_skiptoken(first_skiptoken, i, processed_entry_ids):
@@ -225,9 +242,31 @@ def get_soup_handle_server_error(first_url, processed_entry_ids=None, **kwargs):
     raise Exception(f'failed to find successful response starting from url {first_url}')
 
 
+def add_dataservice_collection_resource_odata_v4(params, proxies, stats):
+    url_base = os.path.join(config.SERVICE_URLS_V4[params['service-name']], params['method-name'])
+    url = f'{url_base}?$count=true'
+    timeout = params.pop('__timeout__', config.DEFAULT_REQUEST_TIMEOUT_SECONDS_V4)
+    status_code, content = get_response_content(url, params, timeout, proxies)
+    assert status_code == 200, f'unexpected status code: {status_code} for url {url}\n{content}'
+    try:
+        res = json.loads(content)
+    except Exception as e:
+        raise Exception(f'failed to parse json response for url {url}\n{content}') from e
+    odata_count = res.get('@odata.count')
+    assert odata_count > 0, f'invalid count: {odata_count} for url {url}\n{content}'
+    for entry in res['value']:
+        stats['rows'] += 1
+        yield get_row_from_entry(params, entry, v4=True)
+    assert stats['rows'] == odata_count, f'invalid rows count: {stats["rows"]} != {odata_count} for url {url}\n{content}'
+
+
 def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_rows=None, stop_on_throttled_error=False, start_url=None, load_from=None):
     if stats is None:
         stats = defaultdict(int)
+    if params.get('odata-v4', True):
+        assert not start_url and not load_from and not stop_on_throttled_error and not limit_rows, 'odata-v4 does not support start_url, load_from, stop_on_throttled_error, limit_rows'
+        yield from add_dataservice_collection_resource_odata_v4(params, proxies, stats)
+        return
     if load_from:
         print(f'loading from {load_from}')
         for res in DF.Flow(DF.load(os.path.join(load_from, 'datapackage.json'))).datastream().res_iter.get_iterator():

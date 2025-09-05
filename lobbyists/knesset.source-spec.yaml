@@ -4,6 +4,7 @@ v_lobbyist:
   pipeline-type: knesset dataservice
   schemas-bucket: "lobbyists"
   dataservice-parameters:
+    odata-v4: false
     resource-name: v_lobbyist
     service-name: lobbyists
     method-name: "V_Lobbyists"
@@ -61,6 +62,7 @@ v_lobbyist_clients:
   pipeline-type: knesset dataservice
   schemas-bucket: "lobbyists"
   dataservice-parameters:
+    odata-v4: false
     resource-name: v_lobbyist_clients
     service-name: lobbyists
     method-name: "V_LobbyistsClients"

@@ -37,6 +37,11 @@ SERVICE_URLS = {
 }
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 360
 
+SERVICE_URLS_V4 = {
+    'api': 'https://knesset.gov.il/OdataV4/ParliamentInfo/',
+}
+DEFAULT_REQUEST_TIMEOUT_SECONDS_V4 = 900
+
 PGSQL_USER = os.environ.get('PGSQL_USER', 'postgres')
 PGSQL_PASSWORD = os.environ.get('PGSQL_PASSWORD', '123456')
 PGSQL_HOST = os.environ.get('PGSQL_HOST', 'localhost')

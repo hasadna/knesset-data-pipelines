@@ -74,11 +74,11 @@ kns_bill:
           תאריך זה מעודכן רק לאחר הפרסום בספר החוקים ורק בשלב של יצירת הקשר בין הצעת החוק שהתקבלה בקריאה שלישית לבין חוק מדינת ישראל שאותו היא מתקנת או יוצרת. לכן העמודה עשויה להיות ריקה כל עוד המידע לא התעדכן.
       MagazineNumber:
         source: "{name}"
-        type: integer
+        type: string
         description: מספר חוברת בספר החוקים – ראה הערה לעיל לגבי PublicationDate
       PageNumber:
         source: "{name}"
-        type: integer
+        type: string
         description: מספר עמוד בספר החוקים – ראה הערה לעיל לגבי PublicationDate
       IsContinuationBill:
         source: "{name}"
