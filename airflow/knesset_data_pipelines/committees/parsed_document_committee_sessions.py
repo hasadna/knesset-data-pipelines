@@ -8,63 +8,41 @@ import dataflows as DF
 from .. import db, config
 
 
-def legacy_fix(type_, row):
-    session_id = str(row['CommitteeSessionID'])
-    document_session_id = str(row['DocumentCommitteeSessionID'])
-    ext = 'txt' if type_ == 'text' else 'csv'
-    basepath = os.path.join(
-        config.KNESSET_PIPELINES_DATA_PATH,
-        'committees', f'meeting_protocols_{type_}', 'files',
-    )
-    legacy_file = os.path.join(
-        basepath, session_id[0], session_id[1], f'{session_id}.{ext}'
-    )
-    legacy_hash_file = f'{legacy_file}.hash'
-    legacy_hash_retry_file = f'{legacy_hash_file}.retry'
-    new_file = os.path.join(
-        basepath, document_session_id[0], document_session_id[1], f'{document_session_id}.{ext}'
-    )
-    new_hash_file = f'{new_file}.hash'
-    new_relfile = os.path.join(
-        'files', document_session_id[0], document_session_id[1], f'{document_session_id}.{ext}'
-    )
-    if os.path.exists(legacy_file):
-        row[f'{type_}_parsed_filename'] = new_relfile
-        os.makedirs(os.path.dirname(new_file), exist_ok=True)
-        shutil.move(legacy_file, new_file)
-        if os.path.exists(legacy_hash_file):
-            shutil.move(legacy_hash_file, new_hash_file)
-    if os.path.exists(legacy_hash_file):
-        os.remove(legacy_hash_file)
-    if os.path.exists(legacy_hash_retry_file):
-        os.remove(legacy_hash_retry_file)
-
-
-def parse_retry(type_, error, document_session_id, retry_report):
+def parse_retry_error(type_, error, document_session_id, group_type_id, application_desc, stats):
     document_session_id = str(document_session_id)
+    group_type_id = str(group_type_id)
+    application_desc = str(application_desc)
     if error:
         ext = 'txt' if type_ == 'text' else 'csv'
-        hash_file = os.path.join(
+        download_filepath = os.path.join(
+            config.KNESSET_PIPELINES_DATA_PATH,
+            'committees', 'download_document_committee_session', 'files', group_type_id,
+            document_session_id[0], document_session_id[1], f'{document_session_id}.{application_desc}'
+        )
+        parsed_filepath = os.path.join(
             config.KNESSET_PIPELINES_DATA_PATH,
             'committees', f'meeting_protocols_{type_}', 'files',
             document_session_id[0], document_session_id[1], f'{document_session_id}.{ext}.hash'
         )
-        if os.path.exists(hash_file):
-            hash_retry_file = f'{hash_file}.retry'
-            if os.path.exists(hash_retry_file):
-                with open(hash_retry_file) as f:
-                    retry = int(f.read().strip())
-            else:
-                retry = 0
-            retry += 1
-            if retry > 10:
-                print(f'document session {document_session_id} {type_} exceeded max retries')
-                retry_report.append(f'session {document_session_id} {type_} exceeded max retries')
-            else:
-                with open(hash_retry_file, 'w') as f:
-                    f.write(str(retry))
-                os.remove(hash_file)
-                print(f'document session {document_session_id} {type_} retry {retry}')
+        hash_filepath = f'{parsed_filepath}.hash'
+        retry_filepath = f'{parsed_filepath}.retry'
+        if os.path.exists(retry_filepath):
+            with open(retry_filepath, 'r') as f:
+                retry_num = int(f.read().strip())
+        else:
+            retry_num = 0
+        if retry_num >= 10:
+            print(f'parse_retry_error({type_}): document session id {document_session_id} exceeded max retries')
+            stats[f'parse_retry_error({type_}): exceeded max retries'] += 1
+        else:
+            retry_num += 1
+            print(f'parse_retry_error({type_}): document session id {document_session_id} retry {retry_num}')
+            stats[f'parse_retry_error({type_}): will retry'] += 1
+        for filepath in [download_filepath, parsed_filepath, hash_filepath]:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+        with open(retry_filepath, 'w') as f:
+            f.write(str(retry_num))
 
 
 def update_row_stats(row, stats):
@@ -89,7 +67,6 @@ def update_row_stats(row, stats):
 
 def process_rows(rows):
     stats = defaultdict(int)
-    retry_report = []
     protocol_session_rows = {}
     for row in rows:
         stats['total_rows'] += 1
@@ -102,8 +79,8 @@ def process_rows(rows):
         else:
             stats['protocol_rows'] += 1
             update_row_stats(row, stats)
-            # parse_retry('text', row['text_error'], row['DocumentCommitteeSessionID'], retry_report)
-            # parse_retry('parts', row['parts_error'], row['DocumentCommitteeSessionID'], retry_report)
+            parse_retry_error('text', row['text_error'], row['DocumentCommitteeSessionID'], row['GroupTypeID'], row['ApplicationDesc'], stats)
+            parse_retry_error('parts', row['parts_error'], row['DocumentCommitteeSessionID'], row['GroupTypeID'], row['ApplicationDesc'], stats)
             protocol_session_rows.setdefault(row['CommitteeSessionID'], []).append(row)
     for session_id, rows in protocol_session_rows.items():
         if len(rows) > 1:
@@ -111,8 +88,6 @@ def process_rows(rows):
             if len(good_rows) > 0:
                 rows = good_rows
         row = rows[0]
-        # legacy_fix('text', row)
-        # legacy_fix('parts', row)
         stats['yielded_protocol_rows'] += 1
         yield row
     for k, v in stats.items():

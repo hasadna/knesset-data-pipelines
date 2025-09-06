@@ -329,39 +329,8 @@ sync-documents:
       target: "gs://knesset-data-pipelines/data/committees/meeting_protocols_parts"
 
 
-kns_committeesession:
-  description: |
-    כל ישיבות הועדה, כולל מידע מקושר וקישור לפרוטוקול הישיבה בפורמטים שונים.
-    הפרוטוקולים זמינים בפורמטים הבאים: קבצי המקור, קבצים טקסטואליים וקובץ מחולק לפי דוברים.
-    ניתן להוריד את הקבצים מהתיקיות הבאות באמצעות הוספת הנתיב שמופיע בנתונים לכתובות הבאות:
-    עבור קבצי טקסט - https://production.oknesset.org/pipelines/data/committees/meeting_protocols_text/
-    עבור קבצים מחולקים לדוברים - https://production.oknesset.org/pipelines/data/committees/meeting_protocols_parts/
-  dependencies:
-  - pipeline: ./committees/kns_committee
-  - datapackage: data/committees/kns_committee/datapackage.json
-  - pipeline: ./committees/kns_cmtsessionitem
-  - datapackage: data/committees/kns_cmtsessionitem/datapackage.json
-#  - pipeline: ./committees/kns_documentcommitteesession
-  - datapackage: data/committees/committees_parsed_document_committee_sessions/datapackage.json
-  - pipeline: ./bills/kns_bill
-  - datapackage: data/bills/kns_bill/datapackage.json
-  pre-steps:
-  - run: load_resource
-    parameters:
-      url: ../data/committees/kns_committee/datapackage.json
-      resource: kns_committee
-  - run: load_resource
-    parameters:
-      url: ../data/committees/kns_cmtsessionitem/datapackage.json
-      resource: kns_cmtsessionitem
-  - run: load_resource
-    parameters:
-      url: ../data/committees/committees_parsed_document_committee_sessions/datapackage.json
-      resource: kns_documentcommitteesession
-  - run: load_resource
-    parameters:
-      url: ../data/bills/kns_bill/datapackage.json
-      resource: kns_bill
+kns_committeesession_dataservice:
+  dpp_disabled: true  # migrated to airflow
   pipeline-type: knesset dataservice
   schemas-bucket: "committees"
   dataservice-parameters:
@@ -423,7 +392,47 @@ kns_committeesession:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
-  additional-steps:
+
+
+kns_committeesession:
+  description: |
+    כל ישיבות הועדה, כולל מידע מקושר וקישור לפרוטוקול הישיבה בפורמטים שונים.
+    הפרוטוקולים זמינים בפורמטים הבאים: קבצי המקור, קבצים טקסטואליים וקובץ מחולק לפי דוברים.
+    ניתן להוריד את הקבצים מהתיקיות הבאות באמצעות הוספת הנתיב שמופיע בנתונים לכתובות הבאות:
+    עבור קבצי טקסט - https://production.oknesset.org/pipelines/data/committees/meeting_protocols_text/
+    עבור קבצים מחולקים לדוברים - https://production.oknesset.org/pipelines/data/committees/meeting_protocols_parts/
+  dependencies:
+  - pipeline: ./committees/kns_committee
+  - datapackage: data/committees/kns_committee/datapackage.json
+  - pipeline: ./committees/kns_cmtsessionitem
+  - datapackage: data/committees/kns_cmtsessionitem/datapackage.json
+#  - pipeline: ./committees/kns_documentcommitteesession
+  - datapackage: data/committees/committees_parsed_document_committee_sessions/datapackage.json
+  - pipeline: ./bills/kns_bill
+  - datapackage: data/bills/kns_bill/datapackage.json
+  - pipeline: ./committees/kns_committeesession_dataservice
+  - datapackage: data/committees/kns_committeesession_dataservice/datapackage.json
+  pipeline:
+  - run: load_resource
+    parameters:
+      url: ../data/committees/kns_committee/datapackage.json
+      resource: kns_committee
+  - run: load_resource
+    parameters:
+      url: ../data/committees/kns_cmtsessionitem/datapackage.json
+      resource: kns_cmtsessionitem
+  - run: load_resource
+    parameters:
+      url: ../data/committees/committees_parsed_document_committee_sessions/datapackage.json
+      resource: kns_documentcommitteesession
+  - run: load_resource
+    parameters:
+      url: ../data/bills/kns_bill/datapackage.json
+      resource: kns_bill
+  - run: load_resource
+    parameters:
+      url: ../data/committees/kns_committeesession_dataservice/datapackage.json
+      resource: kns_committeesession_dataservice
   - run: filter_document_committee_sessions
   - run: join
     parameters:

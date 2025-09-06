@@ -10,7 +10,7 @@ FROM ghcr.io/hasadna/knesset-data-pipelines/knesset-data-pipelines:8028b98004108
 #COPY Pipfile.lock /pipelines/
 #RUN pipenv install --system --deploy --ignore-pipfile
 #RUN python3 -m pip install jupyterlab
-RUN KNESSET_DATA_COMMIT=3e3141ff76eabf20a72d16fc098544759f5952a8 &&\
+RUN KNESSET_DATA_COMMIT=ea2fdf261d96accef4441ba93a841bf870c87494 &&\
     pip uninstall -y knesset-data &&\
     pip install -e "git+https://github.com/hasadna/knesset-data-python.git@${KNESSET_DATA_COMMIT}#egg=knesset-data" &&\
     echo "__version__ = '${KNESSET_DATA_COMMIT}'" >> /pipelines/src/knesset-data/knesset_data/__init__.py
