@@ -2,6 +2,7 @@ from datapackage_pipelines.wrapper import process
 import logging, os, time
 from datapackage_pipelines_knesset.retry_get_response_content import get_retry_response_content
 import crcmod, base64
+import sys
 
 
 def get_crc32c(filename):
@@ -30,6 +31,7 @@ def process_row(row, row_index, resource_descriptor, resource_index, parameters,
                     row.update(download_error='reached limit, skipping download')
                     stats["download: skipped files"] += 1
                 else:
+                    print(f'download_document_committee_session: {row_index} {row}', file=sys.stderr)
                     error_string, content = None, ''
                     try:
                         content = get_retry_response_content(row["FilePath"], None, None, None, retry_num=1, num_retries=10,
@@ -52,6 +54,7 @@ def process_row(row, row_index, resource_descriptor, resource_index, parameters,
                         stats["download: downloaded files"] += 1
                         row.update(download_filename=rel_filename, download_filesize=os.path.getsize(filename),
                                    download_crc32c=get_crc32c(filename))
+                    print(f'download_document_committee_session: done {row_index}', file=sys.stderr)
     return row
 
 

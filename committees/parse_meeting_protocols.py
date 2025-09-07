@@ -6,6 +6,7 @@ from datapackage_pipelines_knesset.common import utils
 import crcmod, base64
 import hashlib
 import knesset_data
+import sys
 
 
 BASE_HASH_OBJ = hashlib.md5()
@@ -55,7 +56,7 @@ def process_row(row, row_index, resource_descriptor, resource_index, parameters,
             and (row["FilePath"].lower().endswith('.doc') or row["FilePath"].lower().endswith('.docx'))):
                 document_id = "{}-{}-{}".format(row["GroupTypeID"], row["DocumentCommitteeSessionID"], row["ApplicationDesc"])
                 original_filename, ext, output_filename, full_output_filename, download_filename, full_output_hash_filename = get_filenames(row, parameters)
-                if os.path.exists(download_filename) and row.get('download_crc32c'):
+                if os.path.exists(download_filename) and row.get('download_crc32c') and os.path.getsize(download_filename) > 0:
                     m = BASE_HASH_OBJ.copy()
                     m.update(row['download_crc32c'].encode())
                     new_cache_hash = m.hexdigest()
@@ -74,6 +75,7 @@ def process_row(row, row_index, resource_descriptor, resource_index, parameters,
                         row[t + "_error"] = 'reached files-limit, skipping'
                         stats[t + ": skipped files"] += 1
                     else:
+                        print(f'parse_meeting_protocols({t}): {row_index} old_cache_hash={old_cache_hash} new_cache_hash={new_cache_hash} {row}', file=sys.stderr)
                         error_string = None
                         try:
                             with open(download_filename, "rb") as f:
@@ -106,6 +108,7 @@ def process_row(row, row_index, resource_descriptor, resource_index, parameters,
                             stats[t + ": parsed files"] += 1
                             with open(full_output_hash_filename, 'w') as f:
                                 f.write(new_cache_hash)
+                        print(f'parse_meeting_protocols({t}): done {row_index} {row}', file=sys.stderr)
                 else:
                     row[t + "_error"] = 'missing download file'
                     stats[t + ': missing download files'] += 1

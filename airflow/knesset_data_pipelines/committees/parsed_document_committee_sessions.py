@@ -9,10 +9,10 @@ from .. import db, config
 
 
 def parse_retry_error(type_, error, document_session_id, group_type_id, application_desc, stats):
-    document_session_id = str(document_session_id)
-    group_type_id = str(group_type_id)
-    application_desc = str(application_desc)
     if error:
+        document_session_id = str(document_session_id)
+        group_type_id = str(group_type_id)
+        application_desc = str(application_desc)
         ext = 'txt' if type_ == 'text' else 'csv'
         download_filepath = os.path.join(
             config.KNESSET_PIPELINES_DATA_PATH,
