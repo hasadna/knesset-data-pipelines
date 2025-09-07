@@ -433,6 +433,8 @@ kns_committeesession:
     parameters:
       url: ../data/committees/kns_committeesession_dataservice/datapackage.json
       resource: kns_committeesession_dataservice
+  - run: knesset.rename_resource
+    parameters: {src: kns_committeesession_dataservice, dst: kns_committeesession}
   - run: filter_document_committee_sessions
   - run: join
     parameters:
