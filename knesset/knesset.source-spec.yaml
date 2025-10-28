@@ -13,6 +13,7 @@ kns_knessetdates:
         source: "{name}"
         type: integer
         description: מספר השורה בטבלה זו
+        primaryKey: true
       KnessetNum:
         source: "{name}"
         type: integer
@@ -61,6 +62,7 @@ kns_govministry:
         source: "{name}"
         type: integer
         description: קוד המשרד הממשלתי
+        primaryKey: true
       Name:
         source: "{name}"
         type: string
@@ -89,6 +91,7 @@ kns_itemtype:
         source: "{name}"
         type: integer
         description: קוד סוג הפריט
+        primaryKey: true
       Desc:
         source: "{name}"
         type: string
@@ -116,6 +119,7 @@ kns_status:
         source: "{name}"
         type: integer
         description: קוד הסטטוס
+        primaryKey: true
       Desc:
         source: "{name}"
         type: string
