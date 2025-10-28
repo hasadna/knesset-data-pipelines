@@ -1,5 +1,5 @@
 from .. import db
-
+from sqlalchemy import text
 
 def get_committee_parents(committee, committees):
     parent_committee_id = committee['parent_committee_id']
@@ -21,14 +21,14 @@ def get_committees_tree():
                     'parent_committee_id': row.parent_committee_id,
                     'name': row.name,
                     'category_desc': row.category_desc,
-                } for row in conn.execute('''
+                } for row in conn.execute(text('''
                     select
                         "CommitteeID" as committee_id,
                         "ParentCommitteeID" as parent_committee_id,
                         "Name" as name,
                         "CategoryDesc" as category_desc
                     from committees_kns_committee
-                ''')
+                '''))
             }
     for committee in committees.values():
         committee['parent_committee_ids'] = get_committee_parents(committee, committees)
