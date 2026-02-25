@@ -244,20 +244,37 @@ def get_soup_handle_server_error(first_url, processed_entry_ids=None, **kwargs):
 
 def add_dataservice_collection_resource_odata_v4(params, proxies, stats):
     url_base = os.path.join(config.SERVICE_URLS_V4[params['service-name']], params['method-name'])
-    url = f'{url_base}?$count=true'
     timeout = params.pop('__timeout__', config.DEFAULT_REQUEST_TIMEOUT_SECONDS_V4)
-    status_code, content = get_response_content(url, params, timeout, proxies)
-    assert status_code == 200, f'unexpected status code: {status_code} for url {url}\n{content}'
-    try:
-        res = json.loads(content)
-    except Exception as e:
-        raise Exception(f'failed to parse json response for url {url}\n{content}') from e
-    odata_count = res.get('@odata.count')
-    assert odata_count > 0, f'invalid count: {odata_count} for url {url}\n{content}'
-    for entry in res['value']:
-        stats['rows'] += 1
-        yield get_row_from_entry(params, entry, v4=True)
-    assert stats['rows'] == odata_count, f'invalid rows count: {stats["rows"]} != {odata_count} for url {url}\n{content}'
+    odata_count = None
+    skip = None
+    while True:
+        if odata_count is None:
+            assert skip is None
+            url = f'{url_base}?$count=true'
+        else:
+            assert skip is not None
+            url = f'{url_base}?$skip={skip}'
+        print(url)
+        status_code, content = get_response_content(url, params, timeout, proxies)
+        assert status_code == 200, f'unexpected status code: {status_code} for url {url}\n{content}'
+        try:
+            res = json.loads(content)
+        except Exception as e:
+            raise Exception(f'failed to parse json response for url {url}\n{content}') from e
+        num_entries = 0
+        for entry in res['value']:
+            stats['rows'] += 1
+            yield get_row_from_entry(params, entry, v4=True)
+            num_entries += 1
+        if odata_count is None:
+            odata_count = res['@odata.count']
+            assert odata_count > 0, f'invalid count: {odata_count} for url {url}\n{content}'
+            skip = 100
+        else:
+            skip += 100
+        if num_entries == 0:
+            break
+    assert stats['rows'] == odata_count, f'invalid rows count: {stats["rows"]} != {odata_count} for url {url}'
 
 
 def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_rows=None, stop_on_throttled_error=False, start_url=None, load_from=None):
