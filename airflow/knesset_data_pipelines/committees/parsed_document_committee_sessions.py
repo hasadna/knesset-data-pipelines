@@ -50,8 +50,8 @@ def update_row_stats(row, stats):
     download_filepath = os.path.join(
         config.KNESSET_PIPELINES_DATA_PATH,
         'committees', 'download_document_committee_session', row['download_filename']
-    )
-    if os.path.exists(download_filepath):
+    ) if row['download_filename'] else None
+    if download_filepath and os.path.exists(download_filepath):
         stats['download exists'] += 1
     for type_ in ['text', 'parts']:
         filepath = os.path.join(
