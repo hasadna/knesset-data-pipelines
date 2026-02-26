@@ -111,7 +111,7 @@ kns_knessetdates, kns_knessetdates_descriptor = [], {}
 
 for descriptor, resource in zip(datapackage["resources"], resources):
     if descriptor["name"] == "kns_mksitecode":
-        kns_mksitecode = {int(row["SiteId"]): row for row in resource}
+        kns_mksitecode = {int(row["SiteId"]): row for row in resource if row["SiteId"]}
     elif descriptor["name"] == "kns_person":
         kns_person = {int(row["PersonID"]): row for row in resource}
         kns_person_descriptor = descriptor
