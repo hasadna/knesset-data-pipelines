@@ -24,7 +24,7 @@ from . import config, db
 
 
 RECOVERABLE_SERVER_ERRORS = [500, 504]
-RECOVERABLE_THROTTLE_ERRORS = [503, 403]
+RECOVERABLE_THROTTLE_ERRORS = [503, 403, 504]
 
 # these errors indicate that the pipeline cannot run using the standard dataservice flow but have to run via Docker
 UNSUPPORTED_PIPELINE_PARAMS_ERRORS = ['pipeline dependencies are not supported', 'unknown pipeline-type: None', 'additional-steps is not supported']
