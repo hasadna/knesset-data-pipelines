@@ -242,7 +242,7 @@ def get_soup_handle_server_error(first_url, processed_entry_ids=None, **kwargs):
     raise Exception(f'failed to find successful response starting from url {first_url}')
 
 
-def add_dataservice_collection_resource_odata_v4(params, proxies, stats):
+def add_dataservice_collection_resource_odata_v4(params, proxies, stats, limit_rows=None):
     url_base = os.path.join(config.SERVICE_URLS_V4[params['service-name']], params['method-name'])
     timeout = params.pop('__timeout__', config.DEFAULT_REQUEST_TIMEOUT_SECONDS_V4)
     odata_count = None
@@ -274,15 +274,17 @@ def add_dataservice_collection_resource_odata_v4(params, proxies, stats):
             skip += 100
         if num_entries == 0:
             break
-    assert stats['rows'] == odata_count, f'invalid rows count: {stats["rows"]} != {odata_count} for url {url}'
+        if limit_rows and stats['rows'] >= limit_rows:
+            break
+    assert limit_rows or stats['rows'] == odata_count, f'invalid rows count: {stats["rows"]} != {odata_count} for url {url}'
 
 
 def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_rows=None, stop_on_throttled_error=False, start_url=None, load_from=None):
     if stats is None:
         stats = defaultdict(int)
     if params.get('odata-v4', True):
-        assert not start_url and not load_from and not stop_on_throttled_error and not limit_rows, 'odata-v4 does not support start_url, load_from, stop_on_throttled_error, limit_rows'
-        yield from add_dataservice_collection_resource_odata_v4(params, proxies, stats)
+        assert not start_url and not load_from and not stop_on_throttled_error, 'odata-v4 does not support start_url, load_from, stop_on_throttled_error'
+        yield from add_dataservice_collection_resource_odata_v4(params, proxies, stats, limit_rows)
         return
     if load_from:
         print(f'loading from {load_from}')
@@ -404,12 +406,26 @@ def _run_pipeline(table_name, storage_url, pipeline_id, storage_path, dataservic
           ] if dump_to_db else []),
     ).process()
     if dump_to_db:
+        alias_table_name = dataservice_params['method-name'] if dataservice_params.get("service-name") == "api" else None
         with db.get_db_engine().connect() as conn:
             with conn.begin():
-                conn.execute(dedent(f'''
-                        drop table if exists {table_name};
-                        alter table {temp_table_name} rename to {table_name};
-                    '''))
+                sql = []
+                if alias_table_name:
+                    sql.append(f'drop view if exists "{alias_table_name}";')
+                sql.append(f'drop table if exists {table_name};')
+                sql.append(f'alter table {temp_table_name} rename to {table_name};')
+                if alias_table_name:
+                    alias_table_name = dataservice_params['method-name']
+                    sql.append(f'create view "{alias_table_name}" as select')
+                    for i, field_name in enumerate(dataservice_params['fields']):
+                        alias_field_name = field_name
+                        if dataservice_params['fields'][field_name].get('primaryKey'):
+                            alias_field_name = 'Id'
+                        if i != 0:
+                            sql.append(',')
+                        sql.append(f'"{field_name}" as "{alias_field_name}"')
+                    sql.append(f'from {table_name};')
+                conn.execute("\n".join(sql))
     if dump_to_storage:
         upload_to_storage(storage_path, storage_url, pipeline_name)
     pprint(dict(stats))
