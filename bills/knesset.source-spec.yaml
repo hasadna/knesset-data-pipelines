@@ -110,6 +110,10 @@ kns_bill:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
+      TypeID: {source: "{name}", type: "integer"}
+      TypeDesc: {source: "{name}", type: "string"}
+      PublicationSeriesFirstCallID: {source: "{name}", type: "integer"}
+      PublicationSeriesFirstCallDesc: {source: "{name}", type: "string"}
 
 kns_billname:
   description: "שמות הצעות חוק כולל היסטוריית שינויים בשמות"
@@ -315,6 +319,7 @@ kns_documentbill:
         source: "{name}"
         type: integer
         description: קוד המסמך
+        primaryKey: true
       BillID:
         source: "{name}"
         type: integer

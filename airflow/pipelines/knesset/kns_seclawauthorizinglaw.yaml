@@ -1,0 +1,19 @@
+
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_SecLawAuthorizingLaw"
+  fields:
+    Id:
+      source: "{name}"
+      type: "integer"
+      primaryKey: true
+    AuthorizingLawID:
+      source: "{name}"
+      type: "integer"
+    SecondaryLawID:
+      source: "{name}"
+      type: "integer"
+    LastUpdatedDate:
+      source: "{name}"
+      type: "datetime"

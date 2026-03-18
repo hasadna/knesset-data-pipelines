@@ -6,12 +6,13 @@ dataservice-parameters:
     QueryID:
       source: "{name}"
       type: integer
+      primaryKey: true
     Number:
       source: "{name}"
       type: integer
     KnessetNum:
       source: "{name}"
-      type: string
+      type: integer
     Name:
       source: "{name}"
       type: string

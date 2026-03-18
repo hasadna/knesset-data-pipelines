@@ -1,0 +1,31 @@
+
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_DocumentAgenda"
+  fields:
+    Id:
+      source: "{name}"
+      type: "integer"
+      primaryKey: true
+    AgendaID:
+      source: "{name}"
+      type: "integer"
+    GroupTypeID:
+      source: "{name}"
+      type: "integer"
+    GroupTypeDesc:
+      source: "{name}"
+      type: "string"
+    ApplicationID:
+      source: "{name}"
+      type: "integer"
+    ApplicationDesc:
+      source: "{name}"
+      type: "string"
+    FilePath:
+      source: "{name}"
+      type: "string"
+    LastUpdatedDate:
+      source: "{name}"
+      type: "datetime"

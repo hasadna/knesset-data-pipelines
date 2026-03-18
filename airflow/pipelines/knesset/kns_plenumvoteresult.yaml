@@ -1,0 +1,40 @@
+
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_PlenumVoteResult"
+  fields:
+    Id:
+      source: "{name}"
+      type: "integer"
+      primaryKey: true
+    MkId:
+      source: "{name}"
+      type: "integer"
+    VoteID:
+      source: "{name}"
+      type: "integer"
+    VoteDate:
+      source: "{name}"
+      type: "datetime"
+    ResultCode:
+      source: "{name}"
+      type: "integer"
+    ResultDesc:
+      source: "{name}"
+      type: "string"
+    LastUpdatedDate:
+      source: "{name}"
+      type: "datetime"
+    LastName:
+      source: "{name}"
+      type: "string"
+    FirstName:
+      source: "{name}"
+      type: "string"
+    SessionID:
+      source: "{name}"
+      type: "integer"
+    ItemID:
+      source: "{name}"
+      type: "integer"

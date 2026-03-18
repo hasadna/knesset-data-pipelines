@@ -1,0 +1,22 @@
+
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_IsraelLawLawCorrections"
+  fields:
+    Id:
+      source: "{name}"
+      type: "integer"
+      primaryKey: true
+    LawCorrectionID:
+      source: "{name}"
+      type: "integer"
+    IsraelLawID:
+      source: "{name}"
+      type: "integer"
+    LastUpdatedBy:
+      source: "{name}"
+      type: "integer"
+    LastUpdatedDate:
+      source: "{name}"
+      type: "datetime"

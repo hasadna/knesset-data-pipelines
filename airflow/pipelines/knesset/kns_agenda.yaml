@@ -1,0 +1,67 @@
+
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_Agenda"
+  fields:
+    Id:
+      source: "{name}"
+      type: "integer"
+      primaryKey: true
+    Number:
+      source: "{name}"
+      type: "integer"
+    ClassificationID:
+      source: "{name}"
+      type: "integer"
+    ClassificationDesc:
+      source: "{name}"
+      type: "string"
+    LeadingAgendaID:
+      source: "{name}"
+      type: "integer"
+    KnessetNum:
+      source: "{name}"
+      type: "integer"
+    Name:
+      source: "{name}"
+      type: "string"
+    SubTypeID:
+      source: "{name}"
+      type: "integer"
+    SubTypeDesc:
+      source: "{name}"
+      type: "string"
+    StatusID:
+      source: "{name}"
+      type: "integer"
+    InitiatorPersonID:
+      source: "{name}"
+      type: "integer"
+    GovRecommendationID:
+      source: "{name}"
+      type: "integer"
+    GovRecommendationDesc:
+      source: "{name}"
+      type: "string"
+    PresidentDecisionDate:
+      source: "{name}"
+      type: "datetime"
+    PostopenmentReasonID:
+      source: "{name}"
+      type: "integer"
+    PostopenmentReasonDesc:
+      source: "{name}"
+      type: "string"
+    CommitteeID:
+      source: "{name}"
+      type: "integer"
+    RecommendCommitteeID:
+      source: "{name}"
+      type: "integer"
+    MinisterPersonID:
+      source: "{name}"
+      type: "integer"
+    LastUpdatedDate:
+      source: "{name}"
+      type: "datetime"

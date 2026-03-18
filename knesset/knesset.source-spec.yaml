@@ -75,6 +75,9 @@ kns_govministry:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
+      CategoryID: {source: "{name}", type: "integer"}
+      CategoryName: {source: "{name}", type: "string"}
+      GovID: {source: "{name}", type: "integer"}
 
 
 kns_itemtype:

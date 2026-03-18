@@ -1,0 +1,28 @@
+
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_SecLawRegulator"
+  fields:
+    Id:
+      source: "{name}"
+      type: "integer"
+      primaryKey: true
+    SecondaryLawID:
+      source: "{name}"
+      type: "integer"
+    RegulatorTypeID:
+      source: "{name}"
+      type: "integer"
+    RegulatorTypeDesc:
+      source: "{name}"
+      type: "string"
+    RegulatorID:
+      source: "{name}"
+      type: "integer"
+    RegulatorDesc:
+      source: "{name}"
+      type: "string"
+    LastUpdatedDate:
+      source: "{name}"
+      type: "datetime"

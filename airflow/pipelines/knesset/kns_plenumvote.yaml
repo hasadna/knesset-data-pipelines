@@ -1,0 +1,58 @@
+
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_PlenumVote"
+  fields:
+    Id:
+      source: "{name}"
+      type: "integer"
+      primaryKey: true
+    VoteDateTime:
+      source: "{name}"
+      type: "datetime"
+    SessionID:
+      source: "{name}"
+      type: "integer"
+    ItemID:
+      source: "{name}"
+      type: "integer"
+    Ordinal:
+      source: "{name}"
+      type: "integer"
+    VoteMethodID:
+      source: "{name}"
+      type: "integer"
+    VoteMethodDesc:
+      source: "{name}"
+      type: "string"
+    VoteStatusCode:
+      source: "{name}"
+      type: "integer"
+    VoteStatusDesc:
+      source: "{name}"
+      type: "string"
+    VoteTitle:
+      source: "{name}"
+      type: "string"
+    VoteSubject:
+      source: "{name}"
+      type: "string"
+    IsNoConfidenceInGov:
+      source: "{name}"
+      type: "boolean"
+    LastUpdatedDate:
+      source: "{name}"
+      type: "datetime"
+    ForOptionID:
+      source: "{name}"
+      type: "integer"
+    ForOptionDesc:
+      source: "{name}"
+      type: "string"
+    AgainstOptionID:
+      source: "{name}"
+      type: "integer"
+    AgainstOptionDesc:
+      source: "{name}"
+      type: "string"

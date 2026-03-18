@@ -136,6 +136,11 @@ kns_law_binding:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
+      IsTempLegislation: {source: "{name}", type: "boolean"}
+      IsSecondaryAmendment: {source: "{name}", type: "boolean"}
+      CorrectionNumber: {source: "{name}", type: "integer"}
+      ParagraphNumber: {source: "{name}", type: "string"}
+
 
 # in v4 this was merged into kns_bills
 #kns_document_law:
@@ -330,6 +335,9 @@ kns_israel_law_ministry:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
+      MinistryCategoryID: {source: "{name}", type: "integer"}
+      MinistryCategoryDesc: {source: "{name}", type: "string"}
+
 
 kns_israel_law_classification:
   description: "סיווג חוקי אב"

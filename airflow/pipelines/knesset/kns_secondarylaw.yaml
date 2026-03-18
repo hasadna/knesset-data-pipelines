@@ -1,0 +1,100 @@
+
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_SecondaryLaw"
+  fields:
+    Id:
+      source: "{name}"
+      type: "integer"
+      primaryKey: true
+    KnessetNum:
+      source: "{name}"
+      type: "integer"
+    Name:
+      source: "{name}"
+      type: "string"
+    CompletionCauseID:
+      source: "{name}"
+      type: "integer"
+    CompletionCauseDesc:
+      source: "{name}"
+      type: "string"
+    PostponementReasonID:
+      source: "{name}"
+      type: "integer"
+    PostponementReasonDesc:
+      source: "{name}"
+      type: "string"
+    KnessetInvolvementID:
+      source: "{name}"
+      type: "integer"
+    KnessetInvolvementDesc:
+      source: "{name}"
+      type: "string"
+    CommitteeID:
+      source: "{name}"
+      type: "integer"
+    PublicationSeriesID:
+      source: "{name}"
+      type: "integer"
+    PublicationSeriesDesc:
+      source: "{name}"
+      type: "string"
+    MagazineNumber:
+      source: "{name}"
+      type: "string"
+    PageNumber:
+      source: "{name}"
+      type: "string"
+    PublicationDate:
+      source: "{name}"
+      type: "datetime"
+    MajorAuthorizingLawID:
+      source: "{name}"
+      type: "integer"
+    CommitteeReceivedDate:
+      source: "{name}"
+      type: "datetime"
+    CommitteeApprovalDate:
+      source: "{name}"
+      type: "datetime"
+    ApprovalDateWithoutDiscussion:
+      source: "{name}"
+      type: "datetime"
+    IsAmmendingLawOriginal:
+      source: "{name}"
+      type: "boolean"
+    ClassificationID:
+      source: "{name}"
+      type: "integer"
+    ClassificationDesc:
+      source: "{name}"
+      type: "string"
+    IsEmergency:
+      source: "{name}"
+      type: "boolean"
+    SecretaryReceivedDate:
+      source: "{name}"
+      type: "datetime"
+    PlenumApprovalDate:
+      source: "{name}"
+      type: "datetime"
+    TypeID:
+      source: "{name}"
+      type: "integer"
+    TypeDesc:
+      source: "{name}"
+      type: "string"
+    StatusID:
+      source: "{name}"
+      type: "integer"
+    StatusName:
+      source: "{name}"
+      type: "string"
+    IsCurrent:
+      source: "{name}"
+      type: "boolean"
+    LastUpdatedDate:
+      source: "{name}"
+      type: "datetime"

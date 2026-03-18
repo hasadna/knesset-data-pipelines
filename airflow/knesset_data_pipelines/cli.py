@@ -1,4 +1,5 @@
 import importlib
+import json
 
 import click
 import dotenv
@@ -35,11 +36,20 @@ def run(**kwargs):
 
 @main.command('list')
 @click.option('--filter-pipeline-ids', help='comma separated list of pipeline ids to filter')
+@click.option('--full', is_flag=True)
 def list_(**kwargs):
     """List all pipelines"""
     from .run_pipeline import list_pipelines
-    for error, pipeline_id, pipeline_dependencies, pipeline_schedule in list_pipelines(**kwargs, all_=True, with_dependencies=True):
-        print(f'- {pipeline_id}{" (e)" if error else ""} (dependencies: {pipeline_dependencies}){" (scheduled)" if pipeline_schedule else ""}')
+    if kwargs.get('full'):
+        print('[')
+        for i, data in enumerate(list_pipelines(**kwargs)):
+            if i > 0:
+                print(',')
+            print(json.dumps(data, indent=2))
+        print(']')
+    else:
+        for error, pipeline_id, pipeline_dependencies, pipeline_schedule in list_pipelines(**kwargs, all_=True, with_dependencies=True):
+            print(f'- {pipeline_id}{" (e)" if error else ""} (dependencies: {pipeline_dependencies}){" (scheduled)" if pipeline_schedule else ""}')
 
 
 @main.command()

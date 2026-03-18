@@ -1,0 +1,55 @@
+
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_SecToSecBinding"
+  fields:
+    Id:
+      source: "{name}"
+      type: "integer"
+      primaryKey: true
+    SecChildID:
+      source: "{name}"
+      type: "integer"
+    SecChildTypeID:
+      source: "{name}"
+      type: "integer"
+    SecParentID:
+      source: "{name}"
+      type: "integer"
+    SecParentTypeID:
+      source: "{name}"
+      type: "integer"
+    SecMainID:
+      source: "{name}"
+      type: "integer"
+    SecMainTypeID:
+      source: "{name}"
+      type: "integer"
+    BindingTypeID:
+      source: "{name}"
+      type: "integer"
+    BindingTypeDesc:
+      source: "{name}"
+      type: "string"
+    IsTempLegislation:
+      source: "{name}"
+      type: "boolean"
+    IsSecondaryAmendment:
+      source: "{name}"
+      type: "boolean"
+    CorrectionNumber:
+      source: "{name}"
+      type: "integer"
+    AmendmentTypeID:
+      source: "{name}"
+      type: "integer"
+    AmendmentTypeDesc:
+      source: "{name}"
+      type: "string"
+    ParagraphNumber:
+      source: "{name}"
+      type: "string"
+    LastUpdatedDate:
+      source: "{name}"
+      type: "datetime"

@@ -225,6 +225,7 @@ kns_documentcommitteesession_dataservice:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
+      DocumentName: {source: "{name}", type: "string"}
 
 
 kns_documentcommitteesession:
@@ -392,6 +393,8 @@ kns_committeesession_dataservice:
         source: "{name}"
         type: datetime
         description: תאריך עדכון אחרון
+      StatusID: {source: "{name}", type: "integer"}
+      StatusDesc: {source: "{name}", type: "string"}
 
 
 kns_committeesession:

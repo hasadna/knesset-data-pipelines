@@ -1,0 +1,61 @@
+
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_LawCorrections"
+  fields:
+    Id:
+      source: "{name}"
+      type: "integer"
+      primaryKey: true
+    BillID:
+      source: "{name}"
+      type: "integer"
+    CorrectionTypeID:
+      source: "{name}"
+      type: "integer"
+    CorrectionTypeDesc:
+      source: "{name}"
+      type: "string"
+    IsKnessetInvolvement:
+      source: "{name}"
+      type: "boolean"
+    CommitteeID:
+      source: "{name}"
+      type: "integer"
+    CorrectionStatusID:
+      source: "{name}"
+      type: "integer"
+    CorrectionStatusDesc:
+      source: "{name}"
+      type: "string"
+    VoteDate:
+      source: "{name}"
+      type: "datetime"
+    PublicationDate:
+      source: "{name}"
+      type: "datetime"
+    PublicationSeriesID:
+      source: "{name}"
+      type: "integer"
+    PublicationSeriesDesc:
+      source: "{name}"
+      type: "string"
+    MagazineNumber:
+      source: "{name}"
+      type: "string"
+    PageNumber:
+      source: "{name}"
+      type: "string"
+    CommencementDate:
+      source: "{name}"
+      type: "datetime"
+    LastUpdatedBy:
+      source: "{name}"
+      type: "integer"
+    LastUpdatedDate:
+      source: "{name}"
+      type: "datetime"
+    CreatedDate:
+      source: "{name}"
+      type: "datetime"

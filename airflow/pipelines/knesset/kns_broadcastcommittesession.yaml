@@ -1,0 +1,16 @@
+
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_BroadcastCommitteSession"
+  fields:
+    Id:
+      source: "{name}"
+      type: "integer"
+      primaryKey: true
+    BroadcastId:
+      source: "{name}"
+      type: "integer"
+    BroadcastUrl:
+      source: "{name}"
+      type: "string"

@@ -1,0 +1,28 @@
+
+pipeline-type: knesset dataservice
+dataservice-parameters:
+  service-name: api
+  method-name: "KNS_Faction"
+  fields:
+    Id:
+      source: "{name}"
+      type: "integer"
+      primaryKey: true
+    Name:
+      source: "{name}"
+      type: "string"
+    KnessetNum:
+      source: "{name}"
+      type: "integer"
+    StartDate:
+      source: "{name}"
+      type: "datetime"
+    FinishDate:
+      source: "{name}"
+      type: "datetime"
+    IsCurrent:
+      source: "{name}"
+      type: "boolean"
+    LastUpdatedDate:
+      source: "{name}"
+      type: "datetime"
