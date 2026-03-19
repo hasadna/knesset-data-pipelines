@@ -54,6 +54,7 @@ GOOGLE_COMMITTEE_MEETING_PROTOCOLS_FOLDER_ID = os.environ.get('GOOGLE_COMMITTEE_
 
 DATASERVICE_HTTP_PROXY = os.environ.get('DATASERVICE_HTTP_PROXY')
 
+AIRFLOW_DEFAULT_EMAILS = [e.strip() for e in (os.environ.get('AIRFLOW_DEFAULT_EMAILS') or '').split(',') if e.strip()]
 
 @contextmanager
 def get_google_service_account_json_file_name():

@@ -3,6 +3,7 @@ from airflow.utils.dates import days_ago
 from airflow.operators.python import PythonOperator
 
 from knesset_data_pipelines.google_drive_upload import committee_meeting_protocols
+from knesset_data_pipelines.config import AIRFLOW_DEFAULT_EMAILS
 
 
 dag_kwargs = dict(
@@ -18,5 +19,6 @@ dag_kwargs = dict(
 with DAG('google_drive_uploads.committee_meeting_protocols', **dag_kwargs) as dag:
     PythonOperator(
         python_callable=committee_meeting_protocols.main,
-        task_id='committee_meeting_protocols'
+        task_id='committee_meeting_protocols',
+        email=AIRFLOW_DEFAULT_EMAILS,
     )

@@ -4,6 +4,7 @@ from airflow.operators.python import PythonOperator
 
 from knesset_data_pipelines.committees import background_material_titles
 from knesset_data_pipelines.committees import parsed_document_committee_sessions
+from knesset_data_pipelines.config import AIRFLOW_DEFAULT_EMAILS
 
 
 dag_kwargs = dict(

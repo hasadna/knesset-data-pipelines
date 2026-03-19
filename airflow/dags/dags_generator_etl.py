@@ -14,6 +14,7 @@ from airflow import settings
 from sqlalchemy.orm import sessionmaker
 
 from knesset_data_pipelines.run_pipeline import list_pipelines, main as run_pipeline
+from knesset_data_pipelines.config import AIRFLOW_DEFAULT_EMAILS
 
 
 dag_kwargs = dict(
@@ -89,14 +90,16 @@ for params_error, pipeline_id, pipeline_dependencies, pipeline_schedule in list_
                 ),
                 random_name_suffix=True,
                 task_id=pipeline_dag_id,
-                dag=dag
+                dag=dag,
+                email=AIRFLOW_DEFAULT_EMAILS,
             )
         else:
             main_task = PythonOperator(
                 python_callable=run_pipeline,
                 task_id=pipeline_id.replace('/', '.'),
                 op_kwargs={'pipeline_id': pipeline_id},
-                dag=dag
+                dag=dag,
+                email=AIRFLOW_DEFAULT_EMAILS,
             )
         for dependency in pipeline_dependencies:
             dependency_dag_id = dependency.replace('/', '.')
@@ -105,5 +108,6 @@ for params_error, pipeline_id, pipeline_dependencies, pipeline_schedule in list_
                 external_dag_id=dependency_dag_id,
                 execution_date_fn=partial(get_execution_dates, external_dag_id=dependency_dag_id),
                 mode='reschedule',
-                dag=dag
+                dag=dag,
+                email=AIRFLOW_DEFAULT_EMAILS,
             ) >> main_task
