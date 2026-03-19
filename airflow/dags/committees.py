@@ -20,12 +20,14 @@ dag_kwargs = dict(
 with DAG('committees.background_material_titles', **dag_kwargs) as dag:
     PythonOperator(
         python_callable=background_material_titles.main,
-        task_id='background_material_titles'
+        task_id='background_material_titles',
+        email=AIRFLOW_DEFAULT_EMAILS,
     )
 
 
 with DAG('committees.parsed_document_committee_sessions', **dag_kwargs) as dag:
     PythonOperator(
         python_callable=parsed_document_committee_sessions.main,
-        task_id='parsed_document_committee_sessions'
+        task_id='parsed_document_committee_sessions',
+        email=AIRFLOW_DEFAULT_EMAILS,
     )
