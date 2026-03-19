@@ -108,9 +108,12 @@ def flow():
         for agg_key, agg in get_all_aggregates():
             if agg.get('protocol_meetings', 0) > 0:
                 attended_meetings_percent = agg.get('attended_meetings_percent', 0)
-                relative_percent = int((attended_meetings_percent - min_attended_meetings_percent)
-                                       / (max_attended_meetings_percent - min_attended_meetings_percent)
-                                       * 100)
+                if (max_attended_meetings_percent - min_attended_meetings_percent) > 0:
+                    relative_percent = int((attended_meetings_percent - min_attended_meetings_percent)
+                                           / (max_attended_meetings_percent - min_attended_meetings_percent)
+                                           * 100)
+                else:
+                    relative_percent = 0
                 agg['attended_meetings_relative_percent'] = relative_percent
         yield get_mk_aggregates()
 
