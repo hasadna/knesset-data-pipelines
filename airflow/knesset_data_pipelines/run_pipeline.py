@@ -8,6 +8,7 @@ import tempfile
 import warnings
 import traceback
 import subprocess
+import itertools
 from glob import glob
 from pprint import pprint
 from textwrap import dedent
@@ -266,7 +267,7 @@ def add_dataservice_collection_resource_odata_v4(params, proxies, stats, limit_r
         skip = num_entries if skip is None else skip + num_entries
         if odata_count is None and isinstance(res, dict) and '@odata.count' in res:
             odata_count = res['@odata.count']
-            assert odata_count > 0, f'invalid count: {odata_count} for url {url}\n{content}'
+            assert odata_count >= 0, f'invalid count: {odata_count} for url {url}\n{content}'
         if num_entries == 0:
             break
         if limit_rows and stats['rows'] >= limit_rows:
@@ -350,18 +351,27 @@ def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_
             next_url = None
 
 
-def upload_to_storage(source_path, target_url, pipeline_name):
-    print(f'uploading {source_path} to {target_url}')
+def upload_to_storage(source_path, target_url, pipeline_name, delete=False):
+    if delete:
+        assert source_path is None
+        print(f'deleting {target_url} from storage')
+    else:
+        print(f'uploading {source_path} to {target_url}')
     assert target_url.startswith('http://storage.googleapis.com/knesset-data-pipelines/')
     target_path = target_url.replace('http://storage.googleapis.com/knesset-data-pipelines/', '')
     bucket_name = 'knesset-data-pipelines'
     storage_client = google.cloud.storage.Client()
     bucket = storage_client.bucket(bucket_name)
     for filename in ('datapackage.json', f'{pipeline_name}.csv'):
-        filepath = os.path.join(source_path, filename)
-        assert os.path.exists(filepath), f'file not found: {filepath}'
-        blob = bucket.blob(os.path.join(target_path, filename))
-        blob.upload_from_filename(filepath)
+        if delete:
+            blob = bucket.blob(os.path.join(target_path, filename))
+            if blob.exists():
+                blob.delete()
+        else:
+            filepath = os.path.join(source_path, filename)
+            assert os.path.exists(filepath), f'file not found: {filepath}'
+            blob = bucket.blob(os.path.join(target_path, filename))
+            blob.upload_from_filename(filepath)
 
 
 def get_schema_set_type_kwargs(dataservice_params):
@@ -385,50 +395,61 @@ def _run_pipeline(table_name, storage_url, pipeline_id, storage_path, dataservic
     print(f'pipeline_id: {pipeline_id}\nstorage_url: {storage_url}\nstorage_path: {storage_path}\ntable_name: {table_name}')
     stats = defaultdict(int)
     temp_table_name = f'__temp__{table_name}'
-    DF.Flow(
-        add_dataservice_collection_resource(dataservice_params, stats=stats, limit_rows=limit_rows, stop_on_throttled_error=stop_on_throttled_error, start_url=start_url, load_from=load_from),
-        DF.update_resource('res_1', name=pipeline_name, path=f'{pipeline_name}.csv'),
-        *[DF.set_type(resources=pipeline_name, **kwargs) for kwargs in get_schema_set_type_kwargs(dataservice_params)],
-        *([
-              DF.dump_to_path(storage_path),
-          ] if dump_to_path else []),
-        *([
-              DF.dump_to_sql(
-                  {temp_table_name: {'resource-name': pipeline_name}},
-                  db.get_db_engine(),
-                  batch_size=100000,
-              ),
-          ] if dump_to_db else []),
-    ).process()
-    if dump_to_db:
-        alias_table_name = dataservice_params['method-name'] if dataservice_params.get("service-name") == "api" else None
-        with db.get_db_engine().connect() as conn:
-            with conn.begin():
-                sql = []
-                if alias_table_name:
-                    sql.append(f'drop view if exists "{alias_table_name}";')
-                sql.append(f'drop table if exists {table_name};')
-                sql.append(f'alter table {temp_table_name} rename to {table_name};')
-                if alias_table_name:
-                    alias_table_name = dataservice_params['method-name']
-                    sql.append(f'create view "{alias_table_name}" as select')
-                    for i, field_name in enumerate(dataservice_params['fields']):
-                        alias_field_name = field_name
-                        if dataservice_params['fields'][field_name].get('primaryKey'):
-                            alias_field_name = 'Id'
-                        if i != 0:
-                            sql.append(',')
-                        sql.append(f'"{field_name}" as "{alias_field_name}"')
-                    sql.append(f'from {table_name};')
-                conn.execute("\n".join(sql))
-    if dump_to_storage:
-        upload_to_storage(storage_path, storage_url, pipeline_name)
+    rows_iterator = add_dataservice_collection_resource(dataservice_params, stats=stats, limit_rows=limit_rows, stop_on_throttled_error=stop_on_throttled_error, start_url=start_url, load_from=load_from)
+    first_row = next(rows_iterator, None)
+    if first_row is not None:
+        DF.Flow(
+            itertools.chain([first_row], rows_iterator),
+            DF.update_resource('res_1', name=pipeline_name, path=f'{pipeline_name}.csv'),
+            *[DF.set_type(resources=pipeline_name, **kwargs) for kwargs in get_schema_set_type_kwargs(dataservice_params)],
+            *([
+                  DF.dump_to_path(storage_path),
+              ] if dump_to_path else []),
+            *([
+                  DF.dump_to_sql(
+                      {temp_table_name: {'resource-name': pipeline_name}},
+                      db.get_db_engine(),
+                      batch_size=100000,
+                  ),
+              ] if dump_to_db else []),
+        ).process()
+        if dump_to_db:
+            alias_table_name = dataservice_params['method-name'] if dataservice_params.get("service-name") == "api" else None
+            with db.get_db_engine().connect() as conn:
+                with conn.begin():
+                    sql = []
+                    if alias_table_name:
+                        sql.append(f'drop view if exists "{alias_table_name}";')
+                    sql.append(f'drop table if exists {table_name};')
+                    sql.append(f'alter table {temp_table_name} rename to {table_name};')
+                    if alias_table_name:
+                        alias_table_name = dataservice_params['method-name']
+                        sql.append(f'create view "{alias_table_name}" as select')
+                        for i, field_name in enumerate(dataservice_params['fields']):
+                            alias_field_name = field_name
+                            if dataservice_params['fields'][field_name].get('primaryKey'):
+                                alias_field_name = 'Id'
+                            if i != 0:
+                                sql.append(',')
+                            sql.append(f'"{field_name}" as "{alias_field_name}"')
+                        sql.append(f'from {table_name};')
+                    conn.execute("\n".join(sql))
+        if dump_to_storage:
+            upload_to_storage(storage_path, storage_url, pipeline_name)
+    else:
+        print('no data found for the pipeline, removing old data if exists')
+        shutil.rmtree(storage_path, ignore_errors=True)
+        if dump_to_db:
+            with db.get_db_engine().connect() as conn:
+                conn.execute(f'drop table if exists {table_name};')
+        if dump_to_storage:
+            upload_to_storage(None, storage_url, pipeline_name, delete=True)
     pprint(dict(stats))
     if stop_on_throttled_error:
         for key in stats.keys():
             if key.startswith('stopped_on_throttled_error_next_url__'):
                 return key.replace('stopped_on_throttled_error_next_url__', '')
-        return None
+    return None
 
 
 def main(pipeline_id, limit_rows=None, dump_to_db=None, dump_to_path=None, dump_to_storage=None):
