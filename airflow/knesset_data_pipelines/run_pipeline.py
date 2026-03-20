@@ -31,7 +31,6 @@ UNSUPPORTED_PIPELINE_PARAMS_ERRORS = ['pipeline dependencies are not supported',
 
 PIPELINES_DEV_DOCKER_IMAGE = 'orihoch/knesset-data-pipelines@sha256:329c7619fbdb4603d485df327c17cec556bc1ece1db2f11bc64854e94a5ce88a'
 
-
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 
@@ -248,11 +247,9 @@ def add_dataservice_collection_resource_odata_v4(params, proxies, stats, limit_r
     odata_count = None
     skip = None
     while True:
-        if odata_count is None:
-            assert skip is None
+        if skip is None:
             url = f'{url_base}?$count=true'
         else:
-            assert skip is not None
             url = f'{url_base}?$skip={skip}'
         print(url)
         status_code, content = get_response_content(url, params, timeout, proxies)
@@ -262,21 +259,19 @@ def add_dataservice_collection_resource_odata_v4(params, proxies, stats, limit_r
         except Exception as e:
             raise Exception(f'failed to parse json response for url {url}\n{content}') from e
         num_entries = 0
-        for entry in res['value']:
+        for entry in (res if isinstance(res, list) else res['value']):
             stats['rows'] += 1
             yield get_row_from_entry(params, entry, v4=True)
             num_entries += 1
-        if odata_count is None:
+        skip = num_entries if skip is None else skip + num_entries
+        if odata_count is None and isinstance(res, dict) and '@odata.count' in res:
             odata_count = res['@odata.count']
             assert odata_count > 0, f'invalid count: {odata_count} for url {url}\n{content}'
-            skip = 100
-        else:
-            skip += 100
         if num_entries == 0:
             break
         if limit_rows and stats['rows'] >= limit_rows:
             break
-    assert limit_rows or stats['rows'] == odata_count, f'invalid rows count: {stats["rows"]} != {odata_count} for url {url}'
+    assert limit_rows or odata_count is None or stats['rows'] == odata_count, f'invalid rows count: {stats["rows"]} != {odata_count} for url {url}'
 
 
 def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_rows=None, stop_on_throttled_error=False, start_url=None, load_from=None):
