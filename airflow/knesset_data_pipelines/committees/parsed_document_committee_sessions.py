@@ -41,6 +41,7 @@ def parse_retry_error(type_, error, document_session_id, group_type_id, applicat
         for filepath in [download_filepath, parsed_filepath, hash_filepath]:
             if os.path.exists(filepath):
                 os.remove(filepath)
+        os.makedirs(os.path.dirname(retry_filepath), exist_ok=True)
         with open(retry_filepath, 'w') as f:
             f.write(str(retry_num))
 
