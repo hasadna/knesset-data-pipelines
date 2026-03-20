@@ -185,7 +185,7 @@ def update_faction(faction_id, faction_name, start_date, finish_date, mk_id, kne
 
 def get_person_positions(person_id, mk_individual_row):
     positions = []
-    for kns_persontoposition_row in kns_persontopositions[person_id]:
+    for kns_persontoposition_row in (kns_persontopositions.get(person_id) or []):
         if kns_persontoposition_row['KnessetNum'] is None:
             logging.warning('invalid persontoposition row - missing KnessetNum: {}'.format(kns_persontoposition_row))
             continue
