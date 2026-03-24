@@ -7,7 +7,6 @@ kns_person:
   pipeline-type: knesset dataservice
   schemas-bucket: members
   dataservice-parameters:
-    incremental-field: LastUpdatedDate
     resource-name: kns_person
     service-name: api
     method-name: "KNS_Person"

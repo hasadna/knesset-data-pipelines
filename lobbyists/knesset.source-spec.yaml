@@ -18,18 +18,22 @@ v_lobbyist:
         source: "{name}"
         type: string
         description: מספר זהות
+        primaryKey: true
       FullName:
         source: "{name}"
         type: string
         description: שם מלא
+        primaryKey: true
       PermitTypeValue:
         source: "{name}"
         type: string
         description: סוג היתר
+        primaryKey: true
       Key:
         source: "{name}"
-        type: number
+        type: integer
         description: מפתח
+        primaryKey: true
       CorporationName:
         source: "{name}"
         type: string
@@ -40,7 +44,7 @@ v_lobbyist:
         description: האם עצמאי
       CorpNumber:
         source: "{name}"
-        type: number
+        type: integer
         description: מספר חברה
       PracticeFramework:
         source: "{name}"
@@ -54,6 +58,7 @@ v_lobbyist:
         source: "{name}"
         type: boolean
         description: חבר בסיעה
+        primaryKey: true
 
 
 v_lobbyist_clients:
@@ -71,15 +76,19 @@ v_lobbyist_clients:
         source: "{name}"
         type: integer
         description: קוד השדלן
+        primaryKey: true
       ClientID:
         source: "{name}"
         type: integer
         description: קוד הלקוח
+        primaryKey: true
       Name:
         source: "{name}"
         type: string
         description: שם
+        primaryKey: true
       ClientsNames:
         source: "{name}"
         type: string
         description: שמות הלקוחות
+        primaryKey: true

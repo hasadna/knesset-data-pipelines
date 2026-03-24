@@ -13,6 +13,8 @@ from glob import glob
 from pprint import pprint
 from textwrap import dedent
 from collections import defaultdict
+import pickle
+import functools
 
 import requests
 import dataflows as DF
@@ -25,7 +27,7 @@ from . import config, db
 
 
 RECOVERABLE_SERVER_ERRORS = [500, 504]
-RECOVERABLE_THROTTLE_ERRORS = [503, 403, 504]
+RECOVERABLE_THROTTLE_ERRORS = [500, 503, 403, 504]
 
 # these errors indicate that the pipeline cannot run using the standard dataservice flow but have to run via Docker
 UNSUPPORTED_PIPELINE_PARAMS_ERRORS = ['pipeline dependencies are not supported', 'unknown pipeline-type: None', 'additional-steps is not supported']
@@ -215,6 +217,20 @@ def get_row_from_entry(params, entry, v4=False):
     return {fieldname: get_field_from_entry(fieldname, field, data, v4=v4) for fieldname, field in params['fields'].items()}
 
 
+def get_key_row_from_entry(params, entry, v4=False):
+    row = get_row_from_entry(params, entry, v4)
+    primary_keys = set()
+    for field_name, field in params['fields'].items():
+        if field.get('primaryKey'):
+            primary_keys.add(field_name)
+    key = ';'.join([str(row[k]) for k in sorted(list(primary_keys))])
+    assert len(key) > 0, f'unexpected key ({key}): {params} {entry}'
+    return {
+        'key': key,
+        'row': row,
+    }
+
+
 def get_next_skiptoken(first_skiptoken, i, processed_entry_ids):
     if len(processed_entry_ids) > i:
         skiptoken = processed_entry_ids[-(i+1)]
@@ -262,7 +278,7 @@ def add_dataservice_collection_resource_odata_v4(params, proxies, stats, limit_r
         num_entries = 0
         for entry in (res if isinstance(res, list) else res['value']):
             stats['rows'] += 1
-            yield get_row_from_entry(params, entry, v4=True)
+            yield get_key_row_from_entry(params, entry, v4=True)
             num_entries += 1
         skip = num_entries if skip is None else skip + num_entries
         if odata_count is None and isinstance(res, dict) and '@odata.count' in res:
@@ -341,7 +357,7 @@ def add_dataservice_collection_resource(params, proxies=None, stats=None, limit_
                     has_valid_entry_ids = False
             if not has_valid_entry_ids or entry_id not in processed_entry_ids:
                 stats['rows'] += 1
-                yield get_row_from_entry(params, entry)
+                yield get_key_row_from_entry(params, entry)
                 if has_valid_entry_ids:
                     processed_entry_ids.append(entry_id)
         try:
@@ -385,6 +401,42 @@ def get_schema_set_type_kwargs(dataservice_params):
     return res
 
 
+def validate_items_iterator(iterator_func, stats, num_validations=2, max_iterations=5):
+    print(f'Starting validate_items_iterator (num_validations={num_validations}, max_iterations={max_iterations})')
+    ok, last_keys = False, None
+    with tempfile.TemporaryDirectory() as tmpdir:
+        filename = os.path.join(tmpdir, 'pickle')
+        for i in range(max_iterations):
+            stats.clear()
+            print(f'validate_items_iterator iteration #{i+1}')
+            if i > 0:
+                os.unlink(filename)
+            with open(filename, 'wb') as f:
+                pickler = pickle.Pickler(f)
+                cur_keys = set()
+                for data in iterator_func():
+                    pickler.dump(data['row'])
+                    key = data['key']
+                    assert key not in cur_keys, f'duplicate key {key}'
+                    cur_keys.add(key)
+            if last_keys is not None and cur_keys == last_keys:
+                num_validations -= 1
+                print(f'Validated, remaining validations: {num_validations}')
+            if num_validations <= 0:
+                ok = True
+                break
+            last_keys = cur_keys
+        assert ok, f'Failed to validate items iterator after {max_iterations} iterations'
+        print('Validated all required validations')
+        with open(filename, 'rb') as f:
+            unpickler = pickle.Unpickler(f)
+            while True:
+                try:
+                    yield unpickler.load()
+                except EOFError:
+                    break
+
+
 def _run_pipeline(table_name, storage_url, pipeline_id, storage_path, dataservice_params, limit_rows, pipeline_name, dump_to_path, dump_to_db, dump_to_storage,
                   stop_on_throttled_error=False, start_url=None, load_from=None):
     if stop_on_throttled_error:
@@ -395,7 +447,14 @@ def _run_pipeline(table_name, storage_url, pipeline_id, storage_path, dataservic
     print(f'pipeline_id: {pipeline_id}\nstorage_url: {storage_url}\nstorage_path: {storage_path}\ntable_name: {table_name}')
     stats = defaultdict(int)
     temp_table_name = f'__temp__{table_name}'
-    rows_iterator = add_dataservice_collection_resource(dataservice_params, stats=stats, limit_rows=limit_rows, stop_on_throttled_error=stop_on_throttled_error, start_url=start_url, load_from=load_from)
+    rows_iterator = validate_items_iterator(
+        functools.partial(
+            add_dataservice_collection_resource,
+            dataservice_params,
+            stats=stats, limit_rows=limit_rows, stop_on_throttled_error=stop_on_throttled_error, start_url=start_url, load_from=load_from
+        ),
+        stats,
+    )
     first_row = next(rows_iterator, None)
     if first_row is not None:
         DF.Flow(

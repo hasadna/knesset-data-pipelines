@@ -327,10 +327,11 @@ kns_israel_law_ministry:
         source: "{name}"
         type: integer
         description: קוד חוק האב
-      GovMinistryID:
-        source: "{name}"
-        type: integer
-        description: קוד המשרד הממשלתי
+# removed in v4 api
+#      GovMinistryID:
+#        source: "{name}"
+#        type: integer
+#        description: קוד המשרד הממשלתי
       LastUpdatedDate:
         source: "{name}"
         type: datetime
