@@ -265,9 +265,9 @@ def add_dataservice_collection_resource_odata_v4(params, proxies, stats, limit_r
     skip = None
     while True:
         if skip is None:
-            url = f'{url_base}?$count=true'
+            url = f'{url_base}?$orderby=Id&$count=true'
         else:
-            url = f'{url_base}?$skip={skip}'
+            url = f'{url_base}?$orderby=Id&$skip={skip}'
         print(url)
         status_code, content = get_response_content(url, params, timeout, proxies)
         assert status_code == 200, f'unexpected status code: {status_code} for url {url}\n{content}'
