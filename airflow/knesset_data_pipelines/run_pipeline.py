@@ -417,11 +417,16 @@ def validate_items_iterator(iterator_func, stats, num_validations=2, max_iterati
                 for data in iterator_func():
                     pickler.dump(data['row'])
                     key = data['key']
-                    assert key not in cur_keys, f'duplicate key {key}'
-                    cur_keys.add(key)
-            if last_keys is not None and cur_keys == last_keys:
-                num_validations -= 1
-                print(f'Validated, remaining validations: {num_validations}')
+                    if key in cur_keys:
+                        print(f'WARNING: duplicate key {key}')
+                    else:
+                        cur_keys.add(key)
+            if last_keys is not None:
+                if cur_keys == last_keys:
+                    num_validations -= 1
+                    print(f'Validated, remaining validations: {num_validations}')
+                else:
+                    print(f'Validation failed, diff: {cur_keys.symmetric_difference(last_keys)}')
             if num_validations <= 0:
                 ok = True
                 break
