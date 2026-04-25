@@ -5,14 +5,16 @@ The Knesset OData API returns broadcast URLs pointing to the old SharePoint site
 
 This site was rebuilt — these URLs no longer work.
 
-The actual video streams are available at:
-  https://video.knesset.gov.il/KnsVod/_definst_/mp4:archive/CMT/CmtSession_{CommitteeSessionID}.mp4/playlist.m3u8
+The correct video URLs were fetched from the Knesset's WebSiteApi
+(GetCommitteePortalsBroadcast) and stored in broadcast_urls.json.
+This processor looks up the correct URL by CommitteeSessionID.
 
-This processor replaces the broken URLs with direct HLS video stream links
-using the CommitteeSessionID which is already in the data.
+To regenerate the mapping: python committees/fetch_broadcast_urls.py
 
 See: https://github.com/hasadna/knesset-data-pipelines/issues/241
 """
+import json
+import os
 import re
 
 from datapackage_pipelines.wrapper import process
@@ -20,9 +22,20 @@ from datapackage_pipelines.wrapper import process
 BROKEN_PATTERN = re.compile(
     r'https?://main\.knesset\.gov\.il/Activity/committees/Pages/AllCommitteesBroadcast\.aspx\?TopicID=\d+'
 )
-VIDEO_TEMPLATE = (
-    'https://video.knesset.gov.il/KnsVod/_definst_/mp4:archive/CMT/CmtSession_{session_id}.mp4/playlist.m3u8'
-)
+
+_url_mapping = None
+
+
+def _get_url_mapping():
+    global _url_mapping
+    if _url_mapping is None:
+        mapping_path = os.path.join(os.path.dirname(__file__), 'broadcast_urls.json')
+        if os.path.exists(mapping_path):
+            with open(mapping_path, encoding='utf-8') as f:
+                _url_mapping = json.load(f)
+        else:
+            _url_mapping = {}
+    return _url_mapping
 
 
 def process_row(row, row_index, spec, resource_index, parameters, stats):
@@ -30,9 +43,15 @@ def process_row(row, row_index, spec, resource_index, parameters, stats):
         broadcast_url = row.get('BroadcastUrl')
         session_id = row.get('CommitteeSessionID')
         if broadcast_url and session_id and BROKEN_PATTERN.match(broadcast_url):
-            row['BroadcastUrl'] = VIDEO_TEMPLATE.format(session_id=session_id)
-            stats.setdefault('fixed_broadcast_urls', 0)
-            stats['fixed_broadcast_urls'] += 1
+            mapping = _get_url_mapping()
+            new_url = mapping.get(str(session_id))
+            if new_url:
+                row['BroadcastUrl'] = new_url
+                stats.setdefault('fixed_broadcast_urls', 0)
+                stats['fixed_broadcast_urls'] += 1
+            else:
+                stats.setdefault('unfixed_broadcast_urls', 0)
+                stats['unfixed_broadcast_urls'] += 1
     return row
 
 
