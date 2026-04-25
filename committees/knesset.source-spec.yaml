@@ -490,4 +490,5 @@ kns_committeesession:
       fields:
         committee_name:
           name: Name
+  - run: fix_broadcast_urls
   - run: join_session_bills
